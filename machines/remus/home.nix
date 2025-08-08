@@ -1,11 +1,14 @@
 { config, pkgs, ... }:
 
+let
+  modules = import ../../modules;
+in
 {
   imports = [
-    ../../modules/common/home.nix
-    ../../modules/programs/development.nix
-    ../../modules/programs/git.nix
-    ../../modules/programs/zsh.nix
+    modules.users.home
+    modules.development.core
+    modules.development.git
+    modules.system.shell
   ];
 
   home = {

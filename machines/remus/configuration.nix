@@ -1,10 +1,13 @@
 
 { config, pkgs, ... }:
 
+let
+  modules = import ../../modules;
+in
 {
   imports = [
-    ../../modules/common/system.nix
-    ../../modules/users/jsp.nix
+    modules.system.core
+    modules.users.jsp
   ];
 
   # Necessary for using flakes on this system.
