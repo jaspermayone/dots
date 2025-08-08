@@ -8,6 +8,12 @@
     ../../modules/programs/zsh.nix
   ];
 
+  home = {
+    username = "jsp";
+    homeDirectory = "/Users/jsp";
+    stateVersion = "23.11";
+  };
+
   # machine-specific packages
   home.packages = with pkgs; [
     slack
