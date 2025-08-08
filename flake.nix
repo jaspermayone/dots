@@ -29,7 +29,7 @@
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              users.jsp = import ./machines/macbook-pro/home.nix;
+              users.jsp = import ./machines/remus/home.nix;
             };
           }
         ];
