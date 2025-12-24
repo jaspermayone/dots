@@ -323,43 +323,42 @@ let
     # Build proxy configuration based on protocol
     if [ "$protocol" = "http" ]; then
       ${pkgs.coreutils}/bin/cat > $config_file <<EOF
-    serverAddr = "${cfg.serverAddr}"
-    serverPort = ${toString cfg.serverPort}
+serverAddr = "${cfg.serverAddr}"
+serverPort = ${toString cfg.serverPort}
 
-    auth.method = "token"
-    auth.tokenSource.type = "file"
-    auth.tokenSource.file.path = "${cfg.authTokenFile}"
+auth.method = "token"
+auth.tokenSource.type = "file"
+auth.tokenSource.file.path = "${cfg.authTokenFile}"
 
-    [[proxies]]
-    name = "$proxy_name"
-    type = "http"
-    localIP = "127.0.0.1"
-    localPort = $port
-    subdomain = "$tunnel_name"
-    EOF
+[[proxies]]
+name = "$proxy_name"
+type = "http"
+localIP = "127.0.0.1"
+localPort = $port
+subdomain = "$tunnel_name"
+EOF
     elif [ "$protocol" = "tcp" ] || [ "$protocol" = "udp" ]; then
       # For TCP/UDP, enable admin API to query allocated port
-      # Use Python to find a free port (cross-platform and guaranteed to work)
       admin_port=$(${pkgs.python3}/bin/python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 
       ${pkgs.coreutils}/bin/cat > $config_file <<EOF
-    serverAddr = "${cfg.serverAddr}"
-    serverPort = ${toString cfg.serverPort}
+serverAddr = "${cfg.serverAddr}"
+serverPort = ${toString cfg.serverPort}
 
-    auth.method = "token"
-    auth.tokenSource.type = "file"
-    auth.tokenSource.file.path = "${cfg.authTokenFile}"
+auth.method = "token"
+auth.tokenSource.type = "file"
+auth.tokenSource.file.path = "${cfg.authTokenFile}"
 
-    webServer.addr = "127.0.0.1"
-    webServer.port = $admin_port
+webServer.addr = "127.0.0.1"
+webServer.port = $admin_port
 
-    [[proxies]]
-    name = "$proxy_name"
-    type = "$protocol"
-    localIP = "127.0.0.1"
-    localPort = $port
-    remotePort = 0
-    EOF
+[[proxies]]
+name = "$proxy_name"
+type = "$protocol"
+localIP = "127.0.0.1"
+localPort = $port
+remotePort = 0
+EOF
     else
       ${pkgs.gum}/bin/gum style --foreground 196 "Invalid protocol: $protocol (must be http, tcp, or udp)"
       exit 1
@@ -382,26 +381,20 @@ let
 
     # For TCP/UDP, capture output to parse allocated port
     if [ "$protocol" = "tcp" ] || [ "$protocol" = "udp" ]; then
-      # Start frpc in background and capture its PID
       ${pkgs.frp}/bin/frpc -c $config_file 2>&1 | while IFS= read -r line; do
         echo "$line"
 
         # Look for successful proxy start
         if echo "$line" | ${pkgs.gnugrep}/bin/grep -q "start proxy success"; then
-          # Wait a moment for the proxy to fully initialize
           sleep 1
 
-          # Query the frpc admin API for proxy status
           proxy_status=$(${pkgs.curl}/bin/curl -s http://127.0.0.1:$admin_port/api/status 2>/dev/null || echo "{}")
 
-          # Try to extract remote port from JSON response
-          # Format: "remote_addr":"tun.hogwarts.dev:20097"
           remote_addr=$(echo "$proxy_status" | ${pkgs.jq}/bin/jq -r ".tcp[]? | select(.name == \"$proxy_name\") | .remote_addr" 2>/dev/null)
           if [ -z "$remote_addr" ] || [ "$remote_addr" = "null" ]; then
             remote_addr=$(echo "$proxy_status" | ${pkgs.jq}/bin/jq -r ".udp[]? | select(.name == \"$proxy_name\") | .remote_addr" 2>/dev/null)
           fi
 
-          # Extract just the port number
           remote_port=$(echo "$remote_addr" | ${pkgs.gnugrep}/bin/grep -oP ':\K[0-9]+$')
 
           if [ -n "$remote_port" ] && [ "$remote_port" != "null" ]; then
@@ -428,12 +421,9 @@ let
     nativeBuildInputs = with pkgs; [ pandoc installShellFiles ];
 
     manPageSrc = ./bore.1.md;
-    bashCompletionSrc = ./completions/bore.bash;
     zshCompletionSrc = ./completions/bore.zsh;
-    fishCompletionSrc = ./completions/bore.fish;
 
     buildPhase = ''
-      # Convert markdown man page to man format
       ${pkgs.pandoc}/bin/pandoc -s -t man $manPageSrc -o bore.1
     '';
 
@@ -448,14 +438,12 @@ let
       installManPage bore.1
 
       # Install completions
-      installShellCompletion --bash --name bore $bashCompletionSrc
       installShellCompletion --zsh --name _bore $zshCompletionSrc
-      installShellCompletion --fish --name bore.fish $fishCompletionSrc
     '';
 
     meta = with lib; {
       description = "Secure tunneling service CLI";
-      homepage = "https://tun.hogwarts.dev";
+      homepage = "https://tun.hogwarts.channel";
       license = licenses.mit;
       maintainers = [ ];
     };
@@ -467,7 +455,7 @@ in
 
     serverAddr = lib.mkOption {
       type = lib.types.str;
-      default = "tun.hogwarts.dev";
+      default = "tun.hogwarts.channel";
       description = "bore server address";
     };
 
@@ -479,7 +467,7 @@ in
 
     domain = lib.mkOption {
       type = lib.types.str;
-      default = "tun.hogwarts.dev";
+      default = "tun.hogwarts.channel";
       description = "Domain for public tunnel URLs";
     };
 
