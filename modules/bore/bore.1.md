@@ -120,11 +120,11 @@ $ bore
 
 # SEE ALSO
 
-Dashboard: https://tun.hogwarts.dev
+Dashboard: https://bore.dunkirk.sh
 
 # BUGS
 
-Report bugs at: https://github.com/jaspermayone/dots/issues
+Report bugs at: https://github.com/yourusername/dots/issues
 
 # AUTHORS
 
