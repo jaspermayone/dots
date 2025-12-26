@@ -5,6 +5,9 @@
   # Host-specific overrides go here
   # Most configuration is inherited from darwin/default.nix and home/default.nix
 
+  # Agenix identity path (use user SSH key on macOS)
+  age.identityPaths = [ "/Users/jsp/.ssh/id_ed25519" ];
+
   # Agenix secrets for bore client
   age.secrets.bore-token = {
     file = ../../secrets/bore-token.age;
