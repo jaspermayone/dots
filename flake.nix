@@ -82,8 +82,8 @@
 
           # Caddy with Cloudflare DNS plugin for ACME DNS challenges
           caddy-cloudflare = prev.caddy.withPlugins {
-            plugins = [ "github.com/caddy-dns/cloudflare@v0.0.0-20250228175314-ec1e91950482" ];
-            hash = "sha256-ip9gJBnbeWP36s6HGDKjMVYxjdPGJwNNzP7vjxfjp68=";
+            plugins = [ "github.com/caddy-dns/cloudflare@v0.2.2" ];
+            hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
           };
         })
       ];
