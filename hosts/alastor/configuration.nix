@@ -89,6 +89,7 @@
   security.sudo.wheelNeedsPassword = false;
 
   # Agenix secrets
+  age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key.age" ];
   age.secrets = {
     frps-token = {
       file = ../../secrets/frps-token.age;
