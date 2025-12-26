@@ -135,7 +135,7 @@
     # NixOS configurations
     # Available through 'nixos-rebuild --flake .#hostname'
     nixosConfigurations = {
-      alastor = mkNixos "alastor" "x86_64-linux";
+      alastor = mkNixos "alastor" "aarch64-linux";
     };
 
     # Darwin configurations
@@ -156,7 +156,7 @@
         profiles.system = {
           sshUser = "jsp";
           user = "root";
-          path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.alastor;
+          path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.alastor;
         };
       };
     };
