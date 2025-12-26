@@ -191,10 +191,11 @@
     options = "--delete-older-than 30d";
   };
 
-  # Automatic updates (optional)
-  # system.autoUpgrade = {
-  #   enable = true;
-  #   flake = "github:jaspermayone/dots#alastor";
-  #   dates = "04:00";
-  # };
+  # Automatic updates - checks daily at 4am
+  system.autoUpgrade = {
+    enable = true;
+    flake = "github:jaspermayone/dots#alastor";
+    dates = "04:00";
+    allowReboot = false;  # Set to true if you want automatic reboots when needed
+  };
 }
