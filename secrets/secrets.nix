@@ -7,15 +7,12 @@ let
   # User SSH public keys (from ~/.ssh/id_ed25519.pub or similar)
   jsp = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus";
 
-  # Host SSH public keys (from /etc/ssh/ssh_host_ed25519_key.pub)
-  # These are generated when you first boot NixOS
-  # TODO: Replace with actual host keys after provisioning
-  # alastor = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... root@alastor";
+  # Host SSH public keys (converted to age format with ssh-to-age)
+  alastor = "age1ltqszzylcmcvdatezqagnpzyps8layutdq7fae8a672ys6feyadqdufecy";
 
   # Groups for convenience
   allUsers = [ jsp ];
-  allHosts = [  ];
-  # allHosts = [ alastor ];
+  allHosts = [ alastor ];
   all = allUsers ++ allHosts;
 in
 {
@@ -25,8 +22,7 @@ in
 
   # Cloudflare API credentials for ACME DNS challenge
   # Format: CF_DNS_API_TOKEN=xxxxx
-  "cloudflare-credentials.age".publicKeys = [ jsp ];
-  # "cloudflare-credentials.age".publicKeys = [ jsp alastor ];
+  "cloudflare-credentials.age".publicKeys = [ jsp alastor ];
 
   # Bore client token (same as frps-token, but separate file for clarity)
   # Used on client machines (remus, etc)
