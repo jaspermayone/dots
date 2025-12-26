@@ -135,7 +135,7 @@
     enable = true;
     package = inputs.tangled.packages.${pkgs.system}.knot;
     server = {
-      owner = "did:plc:krxbvxvis5skq7jj6eot23ul";
+      owner = "did:plc:abgthiqrd7tczkafjm4ennbo";
       hostname = "knot.jaspermayone.com";
       listenAddr = "127.0.0.1:5555";
     };
@@ -144,7 +144,7 @@
   # Knot to GitHub sync service
   jsp.services.knot-sync = {
     enable = true;
-    repoDir = "/var/lib/knot/repos/did:plc:krxbvxvis5skq7jj6eot23ul";
+    repoDir = "/var/lib/knot/repos/did:plc:abgthiqrd7tczkafjm4ennbo";
     secretsFile = config.age.secrets.github-token.path;
   };
 
