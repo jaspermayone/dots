@@ -3,6 +3,7 @@
 
 {
   imports = [
+    ./disko.nix
     ./hardware-configuration.nix
     ../../modules/frps
     ../../modules/status
@@ -147,9 +148,10 @@
     secretsFile = config.age.secrets.github-token.path;
   };
 
-  # Caddy reverse proxy
+  # Caddy reverse proxy (with Cloudflare DNS plugin for ACME)
   services.caddy = {
     enable = true;
+    package = pkgs.caddy-cloudflare;
     virtualHosts."knot.jaspermayone.com" = {
       extraConfig = ''
         tls {

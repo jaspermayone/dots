@@ -44,6 +44,11 @@
     zmx = {
       url = "github:neurosnap/zmx";
     };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -56,6 +61,7 @@
     nix-darwin,
     deploy-rs,
     tangled,
+    disko,
     ...
   }@inputs:
   let
@@ -73,6 +79,12 @@
 
           # Custom packages
           zmx-binary = prev.callPackage ./packages/zmx.nix { };
+
+          # Caddy with Cloudflare DNS plugin for ACME DNS challenges
+          caddy-cloudflare = prev.caddy.withPlugins {
+            plugins = [ "github.com/caddy-dns/cloudflare@v0.0.0-20250228175314-ec1e91950482" ];
+            hash = "sha256-ip9gJBnbeWP36s6HGDKjMVYxjdPGJwNNzP7vjxfjp68=";
+          };
         })
       ];
     };
@@ -84,6 +96,7 @@
       modules = [
         ./hosts/${hostname}/configuration.nix
         agenix.nixosModules.default
+        disko.nixosModules.disko
         unstable-overlays
         nur.modules.nixos.default
         home-manager.nixosModules.home-manager
