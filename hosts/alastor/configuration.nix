@@ -3,7 +3,6 @@
 
 {
   imports = [
-    ./disko.nix
     ./hardware-configuration.nix
     ../../modules/frps
     ../../modules/status
@@ -133,7 +132,7 @@
   # Tangled Knot server (official module)
   services.tangled.knot = {
     enable = true;
-    package = inputs.tangled.packages.x86_64-linux.knot;
+    package = inputs.tangled.packages.${pkgs.system}.knot;
     server = {
       owner = "did:plc:krxbvxvis5skq7jj6eot23ul";
       hostname = "knot.jaspermayone.com";
