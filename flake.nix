@@ -44,11 +44,6 @@
     zmx = {
       url = "github:neurosnap/zmx";
     };
-
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
@@ -61,7 +56,6 @@
     nix-darwin,
     deploy-rs,
     tangled,
-    disko,
     ...
   }@inputs:
   let
@@ -96,7 +90,6 @@
       modules = [
         ./hosts/${hostname}/configuration.nix
         agenix.nixosModules.default
-        disko.nixosModules.disko
         unstable-overlays
         nur.modules.nixos.default
         home-manager.nixosModules.home-manager

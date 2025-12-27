@@ -32,6 +32,12 @@ in
   # Generate with: openssl rand -hex 32
   "knot-secret.age".publicKeys = all;
 
+  "pds.age".publicKeys = [ jsp alastor ];
+
+  # If using Resend SMTP, include API key here too
+  "pds-mailer.age".publicKeys = [ jsp alastor ];
+
+
   # WiFi passwords for NixOS machines
   # Format: NETWORK_PSK=password
   "wifi-passwords.age".publicKeys = all;
