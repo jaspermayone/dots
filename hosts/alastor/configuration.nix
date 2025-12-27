@@ -162,7 +162,7 @@
     adminEmail = "pds-admin@hogwarts.dev";
     environmentFile = config.age.secrets.pds.path;
     mailerEnvironmentFile = config.age.secrets.pds-mailer.path;
-    enableGatekeeper = true;
+    enableGatekeeper = false;  # Disabled for now - was causing pdsadmin issues
     enableAgeAssurance = true;
   };
 
