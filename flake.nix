@@ -46,7 +46,7 @@
     };
 
     tgirlpkgs = {
-      url = "github:binarycat/tgirlpkgs";
+      url = "github:tgirlcloud/pkgs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
