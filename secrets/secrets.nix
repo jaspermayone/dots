@@ -8,7 +8,7 @@ let
   jsp = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus";
 
   # Host SSH public keys (converted to age format with ssh-to-age)
-  alastor = "age1ltqszzylcmcvdatezqagnpzyps8layutdq7fae8a672ys6feyadqdufecy";
+  alastor = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFwkC1CiWpLB10NNVaJwu4LSyiL0wM7ExI1VoKqIsgeG root@alastor-vnic";
 
   # Groups for convenience
   allUsers = [ jsp ];
