@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+FLAKE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+usage() {
+    echo "Usage: deploy <hostname> [options]"
+    echo ""
+    echo "Deploy NixOS configuration to a machine"
+    echo ""
+    echo "Options:"
+    echo "  -l, --local     Use local flake instead of GitHub"
+    echo "  -b, --boot      Only build and set as boot config (don't switch)"
+    echo "  -t, --test      Test config without adding to boot menu"
+    echo "  -h, --help      Show this help"
+    echo ""
+    echo "Examples:"
+    echo "  deploy alastor           # Deploy to alastor from GitHub"
+    echo "  deploy alastor -l        # Deploy to alastor from local flake"
+    echo "  deploy remus --boot      # Build for remus, activate on next boot"
+    exit 1
+}
+
+[[ $# -lt 1 ]] && usage
+
+HOST="$1"
+shift
+
+FLAKE="github:jaspermayone/dots"
+ACTION="switch"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -l|--local)
+            FLAKE="$FLAKE_ROOT"
+            shift
+            ;;
+        -b|--boot)
+            ACTION="boot"
+            shift
+            ;;
+        -t|--test)
+            ACTION="test"
+            shift
+            ;;
+        -h|--help)
+            usage
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
+    esac
+done
+
+CURRENT_HOST=$(hostname)
+
+echo "Deploying $HOST ($ACTION) from $FLAKE"
+
+if [[ "$HOST" == "$CURRENT_HOST" ]]; then
+    # Local deploy
+    sudo nixos-rebuild "$ACTION" --flake "$FLAKE#$HOST"
+else
+    # Remote deploy
+    nixos-rebuild "$ACTION" \
+        --flake "$FLAKE#$HOST" \
+        --target-host "$HOST" \
+        --use-remote-sudo
+fi
