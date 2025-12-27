@@ -7,6 +7,7 @@
     ../../modules/frps
     ../../modules/status
     ../../modules/knot/sync.nix
+    ../../modules/bluesky-pds/default.nix
     inputs.tangled.nixosModules.knot
   ];
 
@@ -39,6 +40,7 @@
     curl
     jq
     tmux
+    bluesky-pds
     inputs.agenix.packages.${pkgs.system}.default  # agenix CLI
   ];
 
@@ -89,7 +91,7 @@
   security.sudo.wheelNeedsPassword = false;
 
   # Agenix secrets
-  age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key.age" ];
+  age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
   age.secrets = {
     frps-token = {
       file = ../../secrets/frps-token.age;
@@ -108,6 +110,18 @@
       file = ../../secrets/github-token.age;
       mode = "400";
       owner = "git";  # tangled uses git user
+    };
+    pds = {
+      file = ../../secrets/pds.age;
+      mode = "600";
+      owner = "pds";
+      group = "pds";
+    };
+    pds-mailer = {
+      file = ../../secrets/pds-mailer.age;
+      mode = "600";
+      owner = "pds";
+      group = "pds";
     };
   };
 
@@ -140,6 +154,17 @@
       listenAddr = "127.0.0.1:5555";
     };
   };
+
+  services.bluesky-pds-hosting = {
+    enable = true;
+    hostname = "hogwarts.dev";
+    port = 3000;
+    adminEmail = "pds-admin@hogwarts.dev";
+    environmentFile = config.age.secrets.pds.path;
+    mailerEnvironmentFile = config.age.secrets.pds-mailer.path;
+    enableAgeAssurance = false;
+  };
+
 
   # Knot to GitHub sync service
   jsp.services.knot-sync = {
