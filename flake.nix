@@ -44,6 +44,11 @@
     zmx = {
       url = "github:neurosnap/zmx";
     };
+
+    tgirlpkgs = {
+      url = "github:binarycat/tgirlpkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -56,6 +61,7 @@
     nix-darwin,
     deploy-rs,
     tangled,
+    tgirlpkgs,
     ...
   }@inputs:
   let
@@ -90,6 +96,7 @@
       modules = [
         ./hosts/${hostname}/configuration.nix
         agenix.nixosModules.default
+        tgirlpkgs.nixosModules.default
         unstable-overlays
         nur.modules.nixos.default
         home-manager.nixosModules.home-manager
