@@ -157,7 +157,7 @@
 
   services.bluesky-pds-hosting = {
     enable = true;
-    hostname = "hogwarts.dev";
+    hostname = "pds.hogwarts.dev";
     port = 3000;
     adminEmail = "pds-admin@hogwarts.dev";
     environmentFile = config.age.secrets.pds.path;
