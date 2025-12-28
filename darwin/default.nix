@@ -19,6 +19,21 @@
     vim
     git
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
+
+    # CLI tools (migrated from homebrew)
+    coreutils
+    moreutils
+    findutils
+    git-lfs
+    gnupg
+    gnugrep
+    openssh
+    screen
+    zsh
+    ffmpeg
+    imagemagick
+    wget
+    woff2
   ];
 
   # Homebrew integration
@@ -34,27 +49,12 @@
       "bramstein/webfonttools"
     ];
 
-    # CLI tools
+    # CLI tools (only macOS-specific or unavailable in nixpkgs)
     brews = [
-      "mas"
-      "coreutils"
-      "moreutils"
-      "findutils"
-      "git"
-      "git-lfs"
-      "gnupg"
-      "grep"
-      "openssh"
-      "screen"
-      "ssh-copy-id"
-      "zsh"
-      "ffmpeg"
-      { name = "imagemagick"; args = [ "with-webp" ]; }
-      "wget"
-      # Font tools
+      "mas"  # Mac App Store CLI
+      # Font tools (from bramstein/webfonttools tap)
       "sfnt2woff"
       "sfnt2woff-zopfli"
-      "woff2"
     ];
 
     # GUI apps (casks)
