@@ -379,7 +379,7 @@ in
     enableZshIntegration = true;
   };
 
-  # Atuin (shell history) with sync
+  # Atuin (shell history) with self-hosted sync server
   programs.atuin = {
     enable = true;
     enableZshIntegration = true;
@@ -394,6 +394,7 @@ in
       search_mode = "fuzzy";
       update_check = false;
       style = "auto";
+      inline_height = 30;
     };
   };
 
