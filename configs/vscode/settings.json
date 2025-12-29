@@ -1,0 +1,167 @@
+{
+  "editor.inlineSuggest.enabled": true,
+  "editor.accessibilitySupport": "off",
+  "terminal.integrated.env.osx": {},
+  "workbench.startupEditor": "none",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "files.trimTrailingWhitespace": true,
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.suggest.insertMode": "replace"
+  },
+  "files.exclude": {
+    "**/.DS_Store": false,
+    "**/.DS_Store/**": true,
+    "**/.git": false,
+    "**/.hg": false,
+    "**/.svn": false,
+    "**/CVS": false,
+    "**/Thumbs.db": false,
+    "node_modules": true
+  },
+  "files.trimFinalNewlines": true,
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "terminal.explorerKind": "external",
+  "terminal.external.osxExec": "iTerm.app",
+  "terminal.integrated.allowMnemonics": true,
+  "[dockercompose]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+  },
+  "gitlens.defaultGravatarsStyle": "wavatar",
+  "explorer.confirmDragAndDrop": false,
+  "debug.terminal.clearBeforeReusing": true,
+  "git.confirmSync": false,
+  "svelte.enable-ts-plugin": true,
+  "git.openRepositoryInParentFolders": "never",
+  "gitlens.rebaseEditor.ordering": "asc",
+  "editor.unicodeHighlight.allowedCharacters": {
+    "‌": true
+  },
+  "editor.unicodeHighlight.includeStrings": false,
+  "[sql]": {
+    "editor.defaultFormatter": "teejae.vscode-sql-formatter"
+  },
+  "editor.fontFamily": "Monaspace Neon Var",
+  "editor.fontLigatures": "'ss01', 'ss02', 'ss03', 'ss04', 'ss05', 'ss06', 'ss07', 'ss08', 'calt', 'dlig'",
+  "editor.fontSize": 12,
+  "git.enableSmartCommit": true,
+  "[ruby]": {
+    "editor.defaultFormatter": "Shopify.ruby-lsp",
+    "editor.formatOnType": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "editor.rulers": [
+      120
+    ],
+    "editor.semanticHighlighting.enabled": true
+  },
+  "standardRuby.autofix": true,
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false,
+    "properties": false
+  },
+  "ruby.interpreter.commandPath": "mise exec ruby --",
+  "rubyLsp.rubyVersionManager": {
+    "identifier": "mise"
+  },
+  "editor.linkedEditing": true,
+  "editor.tabSize": 2,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "name": "envKeys",
+        "scope": "string.quoted.single.ini,constant.numeric.ini,string.quoted.double.ini",
+        "settings": {
+          "foreground": "#19354900"
+        }
+      }
+    ]
+  },
+  "prisma.showPrismaDataPlatformNotification": false,
+  "solargraph.commandPath": "/Users/jsp/.local/share/mise/installs/ruby/3.4.3/bin/solargraph",
+  "sorbet.enabled": true,
+  "[erb]": {
+    "editor.defaultFormatter": "tomclose.format-erb"
+  },
+  "colorize.exclude": [
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/CVS",
+    "**/.DS_Store",
+    "**/.git",
+    "**/node_modules",
+    "**/bower_components",
+    "**/tmp",
+    "**/dist",
+    "**/tests"
+  ],
+  "arcade-vsc.slackID": "U05NX48GL3T",
+  "arcade-vsc.notifications.startReminder": false,
+  "lldb.library": "/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB",
+  "lldb.launch.expressions": "native",
+  "editor.formatOnPaste": true,
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "typescript.preferences.organizeImports": {},
+  "workbench.editorAssociations": {
+    "git-rebase-todo": "default"
+  },
+  "workbench.preferredDarkColorTheme": "Comrade (rainglow)",
+  "workbench.preferredLightColorTheme": "Coffee Light (rainglow)",
+  "workbench.iconTheme": "vscode-icons",
+  "workbench.preferredHighContrastColorTheme": "Comrade Contrast (rainglow)",
+  "workbench.preferredHighContrastLightColorTheme": "Coffee Contrast (rainglow)",
+  "git.blame.editorDecoration.enabled": false,
+  "npm.packageManager": "bun",
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "roo-cline.allowedCommands": [
+    "git log",
+    "git diff",
+    "git show",
+    "python3 -m venv venv",
+    "python3"
+  ],
+  "roo-cline.deniedCommands": [],
+  "chromiumide.metrics.showMessage": false,
+  "chromiumide.disclaimerOnMac.enabled": false,
+  "gitlens.ai.model": "vscode",
+  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+  "workbench.colorTheme": "Absent (rainglow)",
+  "telemetry.editStats.enabled": false,
+  "[github-actions-workflow]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "chat.mcp.discovery.enabled": {
+    "windsurf": true,
+    "claude-desktop": true
+  },
+  "platformio-ide.autoOpenPlatformIOIniFile": false,
+}

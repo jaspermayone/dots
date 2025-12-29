@@ -18,6 +18,9 @@ in
     source = ../configs/karabiner.json;
   };
 
+  # Mise (version manager) configuration
+  xdg.configFile."mise/config.toml".source = ../configs/mise.toml;
+
   # Espanso configuration
   home.file = lib.mkMerge [
     # macOS espanso paths
@@ -30,6 +33,18 @@ in
     (lib.mkIf (!isDarwin) {
       ".config/espanso/config/default.yml".source = ../configs/espanso/config/default.yml;
       ".config/espanso/match/base.yml".source = ../configs/espanso/match/base.yml;
+    })
+
+    # VS Code settings (macOS)
+    (lib.mkIf isDarwin {
+      "Library/Application Support/Code/User/settings.json".source = ../configs/vscode/settings.json;
+      "Library/Application Support/Code/User/keybindings.json".source = ../configs/vscode/keybindings.json;
+    })
+
+    # VS Code settings (Linux)
+    (lib.mkIf (!isDarwin) {
+      ".config/Code/User/settings.json".source = ../configs/vscode/settings.json;
+      ".config/Code/User/keybindings.json".source = ../configs/vscode/keybindings.json;
     })
   ];
 
