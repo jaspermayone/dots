@@ -53,13 +53,13 @@ in
 
   # Espanso secrets (sensitive text expansions)
   # Contains: email addresses, EINs, personal addresses
-  "espanso-secrets.age".publicKeys = allUsers;
+  "espanso-secrets.age".publicKeys = all;
 
   # Wakatime API key
   # Format: api_key = xxxxx
-  "wakatime-api-key.age".publicKeys = allUsers;
+  "wakatime-api-key.age".publicKeys = all;
 
   # NPM registry tokens
   # Contains: npmjs.org and GitHub packages auth tokens
-  "npmrc.age".publicKeys = allUsers;
+  "npmrc.age".publicKeys = all;
 }
