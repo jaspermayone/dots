@@ -5,8 +5,8 @@ NixOS and nix-darwin configurations for the Hogwarts network.
 ## Status
 
 <img src="https://img.shields.io/website?label=alastor&up_color=green&up_message=online&down_message=offline&url=https%3A%2F%2Falastor.hogwarts.channel%2Fstatus%2Falastor">
-<img src="https://img.shields.io/website?label=remus&up_color=green&up_message=online&down_message=offline&url=https%3A%2F%2Fremus.hogwarts.channel%2Fstatus%2Fremus">
-<img src="https://img.shields.io/website?label=dippet&up_color=green&up_message=online&down_message=offline&url=https%3A%2F%2Fdippet.hogwarts.channel%2Fstatus%2Fdippet">
+<img src="https://img.shields.io/website?label=remus&up_color=green&up_message=online&down_message=offline&url=https%3A%2F%2Falastor.hogwarts.channel%2Fstatus%2Fremus">
+<img src="https://img.shields.io/website?label=dippet&up_color=green&up_message=online&down_message=offline&url=https%3A%2F%2Falastor.hogwarts.channel%2Fstatus%2Fdippet">
 
 
 
