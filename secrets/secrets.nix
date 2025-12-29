@@ -46,6 +46,10 @@ in
   # Format: GITHUB_TOKEN=ghp_xxxxx
   "github-token.age".publicKeys = all;
 
+  # Atuin encryption key for sync
+  # Contains the raw encryption key for Atuin shell history sync
+  "atuin-key.age".publicKeys = allUsers;
+
   # Espanso secrets (sensitive text expansions)
   # Contains: email addresses, EINs, personal addresses
   "espanso-secrets.age".publicKeys = allUsers;

@@ -16,6 +16,14 @@
     mode = "400";
   };
 
+  # Atuin encryption key for auto-login
+  age.secrets.atuin-key = {
+    file = ../../secrets/atuin-key.age;
+    path = "/Users/jsp/.local/share/atuin/key";
+    owner = "jsp";
+    mode = "400";
+  };
+
   # Remus-specific homebrew casks
   homebrew.casks = [
     # Add Mac apps specific to your laptop
