@@ -151,6 +151,35 @@
     cloudflareCredentialsFile = config.age.secrets.cloudflare-credentials.path;
   };
 
+  # Tailscale status checker for remote hosts (remus, dippet)
+  systemd.services.tailscale-status = {
+    description = "Check Tailscale host connectivity for status badges";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "tailscale-status" ''
+        STATUS_DIR="/var/lib/status"
+        mkdir -p "$STATUS_DIR"
+
+        for host in remus dippet; do
+          if ${pkgs.iputils}/bin/ping -c 1 -W 2 "$host" >/dev/null 2>&1; then
+            echo "ok" > "$STATUS_DIR/$host"
+          else
+            rm -f "$STATUS_DIR/$host"
+          fi
+        done
+      '';
+    };
+  };
+
+  systemd.timers.tailscale-status = {
+    description = "Check Tailscale hosts every minute";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "30s";
+      OnUnitActiveSec = "1min";
+    };
+  };
+
   # Tangled Knot server (official module)
   services.tangled.knot = {
     enable = true;
@@ -206,15 +235,45 @@
         }
       '';
     };
-    # Reverse proxy for remus via Tailscale
+    # Status endpoint for remus (Tailscale connectivity check)
     virtualHosts."remus.hogwarts.channel" = {
       extraConfig = ''
         tls {
           dns cloudflare {env.CLOUDFLARE_API_TOKEN}
         }
-        reverse_proxy remus:80 {
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
+        @status path /status/remus
+        handle @status {
+          @online file /var/lib/status/remus
+          handle @online {
+            respond "ok" 200
+          }
+          handle {
+            respond "offline" 503
+          }
+        }
+        handle {
+          respond "remus.hogwarts.channel - see /status/remus" 200
+        }
+      '';
+    };
+    # Status endpoint for dippet (Tailscale connectivity check)
+    virtualHosts."dippet.hogwarts.channel" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        @status path /status/dippet
+        handle @status {
+          @online file /var/lib/status/dippet
+          handle @online {
+            respond "ok" 200
+          }
+          handle {
+            respond "offline" 503
+          }
+        }
+        handle {
+          respond "dippet.hogwarts.channel - see /status/dippet" 200
         }
       '';
     };
