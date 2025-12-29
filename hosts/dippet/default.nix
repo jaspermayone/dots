@@ -26,9 +26,16 @@
 
   # Server packages (dippet-specific)
   homebrew.brews = [
+    # Web/networking
     "nginx"
     "cloudflared"
     "certbot"
+    "unbound"
+
+    # Libraries/tools currently installed
+    "augeas"
+    "poppler"
+    "python@3.14"
   ];
 
   # Dippet-specific homebrew casks

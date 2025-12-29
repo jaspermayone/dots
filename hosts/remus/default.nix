@@ -1,4 +1,4 @@
-# Remus - MacBook Pro M4
+# Remus - MacBook Pro M4 (dev laptop)
 { config, pkgs, lib, inputs, hostname, ... }:
 
 {
@@ -24,16 +24,25 @@
     mode = "400";
   };
 
-  # Remus-specific homebrew casks
-  homebrew.casks = [
-    # Add Mac apps specific to your laptop
-    # "raycast"
-    # "arc"
-    # "1password"
+  # Laptop-specific nix packages
+  environment.systemPackages = with pkgs; [
+    yubikey-manager
   ];
 
-  # Any remus-specific system defaults
-  # system.defaults = { };
+  # Laptop-specific homebrew packages
+  homebrew.brews = [
+    # Embedded development
+    "arm-none-eabi-gcc"
+    "dfu-util"
+    "open-ocd"
+    "stlink"
+  ];
+
+  # Remus-specific homebrew casks
+  homebrew.casks = [
+    "basictex"
+    "gitkraken-cli"
+  ];
 
   # Set the hostname
   networking.hostName = "remus";

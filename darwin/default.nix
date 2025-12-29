@@ -46,7 +46,6 @@
     ninja
     gnumake
     ghostscript
-    yubikey-manager
     bitwarden-cli
     git-filter-repo
     libyaml
@@ -101,12 +100,6 @@
       "jaspermayone/tap/boxcar"
       "minio/stable/mc"
 
-      # Embedded development
-      "arm-none-eabi-gcc"
-      "dfu-util"
-      "open-ocd"
-      "stlink"
-
       # Build tools
       "ccache"
       "sccache"
@@ -135,13 +128,11 @@
       "create-dmg"
     ];
 
-    # GUI apps (casks)
+    # GUI apps (casks) - shared across all Darwin machines
     casks = [
-      "basictex"
       "bitwarden"
       "discord"
       "espanso"
-      "gitkraken-cli"
       "ngrok"
       "raycast"
     ];
