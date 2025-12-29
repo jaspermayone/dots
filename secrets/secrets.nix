@@ -4,15 +4,16 @@
 # Run `agenix -e <secret>.age` to create/edit secrets.
 
 let
-  # User SSH public keys (from ~/.ssh/id_ed25519.pub or similar)
+  # User SSH public keys
   jsp = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus";
 
-  # Host SSH public keys (converted to age format with ssh-to-age)
+  # Host SSH public keys
   alastor = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFwkC1CiWpLB10NNVaJwu4LSyiL0wM7ExI1VoKqIsgeG root@alastor-vnic";
+  dippet = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOqi0ZRAHUqBL4zolSeVTgp1oZ6HKD+Hq5AktpLolely jsp@Dippet";
 
   # Groups for convenience
   allUsers = [ jsp ];
-  allHosts = [ alastor ];
+  allHosts = [ alastor  dippet ];
   all = allUsers ++ allHosts;
 in
 {

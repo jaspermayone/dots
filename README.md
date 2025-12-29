@@ -13,7 +13,8 @@ NixOS and nix-darwin configurations for the Hogwarts network.
 | Host | Domain | Type | Description |
 |------|--------|------|-------------|
 | **alastor** | `alastor.hogwarts.channel` | NixOS (x86_64) | VPS hub - tunnels, status, reverse proxy (Mad-Eye Moody) |
-| **remus** | `remus.hogwarts.channel` | Darwin (aarch64) | MacBook Pro M4 - proxied via alastor over Tailscale |
+| **remus** | `remus.hogwarts.channel` | Darwin (aarch64) | MacBook Pro M4 - My daily driver |
+| **dippet** | `dippet.hogwarts.channel` | Darwin (aarch64) | Mac Mini - assorted services |
 
 ### Domain Structure
 
@@ -21,7 +22,10 @@ NixOS and nix-darwin configurations for the Hogwarts network.
 - `*.tun.hogwarts.channel` — dynamic tunnel subdomains
 - `alastor.hogwarts.channel` — alastor services (status API, etc.)
 - `remus.hogwarts.channel` — reverse proxy to remus via Tailscale
+- `dippet.hogwarts.channel` — reverse proxy to dippet via Tailscale
 - `knot.jaspermayone.com` — Tangled Knot git server
+- `atuin.hogwarts.dev` - Atuin server
+
 
 ## Secrets Management (agenix)
 

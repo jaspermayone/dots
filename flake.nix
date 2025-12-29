@@ -142,6 +142,7 @@
     # Available through 'darwin-rebuild switch --flake .#hostname'
     darwinConfigurations = {
       remus = mkDarwin "remus" "aarch64-darwin";
+      dippet = mkDarwin "dippet" "aarch64-darwin";
     };
 
     # Formatters
