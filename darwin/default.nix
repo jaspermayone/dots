@@ -60,6 +60,7 @@
     # GUI apps (casks)
     casks = [
       "discord"
+      "espanso"
       "raycast"
     ];
 
