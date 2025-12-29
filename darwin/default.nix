@@ -34,6 +34,24 @@
     imagemagick
     wget
     woff2
+
+    # Additional CLI tools
+    lazygit
+    redis
+    mkcert
+    inetutils      # telnet, ftp, etc.
+    watchman
+    pipx
+    pwgen
+    ninja
+    gnumake
+    ghostscript
+    yubikey-manager
+    bitwarden-cli
+    git-filter-repo
+    libyaml
+    fswatch
+    wireguard-tools
   ];
 
   # Homebrew integration
@@ -41,26 +59,90 @@
     enable = true;
     onActivation = {
       autoUpdate = true;
-      # cleanup = "zap";  # Remove unlisted packages
+      cleanup = "zap";  # Remove unlisted packages
       upgrade = true;
     };
 
     taps = [
       "bramstein/webfonttools"
+      "charmbracelet/tap"
+      "heroku/brew"
+      "jaspermayone/tap"
+      "minio/stable"
+      "oven-sh/bun"
+      "sst/tap"
+      "stripe/stripe-cli"
+      "withgraphite/tap"
+      "dotenvx/brew"
     ];
 
-    # CLI tools (only macOS-specific or unavailable in nixpkgs)
+    # CLI tools (only macOS-specific, special taps, or unavailable in nixpkgs)
     brews = [
+      # macOS specific
       "mas"  # Mac App Store CLI
-      # Font tools (from bramstein/webfonttools tap)
+
+      # Font tools (bramstein tap)
       "sfnt2woff"
       "sfnt2woff-zopfli"
+
+      # Cloud/Dev CLIs (from taps)
+      "heroku/brew/heroku"
+      "stripe/stripe-cli/stripe"
+      "vercel-cli"
+      "withgraphite/tap/graphite"
+      "sst/tap/opencode"
+      "dotenvx/brew/dotenvx"
+
+      # Charmbracelet tools
+      "charmbracelet/tap/freeze"
+      "charmbracelet/tap/crush"
+
+      # Custom/personal
+      "jaspermayone/tap/boxcar"
+      "minio/stable/mc"
+
+      # Embedded development
+      "arm-none-eabi-gcc"
+      "dfu-util"
+      "open-ocd"
+      "stlink"
+
+      # Build tools
+      "ccache"
+      "sccache"
+
+      # Languages/runtimes (specific versions)
+      "composer"
+      "openjdk"
+      "openjdk@21"
+      "rust"  # Keep for toolchain management
+
+      # Databases (specific versions)
+      "mysql@8.0"
+      "postgresql@17"
+      "percona-toolkit"
+      "pgvector"
+
+      # Image processing
+      "vips"
+      "graphicsmagick"
+
+      # Misc tools
+      "thefuck"
+      "trufflehog"
+      "eget"
+      "gitmoji"
+      "create-dmg"
     ];
 
     # GUI apps (casks)
     casks = [
+      "basictex"
+      "bitwarden"
       "discord"
       "espanso"
+      "gitkraken-cli"
+      "ngrok"
       "raycast"
     ];
 
