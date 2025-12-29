@@ -48,7 +48,7 @@ in
 
   # Atuin encryption key for sync
   # Contains the raw encryption key for Atuin shell history sync
-  "atuin-key.age".publicKeys = allUsers;
+  "atuin-key.age".publicKeys = all;
 
   # Espanso secrets (sensitive text expansions)
   # Contains: email addresses, EINs, personal addresses

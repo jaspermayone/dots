@@ -124,6 +124,12 @@
       owner = "pds";
       group = "pds";
     };
+    atuin-key = {
+      file = ../../secrets/atuin-key.age;
+      path = "/home/jsp/.local/share/atuin/key";
+      owner = "jsp";
+      mode = "400";
+    };
   };
 
   # FRP tunnel server

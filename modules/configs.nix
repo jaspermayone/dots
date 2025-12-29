@@ -3,9 +3,8 @@
 { config, lib, pkgs, isDarwin, ... }:
 
 let
-  # Paths for secrets
-  secretsDir = ../secrets;
-  dotsDir = "/Users/jsp/dev/dots";  # Adjust if needed
+  # Paths for secrets - platform-specific
+  dotsDir = if isDarwin then "/Users/jsp/dev/dots" else "/home/jsp/dots";
 in
 {
   # btop configuration
@@ -52,29 +51,29 @@ in
   # This runs on every home-manager activation
   home.activation.decryptUserSecrets = lib.hm.dag.entryAfter ["writeBoundary"] ''
     SECRETS_DIR="${dotsDir}/secrets"
-    AGENIX="${pkgs.age}/bin/age"
+    AGE="${pkgs.age}/bin/age"
     SSH_KEY="$HOME/.ssh/id_ed25519"
+    ${if isDarwin then ''
+    ESPANSO_DIR="$HOME/Library/Application Support/espanso/match"
+    '' else ''
+    ESPANSO_DIR="$HOME/.config/espanso/match"
+    ''}
 
     # Only proceed if we have the SSH key for decryption
     if [ -f "$SSH_KEY" ]; then
       # Decrypt espanso secrets
       ESPANSO_SECRETS="$SECRETS_DIR/espanso-secrets.age"
       if [ -f "$ESPANSO_SECRETS" ]; then
-        ${if isDarwin then ''
-          ESPANSO_DIR="$HOME/Library/Application Support/espanso/match"
-        '' else ''
-          ESPANSO_DIR="$HOME/.config/espanso/match"
-        ''}
-        mkdir -p "$ESPANSO_DIR"
-        $AGENIX -d -i "$SSH_KEY" "$ESPANSO_SECRETS" > "$ESPANSO_DIR/secrets.yml" 2>/dev/null || true
+        $DRY_RUN_CMD mkdir -p "$ESPANSO_DIR"
+        $DRY_RUN_CMD $AGE -d -i "$SSH_KEY" "$ESPANSO_SECRETS" > "$ESPANSO_DIR/secrets.yml" 2>/dev/null || echo "Warning: Failed to decrypt espanso secrets"
       fi
 
       # Decrypt wakatime API key and merge with config
       WAKATIME_SECRET="$SECRETS_DIR/wakatime-api-key.age"
       if [ -f "$WAKATIME_SECRET" ]; then
-        API_KEY=$($AGENIX -d -i "$SSH_KEY" "$WAKATIME_SECRET" 2>/dev/null || echo "")
+        API_KEY=$($AGE -d -i "$SSH_KEY" "$WAKATIME_SECRET" 2>/dev/null || echo "")
         if [ -n "$API_KEY" ]; then
-          cat > "$HOME/.wakatime.cfg" << EOF
+          $DRY_RUN_CMD cat > "$HOME/.wakatime.cfg" << EOF
 [settings]
 api_url = https://waka.hogwarts.dev/api
 api_key = $API_KEY
@@ -88,7 +87,7 @@ EOF
       # Decrypt npmrc (contains registry auth tokens)
       NPMRC_SECRET="$SECRETS_DIR/npmrc.age"
       if [ -f "$NPMRC_SECRET" ]; then
-        $AGENIX -d -i "$SSH_KEY" "$NPMRC_SECRET" > "$HOME/.npmrc" 2>/dev/null || true
+        $DRY_RUN_CMD $AGE -d -i "$SSH_KEY" "$NPMRC_SECRET" > "$HOME/.npmrc" 2>/dev/null || echo "Warning: Failed to decrypt npmrc"
       fi
     fi
   '';
