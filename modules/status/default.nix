@@ -24,6 +24,15 @@ let
     # Always write host status (if this runs, host is up)
     echo "ok" > "$STATUS_DIR/${cfg.hostname}"
 
+    # Check remote hosts via ping (Tailscale)
+    ${concatStringsSep "\n" (map (host: ''
+      if ${pkgs.iputils}/bin/ping -c 1 -W 2 ${escapeShellArg host} >/dev/null 2>&1; then
+        echo "ok" > "$STATUS_DIR/${host}"
+      else
+        rm -f "$STATUS_DIR/${host}"
+      fi
+    '') cfg.remoteHosts)}
+
     # Build services JSON
     SERVICES_JSON="{"
     ${concatStringsSep "\n" (imap0 (i: svc: ''
@@ -63,6 +72,12 @@ in
       type = types.listOf types.str;
       default = [];
       description = "List of systemd services to monitor";
+    };
+
+    remoteHosts = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      description = "List of remote hosts to check via ping (e.g. Tailscale hosts)";
     };
 
     cloudflareCredentialsFile = mkOption {
@@ -129,6 +144,20 @@ in
         }
       }
       '') cfg.services)}
+
+      # Remote host status endpoints (Tailscale)
+      ${concatStringsSep "\n" (map (host: ''
+      @status_${host} path /status/${host}
+      handle @status_${host} {
+        @online_${host} file /var/lib/status/${host}
+        handle @online_${host} {
+          respond "ok" 200
+        }
+        handle {
+          respond "offline" 503
+        }
+      }
+      '') cfg.remoteHosts)}
 
       # Full status JSON
       @status_json path /status
