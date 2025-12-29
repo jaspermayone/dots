@@ -389,7 +389,8 @@ in
     settings = {
       auto_sync = true;
       sync_frequency = "5m";
-      sync_address = "https://api.atuin.sh";
+      sync_address = "https://atuin.hogwarts.dev";
+      key_path = "~/.local/share/atuin/key";
       search_mode = "fuzzy";
       update_check = false;
       style = "auto";

@@ -8,6 +8,7 @@
     ../../modules/status
     ../../modules/knot/sync.nix
     ../../modules/bluesky-pds/default.nix
+    ../../modules/atuin-server
     inputs.tangled.nixosModules.knot
   ];
 
@@ -140,7 +141,7 @@
     enable = true;
     hostname = "alastor";
     domain = "alastor.hogwarts.channel";
-    services = [ "frps" "caddy" "tailscaled" "tangled-knot" ];
+    services = [ "frps" "caddy" "tailscaled" "tangled-knot" "atuin-server" ];
     cloudflareCredentialsFile = config.age.secrets.cloudflare-credentials.path;
   };
 
@@ -164,6 +165,13 @@
     mailerEnvironmentFile = config.age.secrets.pds-mailer.path;
     enableGatekeeper = false;  # Disabled for now - was causing pdsadmin issues
     enableAgeAssurance = true;
+  };
+
+  # Atuin sync server
+  atelier.services.atuin-server = {
+    enable = true;
+    hostname = "atuin.hogwarts.dev";
+    cloudflareCredentialsFile = config.age.secrets.cloudflare-credentials.path;
   };
 
 
