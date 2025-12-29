@@ -2,8 +2,8 @@
 { config, pkgs, lib, inputs, hostname, ... }:
 
 {
-  # Nix configuration
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  # Disable nix-darwin's Nix management (using Determinate Nix installer)
+  nix.enable = false;
 
   # Fix GID mismatch for nixbld group (new installs use 350, old used 30000)
   ids.gids.nixbld = 350;
