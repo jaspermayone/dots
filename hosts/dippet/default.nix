@@ -1,4 +1,4 @@
-# Dippet - Mac Mini
+# Dippet - Mac Mini (server + desktop)
 { config, pkgs, lib, inputs, hostname, ... }:
 
 {
@@ -24,12 +24,16 @@
     mode = "400";
   };
 
+  # Server packages (dippet-specific)
+  homebrew.brews = [
+    "nginx"
+    "cloudflared"
+    "certbot"
+  ];
+
   # Dippet-specific homebrew casks
   homebrew.casks = [
-    # Add Mac apps specific to this machine
-    # "raycast"
-    # "arc"
-    # "1password"
+    # Desktop apps are inherited from shared config (espanso, raycast, bitwarden)
   ];
 
   # Any dippet-specific system defaults
