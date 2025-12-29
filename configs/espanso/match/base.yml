@@ -1,0 +1,41 @@
+# espanso match file - PUBLIC matches only
+# Sensitive matches are in secrets.yml (encrypted with agenix)
+# For a complete introduction, visit the official docs at: https://espanso.org/docs/
+
+matches:
+  # SSH public key (public by definition)
+  - trigger: ";ssh"
+    replace: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
+
+  # Social (public links)
+  - trigger: ";linkedin"
+    replace: "https://www.linkedin.com/in/jaspermayone/"
+
+  # Organizations (public info)
+  - triggers: [";pwlmission"]
+    label: "Patchwork Mission"
+    replace: "Empowering everyone to explore STEAM through a makerspace community that lowers barriers, welcomes every interest, and turns ideas into reality."
+
+  - triggers: [";krn"]
+    replace: "taciturnaxolotl"
+
+  # Symbols
+  - trigger: ":euro"
+    replace: "\u20ac"
+
+  - trigger: ":div"
+    replace: <div>$|$</div>
+
+  # Commands/Scripts
+  - triggers: [";upd"]
+    replace: "curl -sSL https://raw.githubusercontent.com/jaspermayone/scripts/refs/heads/main/upgrade-system.sh | sudo bash "
+
+  - triggers: [";docker"]
+    replace: "curl -sSL https://get.docker.com | sh"
+
+  # Misc
+  - triggers: [";mp"]
+    replace: "MicroPico"
+
+  - triggers: [";cf"]
+    replace: "doug.ns.cloudflare.com\nsaanvi.ns.cloudflare.com"

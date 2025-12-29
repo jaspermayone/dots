@@ -8,6 +8,7 @@
     ../modules/shell.nix
     ../modules/ssh.nix
     ../modules/git.nix
+    ../modules/configs.nix
   ];
 
   home.stateVersion = "24.05";

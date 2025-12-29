@@ -45,4 +45,16 @@ in
   # GitHub token for knot-sync service
   # Format: GITHUB_TOKEN=ghp_xxxxx
   "github-token.age".publicKeys = all;
+
+  # Espanso secrets (sensitive text expansions)
+  # Contains: email addresses, EINs, personal addresses
+  "espanso-secrets.age".publicKeys = allUsers;
+
+  # Wakatime API key
+  # Format: api_key = xxxxx
+  "wakatime-api-key.age".publicKeys = allUsers;
+
+  # NPM registry tokens
+  # Contains: npmjs.org and GitHub packages auth tokens
+  "npmrc.age".publicKeys = allUsers;
 }
