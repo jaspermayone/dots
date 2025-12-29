@@ -2,8 +2,8 @@
 { config, pkgs, lib, inputs, hostname, ... }:
 
 {
-  # Host-specific overrides go here
-  # Most configuration is inherited from darwin/default.nix and home/default.nix
+  # Disable nix-darwin's Nix management (using Determinate Nix installer)
+  nix.enable = false;
 
   # Agenix identity path (use user SSH key on macOS)
   age.identityPaths = [ "/Users/jsp/.ssh/id_ed25519" ];
