@@ -5,6 +5,18 @@
   # Disable nix-darwin's Nix management (using Determinate Nix installer)
   nix.enable = false;
 
+  # Auto-update from GitHub daily at 4am
+  launchd.daemons.nix-darwin-upgrade = {
+    script = ''
+      /run/current-system/sw/bin/darwin-rebuild switch --flake github:jaspermayone/dots#dippet
+    '';
+    serviceConfig = {
+      StartCalendarInterval = [{ Hour = 4; Minute = 0; }];
+      StandardOutPath = "/var/log/nix-darwin-upgrade.log";
+      StandardErrorPath = "/var/log/nix-darwin-upgrade.log";
+    };
+  };
+
   # Agenix identity path (use user SSH key on macOS)
   age.identityPaths = [ "/Users/jsp/.ssh/id_ed25519" ];
 
