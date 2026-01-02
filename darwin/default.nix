@@ -204,10 +204,10 @@
       ShowStatusBar = true;
       _FXShowPosixPathInTitle = true;
       # Desktop icons
-      ShowExternalHardDrivesOnDesktop = true;
-      ShowHardDrivesOnDesktop = true;
-      ShowMountedServersOnDesktop = true;
-      ShowRemovableMediaOnDesktop = true;
+      ShowExternalHardDrivesOnDesktop = false;
+      ShowHardDrivesOnDesktop = false;
+      ShowMountedServersOnDesktop = false;
+      ShowRemovableMediaOnDesktop = false;
       # Sorting and search
       _FXSortFoldersFirst = true;
       FXDefaultSearchScope = "SCcf";  # Search current folder
@@ -245,7 +245,7 @@
       tilesize = 48;
       launchanim = false;
       expose-animation-duration = 0.1;  # Faster Mission Control
-      showhidden = true;  # Translucent icons for hidden apps
+      showhidden = false;  # Translucent icons for hidden apps
     };
 
     # Trackpad
