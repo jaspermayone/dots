@@ -235,17 +235,17 @@
 
     # Dock
     dock = {
-      autohide = true;
-      autohide-delay = 0.0;
-      mineffect = "scale";
-      minimize-to-application = false;
-      mru-spaces = false;
-      orientation = "left";
-      show-recents = false;
-      tilesize = 48;
-      launchanim = false;
-      expose-animation-duration = 0.1;  # Faster Mission Control
-      showhidden = false;  # Translucent icons for hidden apps
+      autohide = true;  # Auto-hide the dock when not in use
+      autohide-delay = 0.0;  # Delay before dock appears on hover (0 = instant)
+      mineffect = "scale";  # Minimize animation: "scale" or "genie"
+      minimize-to-application = false;  # Minimize windows into app icon vs separate dock item
+      mru-spaces = false;  # Rearrange spaces based on most recent use
+      orientation = "left";  # Dock position: "left", "bottom", or "right"
+      show-recents = false;  # Show recently used apps in separate dock section
+      tilesize = 48;  # Icon size in pixels
+      launchanim = false;  # Animate app launch (bouncing icon)
+      expose-animation-duration = 0.1;  # Mission Control animation speed (lower = faster)
+      showhidden = false;  # Dim hidden app icons (Cmd+H) to show they're hidden
     };
 
     # Trackpad
