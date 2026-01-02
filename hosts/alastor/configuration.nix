@@ -9,6 +9,7 @@
     ../../modules/knot/sync.nix
     ../../modules/bluesky-pds/default.nix
     ../../modules/atuin-server
+    ../../modules/restic
     inputs.tangled.nixosModules.knot
   ];
 
@@ -130,6 +131,19 @@
       owner = "jsp";
       mode = "400";
     };
+    # Restic backup secrets (uncomment when ready)
+    # "restic/env" = {
+    #   file = ../../secrets/restic/env.age;
+    #   mode = "400";
+    # };
+    # "restic/repo" = {
+    #   file = ../../secrets/restic/repo.age;
+    #   mode = "400";
+    # };
+    # "restic/password" = {
+    #   file = ../../secrets/restic/password.age;
+    #   mode = "400";
+    # };
   };
 
   # FRP tunnel server
@@ -212,6 +226,54 @@
   systemd.services.caddy.serviceConfig.EnvironmentFile = config.age.secrets.cloudflare-credentials.path;
 
   networking.firewall.allowedTCPPorts = [ 80 443 2222 ];  # 2222 for knot SSH
+
+  # Castle backup system (disabled for now - enable when secrets are ready)
+  # To enable:
+  # 1. Create secrets: agenix -e secrets/restic/env.age (B2_ACCOUNT_ID=..., B2_ACCOUNT_KEY=...)
+  # 2. Create secrets: agenix -e secrets/restic/repo.age (b2:bucket-name:/backup-path)
+  # 3. Create secrets: agenix -e secrets/restic/password.age (repository encryption password)
+  # 4. Uncomment the age.secrets above
+  # 5. Uncomment castle.backup below
+  #
+  # castle.backup = {
+  #   enable = true;
+  #   services = {
+  #     knot = {
+  #       paths = [ "/var/lib/knot" "/home/git" ];
+  #       exclude = [ "*.log" ".git" ];
+  #       tags = [ "service:knot" "type:git" ];
+  #       preBackup = ''
+  #         systemctl stop tangled-knot || true
+  #       '';
+  #       postBackup = ''
+  #         systemctl start tangled-knot || true
+  #       '';
+  #     };
+  #     pds = {
+  #       paths = [ "/var/lib/pds" ];
+  #       exclude = [ "*.log" "node_modules" ];
+  #       tags = [ "service:pds" "type:atproto" ];
+  #       preBackup = ''
+  #         systemctl stop bluesky-pds || true
+  #       '';
+  #       postBackup = ''
+  #         systemctl start bluesky-pds || true
+  #       '';
+  #     };
+  #     atuin = {
+  #       paths = [ "/var/lib/atuin-server" ];
+  #       exclude = [ "*.log" ];
+  #       tags = [ "service:atuin" "type:sqlite" ];
+  #       preBackup = ''
+  #         sqlite3 /var/lib/atuin-server/atuin.db "PRAGMA wal_checkpoint(TRUNCATE);" || true
+  #         systemctl stop atuin-server || true
+  #       '';
+  #       postBackup = ''
+  #         systemctl start atuin-server || true
+  #       '';
+  #     };
+  #   };
+  # };
 
   # Automatic garbage collection
   nix.gc = {

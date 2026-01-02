@@ -26,6 +26,8 @@
 
   # Laptop-specific nix packages
   environment.systemPackages = with pkgs; [
+    coreutils
+    libyaml
     yubikey-manager
   ];
 
