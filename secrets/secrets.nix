@@ -62,4 +62,12 @@ in
   # NPM registry tokens
   # Contains: npmjs.org and GitHub packages auth tokens
   "npmrc.age".publicKeys = all;
+
+  # Restic backup secrets (for B2 or any S3-compatible storage)
+  # restic/env.age: B2_ACCOUNT_ID and B2_ACCOUNT_KEY (or AWS_ACCESS_KEY_ID, etc.)
+  # restic/repo.age: Repository URL (e.g., b2:bucket-name:/path)
+  # restic/password.age: Repository encryption password
+  "restic/env.age".publicKeys = [ jsp alastor ];
+  "restic/repo.age".publicKeys = [ jsp alastor ];
+  "restic/password.age".publicKeys = [ jsp alastor ];
 }
