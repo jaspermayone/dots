@@ -43,7 +43,7 @@
     jq
     tmux
     bluesky-pds
-    inputs.agenix.packages.${pkgs.system}.default  # agenix CLI
+    inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default  # agenix CLI
   ];
 
   # NH - NixOS helper
@@ -169,7 +169,7 @@
   # Tangled Knot server (official module)
   services.tangled.knot = {
     enable = true;
-    package = inputs.tangled.packages.${pkgs.system}.knot;
+    package = inputs.tangled.packages.${pkgs.stdenv.hostPlatform.system}.knot;
     server = {
       owner = "did:plc:abgthiqrd7tczkafjm4ennbo";
       hostname = "knot.jaspermayone.com";
@@ -274,13 +274,6 @@
   #     };
   #   };
   # };
-
-  # Automatic garbage collection
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
-  };
 
   # Automatic updates - checks daily at 4am
   system.autoUpgrade = {

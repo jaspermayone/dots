@@ -95,6 +95,14 @@
         zmx = true;  # auto-attach zmx session
       };
 
+      # Horace (named after Horace Slughorn)
+      horace = {
+        hostname = "horace";
+        user = "jsp";
+        identityFile = "~/.ssh/id_ed25519";
+        zmx = true;
+      };
+
       # Proxmox and VMs
       pve = {
         hostname = "10.100.0.222";
