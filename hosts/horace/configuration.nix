@@ -4,6 +4,7 @@
 {
   imports = [
     ./hardware-configuration.nix
+    inputs.rust-fp.nixosModules.default
   ];
 
   # Boot loader
@@ -59,8 +60,8 @@
   # Printing
   services.printing.enable = true;
 
-  # Fingerprint reader
-  services.fprintd.enable = true;
+  # Chromebook fingerprint reader (via rust-fp)
+  # After rebuild, enroll with: cros-fp-cli enroll
 
   # Audio
   services.pulseaudio.enable = false;

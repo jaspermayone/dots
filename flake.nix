@@ -45,6 +45,10 @@
       url = "github:neurosnap/zmx";
     };
 
+    rust-fp = {
+      url = "github:ChocolateLoverRaj/rust-fp";
+    };
+
     tgirlpkgs = {
       url = "github:tgirlcloud/pkgs";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -62,6 +66,7 @@
     deploy-rs,
     tangled,
     tgirlpkgs,
+    rust-fp,
     ...
   }@inputs:
   let
