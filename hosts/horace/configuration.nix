@@ -59,6 +59,9 @@
   # Printing
   services.printing.enable = true;
 
+  # Fingerprint reader
+  services.fprintd.enable = true;
+
   # Audio
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
