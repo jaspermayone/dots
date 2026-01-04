@@ -111,6 +111,7 @@ in
         ssh_only = false;
         format = "[$hostname]($style) ";
         style = "dimmed white";
+        ssh_symbol = " ";
       };
 
       # Local IP - show on SSH
@@ -127,13 +128,14 @@ in
         truncation_length = 3;
         truncation_symbol = "…/";
         truncate_to_repo = true;
+        read_only = " 󰌾";
       };
 
       # Git branch
       git_branch = {
         format = "[$symbol$branch(:$remote_branch)]($style) ";
-        symbol = "";
-        style = "dimmed purple";
+        symbol = " ";
+        style = "purple";
       };
 
       # Git commit - show hash when detached
@@ -142,7 +144,7 @@ in
         style = "dimmed white";
         only_detached = true;
         tag_disabled = false;
-        tag_symbol = " 🏷 ";
+        tag_symbol = "  ";
       };
 
       # Git state - show rebase/merge/etc
@@ -169,7 +171,7 @@ in
         diverged = "⇕⇡$ahead_count⇣$behind_count";
         up_to_date = "";
         untracked = "?$count";
-        stashed = "📦";
+        stashed = "󰏗";
         modified = "!$count";
         staged = "+$count";
         renamed = "»$count";
@@ -179,7 +181,7 @@ in
       # Bun
       bun = {
         format = "[$symbol($version)]($style) ";
-        symbol = "🥟 ";
+        symbol = " ";
         style = "dimmed white";
       };
 
@@ -217,7 +219,7 @@ in
       # Nix shell
       nix_shell = {
         format = "[$symbol$state( \\($name\\))]($style) ";
-        symbol = "❄️ ";
+        symbol = " ";
         style = "dimmed blue";
         impure_msg = "impure";
         pure_msg = "pure";
@@ -236,7 +238,7 @@ in
       # Node.js
       nodejs = {
         format = "[$symbol($version)]($style) ";
-        symbol = " ";
+        symbol = " ";
         style = "dimmed green";
         not_capable_style = "red";
       };
@@ -244,7 +246,7 @@ in
       # Python
       python = {
         format = "[$symbol$pyenv_prefix($version )(\\($virtualenv\\))]($style) ";
-        symbol = "🐍 ";
+        symbol = " ";
         style = "dimmed yellow";
         pyenv_version_name = false;
       };
@@ -252,28 +254,28 @@ in
       # Ruby
       ruby = {
         format = "[$symbol($version)]($style) ";
-        symbol = "💎 ";
+        symbol = " ";
         style = "dimmed red";
       };
 
       # Rust
       rust = {
         format = "[$symbol($version)]($style) ";
-        symbol = "🦀 ";
+        symbol = "󱘗 ";
         style = "dimmed red";
       };
 
       # Java
       java = {
         format = "[$symbol($version)]($style) ";
-        symbol = "♨️ ";
+        symbol = " ";
         style = "dimmed red";
       };
 
       # Swift
       swift = {
         format = "[$symbol($version)]($style) ";
-        symbol = "🏎️ ";
+        symbol = " ";
         style = "dimmed white";
       };
 
