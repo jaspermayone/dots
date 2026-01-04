@@ -136,6 +136,7 @@
     # Available through 'nixos-rebuild --flake .#hostname'
     nixosConfigurations = {
       alastor = mkNixos "alastor" "aarch64-linux";
+      horace = mkNixos "horace" "x86_64-linux";
     };
 
     # Darwin configurations
@@ -158,6 +159,14 @@
           sshUser = "jsp";
           user = "root";
           path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.alastor;
+        };
+      };
+      horace = {
+        hostname = "horace";
+        profiles.system = {
+          sshUser = "jsp";
+          user = "root";
+          path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.horace;
         };
       };
     };
