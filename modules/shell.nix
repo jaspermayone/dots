@@ -110,20 +110,20 @@ in
       hostname = {
         ssh_only = false;
         format = "[$hostname]($style) ";
-        style = "bold cyan";
+        style = "dimmed white";
       };
 
       # Local IP - show on SSH
       localip = {
         ssh_only = true;
         format = "[@$localipv4]($style) ";
-        style = "bold yellow";
+        style = "dimmed white";
         disabled = false;
       };
 
       # Directory
       directory = {
-        style = "bold blue";
+        style = "cyan";
         truncation_length = 3;
         truncation_symbol = "…/";
         truncate_to_repo = true;
@@ -133,13 +133,13 @@ in
       git_branch = {
         format = "[$symbol$branch(:$remote_branch)]($style) ";
         symbol = "";
-        style = "purple";
+        style = "dimmed purple";
       };
 
       # Git commit - show hash when detached
       git_commit = {
         format = "[$hash$tag]($style) ";
-        style = "green";
+        style = "dimmed white";
         only_detached = true;
         tag_disabled = false;
         tag_symbol = " 🏷 ";
@@ -148,21 +148,21 @@ in
       # Git state - show rebase/merge/etc
       git_state = {
         format = "[$state( $progress_current/$progress_total)]($style) ";
-        style = "bold yellow";
+        style = "yellow";
       };
 
       # Git metrics - show +/- lines
       git_metrics = {
         format = "([+$added]($added_style))([-$deleted]($deleted_style) )";
-        added_style = "bold green";
-        deleted_style = "bold red";
+        added_style = "green";
+        deleted_style = "red";
         disabled = false;
       };
 
       # Git status - detailed symbols
       git_status = {
         format = "([$all_status$ahead_behind]($style) )";
-        style = "red";
+        style = "dimmed red";
         conflicted = "=";
         ahead = "⇡$count";
         behind = "⇣$count";
@@ -180,14 +180,14 @@ in
       bun = {
         format = "[$symbol($version)]($style) ";
         symbol = "🥟 ";
-        style = "bold red";
+        style = "dimmed white";
       };
 
       # Direnv
       direnv = {
         format = "[$symbol$loaded/$allowed]($style) ";
         symbol = "direnv ";
-        style = "bold orange";
+        style = "dimmed white";
         disabled = false;
       };
 
@@ -195,20 +195,20 @@ in
       cmd_duration = {
         min_time = 2000;
         format = "[$duration]($style) ";
-        style = "yellow";
+        style = "dimmed yellow";
         show_notifications = false;
       };
 
       # Character
       character = {
-        success_symbol = "[❯](bold magenta)";
-        error_symbol = "[❯](bold red)";
+        success_symbol = "[❯](cyan)";
+        error_symbol = "[❯](red)";
       };
 
       # Username - show when root or SSH
       username = {
         style_root = "bold red";
-        style_user = "bold yellow";
+        style_user = "dimmed white";
         format = "[$user]($style)@";
         show_always = false;
         disabled = false;
@@ -218,7 +218,7 @@ in
       nix_shell = {
         format = "[$symbol$state( \\($name\\))]($style) ";
         symbol = "❄️ ";
-        style = "bold blue";
+        style = "dimmed blue";
         impure_msg = "impure";
         pure_msg = "pure";
         disabled = false;
@@ -229,7 +229,7 @@ in
       mise = {
         format = "[$symbol$health]($style) ";
         symbol = "mise ";
-        style = "bold purple";
+        style = "dimmed white";
         disabled = false;
       };
 
@@ -237,15 +237,15 @@ in
       nodejs = {
         format = "[$symbol($version)]($style) ";
         symbol = " ";
-        style = "bold green";
-        not_capable_style = "bold red";
+        style = "dimmed green";
+        not_capable_style = "red";
       };
 
       # Python
       python = {
         format = "[$symbol$pyenv_prefix($version )(\\($virtualenv\\))]($style) ";
         symbol = "🐍 ";
-        style = "yellow bold";
+        style = "dimmed yellow";
         pyenv_version_name = false;
       };
 
@@ -253,28 +253,28 @@ in
       ruby = {
         format = "[$symbol($version)]($style) ";
         symbol = "💎 ";
-        style = "bold red";
+        style = "dimmed red";
       };
 
       # Rust
       rust = {
         format = "[$symbol($version)]($style) ";
         symbol = "🦀 ";
-        style = "bold red";
+        style = "dimmed red";
       };
 
       # Java
       java = {
         format = "[$symbol($version)]($style) ";
         symbol = "♨️ ";
-        style = "red dimmed";
+        style = "dimmed red";
       };
 
       # Swift
       swift = {
         format = "[$symbol($version)]($style) ";
         symbol = "🏎️ ";
-        style = "bold 202";
+        style = "dimmed white";
       };
 
       # Shell indicator
