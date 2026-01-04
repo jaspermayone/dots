@@ -138,6 +138,12 @@
 
   # Agenix secrets
   age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  age.secrets.bore-token = {
+    file = ../../secrets/bore-token.age;
+    path = "/home/jsp/.config/bore/token";
+    owner = "jsp";
+    mode = "400";
+  };
   age.secrets.atuin-key = {
     file = ../../secrets/atuin-key.age;
     path = "/home/jsp/.local/share/atuin/key";
