@@ -99,6 +99,196 @@ let
 
 in
 {
+  # Starship prompt
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    settings = {
+      format = "$username$hostname$localip$directory$git_branch$git_commit$git_state$git_metrics$git_status$nix_shell$mise$bun$nodejs$python$ruby$rust$java$swift$direnv$shell$cmd_duration$line_break$character";
+
+      # Hostname - always visible
+      hostname = {
+        ssh_only = false;
+        format = "[$hostname]($style) ";
+        style = "bold cyan";
+      };
+
+      # Local IP - show on SSH
+      localip = {
+        ssh_only = true;
+        format = "[@$localipv4]($style) ";
+        style = "bold yellow";
+        disabled = false;
+      };
+
+      # Directory
+      directory = {
+        style = "bold blue";
+        truncation_length = 3;
+        truncation_symbol = "…/";
+        truncate_to_repo = true;
+      };
+
+      # Git branch
+      git_branch = {
+        format = "[$symbol$branch(:$remote_branch)]($style) ";
+        symbol = "";
+        style = "purple";
+      };
+
+      # Git commit - show hash when detached
+      git_commit = {
+        format = "[$hash$tag]($style) ";
+        style = "green";
+        only_detached = true;
+        tag_disabled = false;
+        tag_symbol = " 🏷 ";
+      };
+
+      # Git state - show rebase/merge/etc
+      git_state = {
+        format = "[$state( $progress_current/$progress_total)]($style) ";
+        style = "bold yellow";
+      };
+
+      # Git metrics - show +/- lines
+      git_metrics = {
+        format = "([+$added]($added_style))([-$deleted]($deleted_style) )";
+        added_style = "bold green";
+        deleted_style = "bold red";
+        disabled = false;
+      };
+
+      # Git status - detailed symbols
+      git_status = {
+        format = "([$all_status$ahead_behind]($style) )";
+        style = "red";
+        conflicted = "=";
+        ahead = "⇡$count";
+        behind = "⇣$count";
+        diverged = "⇕⇡$ahead_count⇣$behind_count";
+        up_to_date = "";
+        untracked = "?$count";
+        stashed = "📦";
+        modified = "!$count";
+        staged = "+$count";
+        renamed = "»$count";
+        deleted = "✘$count";
+      };
+
+      # Bun
+      bun = {
+        format = "[$symbol($version)]($style) ";
+        symbol = "🥟 ";
+        style = "bold red";
+      };
+
+      # Direnv
+      direnv = {
+        format = "[$symbol$loaded/$allowed]($style) ";
+        symbol = "direnv ";
+        style = "bold orange";
+        disabled = false;
+      };
+
+      # Command duration
+      cmd_duration = {
+        min_time = 2000;
+        format = "[$duration]($style) ";
+        style = "yellow";
+        show_notifications = false;
+      };
+
+      # Character
+      character = {
+        success_symbol = "[❯](bold magenta)";
+        error_symbol = "[❯](bold red)";
+      };
+
+      # Username - show when root or SSH
+      username = {
+        style_root = "bold red";
+        style_user = "bold yellow";
+        format = "[$user]($style)@";
+        show_always = false;
+        disabled = false;
+      };
+
+      # Nix shell
+      nix_shell = {
+        format = "[$symbol$state( \\($name\\))]($style) ";
+        symbol = "❄️ ";
+        style = "bold blue";
+        impure_msg = "impure";
+        pure_msg = "pure";
+        disabled = false;
+        heuristic = true;
+      };
+
+      # Mise (version manager)
+      mise = {
+        format = "[$symbol$health]($style) ";
+        symbol = "mise ";
+        style = "bold purple";
+        disabled = false;
+      };
+
+      # Node.js
+      nodejs = {
+        format = "[$symbol($version)]($style) ";
+        symbol = " ";
+        style = "bold green";
+        not_capable_style = "bold red";
+      };
+
+      # Python
+      python = {
+        format = "[$symbol$pyenv_prefix($version )(\\($virtualenv\\))]($style) ";
+        symbol = "🐍 ";
+        style = "yellow bold";
+        pyenv_version_name = false;
+      };
+
+      # Ruby
+      ruby = {
+        format = "[$symbol($version)]($style) ";
+        symbol = "💎 ";
+        style = "bold red";
+      };
+
+      # Rust
+      rust = {
+        format = "[$symbol($version)]($style) ";
+        symbol = "🦀 ";
+        style = "bold red";
+      };
+
+      # Java
+      java = {
+        format = "[$symbol($version)]($style) ";
+        symbol = "♨️ ";
+        style = "red dimmed";
+      };
+
+      # Swift
+      swift = {
+        format = "[$symbol($version)]($style) ";
+        symbol = "🏎️ ";
+        style = "bold 202";
+      };
+
+      # Shell indicator
+      shell = {
+        format = "[$indicator]($style) ";
+        style = "white bold";
+        zsh_indicator = "";
+        bash_indicator = "bsh";
+        fish_indicator = "fish";
+        disabled = true;  # enable if you switch shells often
+      };
+    };
+  };
+
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -172,13 +362,6 @@ in
 
     initContent = ''
       # ============================================================================
-      # POWERLEVEL10K INSTANT PROMPT
-      # ============================================================================
-      if [[ -r "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh" ]]; then
-        source "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh"
-      fi
-
-      # ============================================================================
       # HOMEBREW
       # ============================================================================
       if [[ -f /opt/homebrew/bin/brew ]]; then
@@ -199,11 +382,6 @@ in
       source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
       autoload -Uz _zinit
       (( ''${+_comps} )) && _comps[zinit]=_zinit
-
-      # ============================================================================
-      # ZINIT THEME
-      # ============================================================================
-      zinit ice depth"1"; zinit light romkatv/powerlevel10k
 
       # ============================================================================
       # ZINIT PLUGINS
@@ -308,11 +486,6 @@ in
 
       # Mise activation
       eval "$(mise activate zsh)"
-
-      # ============================================================================
-      # POWERLEVEL10K CONFIGURATION
-      # ============================================================================
-      [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
     '';
   };
 
