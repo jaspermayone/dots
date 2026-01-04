@@ -80,6 +80,7 @@
     curl
     jq
     tmux
+    usbutils
     kdePackages.kate
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
