@@ -10,10 +10,11 @@ let
   # Host SSH public keys
   alastor = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFwkC1CiWpLB10NNVaJwu4LSyiL0wM7ExI1VoKqIsgeG root@alastor-vnic";
   dippet = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOqi0ZRAHUqBL4zolSeVTgp1oZ6HKD+Hq5AktpLolely jsp@Dippet";
+  horace = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILYGMXvsqRFPCtDLSq65TzJPYx+Nz675+RbTY4ox/9Gw root@nixos";
 
   # Groups for convenience
   allUsers = [ jsp ];
-  allHosts = [ alastor  dippet ];
+  allHosts = [ alastor dippet horace ];
   all = allUsers ++ allHosts;
 in
 {
