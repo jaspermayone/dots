@@ -79,6 +79,7 @@
     brews = [
       # macOS specific
       "mas"  # Mac App Store CLI
+      "libyaml"  # Required for mise-installed Ruby (psych gem)
 
       # Font tools (bramstein tap)
       "sfnt2woff"
