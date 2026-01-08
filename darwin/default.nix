@@ -145,6 +145,7 @@
       "bitwarden"
       "discord"
       "espanso"
+      "google-chrome"
       "ngrok"
       "raycast"
       "slack"

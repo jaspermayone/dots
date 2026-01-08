@@ -103,6 +103,7 @@
     usbutils
     kdePackages.kate
     discord
+    google-chrome
     slack
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
