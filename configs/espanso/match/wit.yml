@@ -1,0 +1,14 @@
+# espanso match file - WIT (Wentworth) related matches
+
+matches:
+  - trigger: ">ccdr"
+    replace: |
+      /**
+       * Jasper Mayone <mayonej@wit.edu>
+       * {{my_id}}
+       * COMP 1050 - Spring 2025
+       * Professor Dave Rosenberg <rosenbergd@wit.edu>
+       *
+       * $|$
+       *
+       */

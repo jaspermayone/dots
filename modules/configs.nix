@@ -33,12 +33,14 @@ in
       "Library/Application Support/espanso/config/default.yml".source =
         ../configs/espanso/config/default.yml;
       "Library/Application Support/espanso/match/base.yml".source = ../configs/espanso/match/base.yml;
+      "Library/Application Support/espanso/match/wit.yml".source = ../configs/espanso/match/wit.yml;
     })
 
     # Linux espanso paths
     (lib.mkIf (!isDarwin) {
       ".config/espanso/config/default.yml".source = ../configs/espanso/config/default.yml;
       ".config/espanso/match/base.yml".source = ../configs/espanso/match/base.yml;
+      ".config/espanso/match/wit.yml".source = ../configs/espanso/match/wit.yml;
     })
 
     # VS Code settings (macOS)
