@@ -418,6 +418,9 @@
   # Activation scripts for settings that can't be done declaratively
   # Note: these run as root during activation
   system.activationScripts.extraActivation.text = ''
+    # Symlink nix bitwarden-cli to homebrew bin for Raycast compatibility
+    ln -sf /run/current-system/sw/bin/bw /opt/homebrew/bin/bw
+
     # Show ~/Library folder (for primary user)
     chflags nohidden /Users/jsp/Library
 
