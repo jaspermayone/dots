@@ -69,14 +69,19 @@
   };
 
   # RC files from ../rc/ directory (each file is linked as-is to ~/)
-  home.file = builtins.listToAttrs (
-    map (name: {
-      name = name;
-      value = {
-        source = ../rc/${name};
-      };
-    }) (builtins.attrNames (builtins.readDir ../rc))
-  );
+  home.file =
+    builtins.listToAttrs (
+      map (name: {
+        name = name;
+        value = {
+          source = ../rc/${name};
+        };
+      }) (builtins.attrNames (builtins.readDir ../rc))
+    )
+    // lib.optionalAttrs (!isDarwin) {
+      # Discord settings (skip update nag on NixOS)
+      ".config/discord/settings.json".text = builtins.toJSON { SKIP_HOST_UPDATE = true; };
+    };
 
   home.packages = with pkgs; [
     eza
