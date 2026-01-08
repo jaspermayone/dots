@@ -16,7 +16,12 @@
 #   castle deploy     - Remote deployment tools
 #   castle logs       - Service log viewer
 
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.castle.backup;
@@ -25,15 +30,17 @@ let
   allBackupServices = lib.attrNames cfg.services;
 
   # Generate manifest for disaster recovery
-  backupManifest = pkgs.writeText "backup-manifest.json" (builtins.toJSON {
-    version = 1;
-    generated = "nixos-rebuild";
-    services = lib.mapAttrs (name: backupCfg: {
-      paths = backupCfg.paths;
-      exclude = backupCfg.exclude or [];
-      tags = backupCfg.tags or [];
-    }) cfg.services;
-  });
+  backupManifest = pkgs.writeText "backup-manifest.json" (
+    builtins.toJSON {
+      version = 1;
+      generated = "nixos-rebuild";
+      services = lib.mapAttrs (name: backupCfg: {
+        paths = backupCfg.paths;
+        exclude = backupCfg.exclude or [ ];
+        tags = backupCfg.tags or [ ];
+      }) cfg.services;
+    }
+  );
 
   castleCliScript = pkgs.writeShellScript "castle" ''
     set -e
@@ -351,9 +358,14 @@ let
     };
   };
 
-in {
+in
+{
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ castleCli pkgs.gum pkgs.jq ];
+    environment.systemPackages = [
+      castleCli
+      pkgs.gum
+      pkgs.jq
+    ];
 
     # Store manifest for reference
     environment.etc."castle/backup-manifest.json".source = backupManifest;

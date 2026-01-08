@@ -1,5 +1,12 @@
 # Dippet - Mac Mini (server + desktop)
-{ config, pkgs, lib, inputs, hostname, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  hostname,
+  ...
+}:
 
 {
   # Disable nix-darwin's Nix management (using Determinate Nix installer)
@@ -11,7 +18,12 @@
       /run/current-system/sw/bin/darwin-rebuild switch --flake github:jaspermayone/dots#dippet
     '';
     serviceConfig = {
-      StartCalendarInterval = [{ Hour = 4; Minute = 0; }];
+      StartCalendarInterval = [
+        {
+          Hour = 4;
+          Minute = 0;
+        }
+      ];
       StandardOutPath = "/var/log/nix-darwin-upgrade.log";
       StandardErrorPath = "/var/log/nix-darwin-upgrade.log";
     };

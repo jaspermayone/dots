@@ -1,5 +1,10 @@
 # Bore tunnel client configuration
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   imports = [ ../modules/bore ];
@@ -10,8 +15,6 @@
     serverPort = 7000;
     domain = "tun.hogwarts.channel";
     authTokenFile =
-      if pkgs.stdenv.isDarwin
-      then "/Users/jsp/.config/bore/token"
-      else "/home/jsp/.config/bore/token";
+      if pkgs.stdenv.isDarwin then "/Users/jsp/.config/bore/token" else "/home/jsp/.config/bore/token";
   };
 }

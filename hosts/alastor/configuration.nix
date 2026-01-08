@@ -1,5 +1,12 @@
 # Alastor - NixOS server running frp tunnel service (named after Mad-Eye Moody)
-{ config, pkgs, lib, inputs, hostname, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  hostname,
+  ...
+}:
 
 {
   imports = [
@@ -21,7 +28,10 @@
 
   # Nix settings
   nix = {
-    settings.experimental-features = [ "nix-command" "flakes" ];
+    settings.experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     optimise.automatic = true;
   };
 
@@ -43,7 +53,7 @@
     jq
     tmux
     bluesky-pds
-    inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default  # agenix CLI
+    inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default # agenix CLI
   ];
 
   # NH - NixOS helper
@@ -82,7 +92,7 @@
     extraGroups = [ "wheel" ];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
-     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
     ];
   };
 
@@ -111,7 +121,7 @@
     github-token = {
       file = ../../secrets/github-token.age;
       mode = "400";
-      owner = "git";  # tangled uses git user
+      owner = "git"; # tangled uses git user
     };
     pds = {
       file = ../../secrets/pds.age;
@@ -161,8 +171,17 @@
     enable = true;
     hostname = "alastor";
     domain = "alastor.hogwarts.channel";
-    services = [ "frps" "caddy" "tailscaled" "tangled-knot" "atuin-server" ];
-    remoteHosts = [ "remus" "dippet" ];
+    services = [
+      "frps"
+      "caddy"
+      "tailscaled"
+      "tangled-knot"
+      "atuin-server"
+    ];
+    remoteHosts = [
+      "remus"
+      "dippet"
+    ];
     cloudflareCredentialsFile = config.age.secrets.cloudflare-credentials.path;
   };
 
@@ -184,7 +203,7 @@
     adminEmail = "pds-admin@hogwarts.dev";
     environmentFile = config.age.secrets.pds.path;
     mailerEnvironmentFile = config.age.secrets.pds-mailer.path;
-    enableGatekeeper = false;  # Disabled for now - was causing pdsadmin issues
+    enableGatekeeper = false; # Disabled for now - was causing pdsadmin issues
     enableAgeAssurance = true;
   };
 
@@ -194,7 +213,6 @@
     hostname = "atuin.hogwarts.dev";
     cloudflareCredentialsFile = config.age.secrets.cloudflare-credentials.path;
   };
-
 
   # Knot to GitHub sync service
   jsp.services.knot-sync = {
@@ -223,9 +241,14 @@
     };
   };
 
-  systemd.services.caddy.serviceConfig.EnvironmentFile = config.age.secrets.cloudflare-credentials.path;
+  systemd.services.caddy.serviceConfig.EnvironmentFile =
+    config.age.secrets.cloudflare-credentials.path;
 
-  networking.firewall.allowedTCPPorts = [ 80 443 2222 ];  # 2222 for knot SSH
+  networking.firewall.allowedTCPPorts = [
+    80
+    443
+    2222
+  ]; # 2222 for knot SSH
 
   # Castle backup system (disabled for now - enable when secrets are ready)
   # To enable:
@@ -280,6 +303,6 @@
     enable = true;
     flake = "github:jaspermayone/dots#alastor";
     dates = "04:00";
-    allowReboot = false;  # Set to true if you want automatic reboots when needed
+    allowReboot = false; # Set to true if you want automatic reboots when needed
   };
 }

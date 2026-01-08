@@ -1,9 +1,19 @@
 # Darwin (macOS) specific configuration
-{ config, pkgs, lib, inputs, hostname, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  hostname,
+  ...
+}:
 
 {
   # Nix configuration
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   # Fix GID mismatch for nixbld group (new installs use 350, old used 30000)
   ids.gids.nixbld = 350;
@@ -39,7 +49,7 @@
     lazygit
     redis
     mkcert
-    inetutils      # telnet, ftp, etc.
+    inetutils # telnet, ftp, etc.
     watchman
     pipx
     pwgen
@@ -58,7 +68,7 @@
     enable = true;
     onActivation = {
       autoUpdate = true;
-      cleanup = "zap";  # Remove unlisted packages
+      cleanup = "zap"; # Remove unlisted packages
       upgrade = true;
     };
 
@@ -78,8 +88,8 @@
     # CLI tools (only macOS-specific, special taps, or unavailable in nixpkgs)
     brews = [
       # macOS specific
-      "mas"  # Mac App Store CLI
-      "libyaml"  # Required for mise-installed Ruby (psych gem)
+      "mas" # Mac App Store CLI
+      "libyaml" # Required for mise-installed Ruby (psych gem)
 
       # Font tools (bramstein tap)
       "sfnt2woff"
@@ -109,7 +119,7 @@
       "composer"
       "openjdk"
       "openjdk@21"
-      "rust"  # Keep for toolchain management
+      "rust" # Keep for toolchain management
 
       # Databases (specific versions)
       "mysql@8.0"
@@ -140,7 +150,7 @@
 
     # Mac App Store apps (requires `mas` CLI)
     # masApps = {
-      # "Xcode" = 497799835;
+    # "Xcode" = 497799835;
     # };
   };
 
@@ -169,10 +179,10 @@
       InitialKeyRepeat = 15;
       KeyRepeat = 2;
       ApplePressAndHoldEnabled = false;
-      AppleKeyboardUIMode = 3;  # Full keyboard access
+      AppleKeyboardUIMode = 3; # Full keyboard access
 
       # Scrolling
-      "com.apple.swipescrolldirection" = false;  # (true = Natural scrolling
+      "com.apple.swipescrolldirection" = false; # (true = Natural scrolling
 
       # Appearance
       AppleShowAllExtensions = true;
@@ -184,13 +194,13 @@
       AppleTemperatureUnit = "Fahrenheit";
 
       # Window behavior
-      NSWindowResizeTime = 0.001;  # Faster window resize
-      NSNavPanelExpandedStateForSaveMode = true;  # Expand save panel
+      NSWindowResizeTime = 0.001; # Faster window resize
+      NSNavPanelExpandedStateForSaveMode = true; # Expand save panel
       NSNavPanelExpandedStateForSaveMode2 = true;
-      PMPrintingExpandedStateForPrint = true;  # Expand print panel
+      PMPrintingExpandedStateForPrint = true; # Expand print panel
       PMPrintingExpandedStateForPrint2 = true;
-      NSDocumentSaveNewDocumentsToCloud = false;  # Save to disk, not iCloud
-      NSDisableAutomaticTermination = true;  # Prevent auto-termination of apps
+      NSDocumentSaveNewDocumentsToCloud = false; # Save to disk, not iCloud
+      NSDisableAutomaticTermination = true; # Prevent auto-termination of apps
     };
 
     # Finder
@@ -199,7 +209,7 @@
       AppleShowAllFiles = false;
       CreateDesktop = true;
       FXEnableExtensionChangeWarning = false;
-      FXPreferredViewStyle = "clmv";  # Column view
+      FXPreferredViewStyle = "clmv"; # Column view
       QuitMenuItem = true;
       ShowPathbar = true;
       ShowStatusBar = true;
@@ -211,7 +221,7 @@
       ShowRemovableMediaOnDesktop = false;
       # Sorting and search
       _FXSortFoldersFirst = true;
-      FXDefaultSearchScope = "SCcf";  # Search current folder
+      FXDefaultSearchScope = "SCcf"; # Search current folder
     };
 
     # Screenshots
@@ -236,22 +246,22 @@
 
     # Dock
     dock = {
-      autohide = true;  # Auto-hide the dock when not in use
-      autohide-delay = 0.0;  # Delay before dock appears on hover (0 = instant)
-      mineffect = "scale";  # Minimize animation: "scale" or "genie"
-      minimize-to-application = false;  # Minimize windows into app icon vs separate dock item
-      mru-spaces = false;  # Rearrange spaces based on most recent use
-      orientation = "left";  # Dock position: "left", "bottom", or "right"
-      show-recents = false;  # Show recently used apps in separate dock section
-      tilesize = 48;  # Icon size in pixels
-      launchanim = false;  # Animate app launch (bouncing icon)
-      expose-animation-duration = 0.1;  # Mission Control animation speed (lower = faster)
-      showhidden = false;  # Dim hidden app icons (Cmd+H) to show they're hidden
+      autohide = true; # Auto-hide the dock when not in use
+      autohide-delay = 0.0; # Delay before dock appears on hover (0 = instant)
+      mineffect = "scale"; # Minimize animation: "scale" or "genie"
+      minimize-to-application = false; # Minimize windows into app icon vs separate dock item
+      mru-spaces = false; # Rearrange spaces based on most recent use
+      orientation = "left"; # Dock position: "left", "bottom", or "right"
+      show-recents = false; # Show recently used apps in separate dock section
+      tilesize = 48; # Icon size in pixels
+      launchanim = false; # Animate app launch (bouncing icon)
+      expose-animation-duration = 0.1; # Mission Control animation speed (lower = faster)
+      showhidden = false; # Dim hidden app icons (Cmd+H) to show they're hidden
     };
 
     # Trackpad
     trackpad = {
-      Clicking = true;  # Tap to click
+      Clicking = true; # Tap to click
       TrackpadRightClick = true;
       TrackpadThreeFingerDrag = true;
       Dragging = true;
@@ -278,7 +288,7 @@
     CustomUserPreferences = {
       # System sound
       "com.apple.systemsound" = {
-        "com.apple.sound.uiaudio.enabled" = 0;  # Disable boot sound
+        "com.apple.sound.uiaudio.enabled" = 0; # Disable boot sound
       };
 
       # Help Viewer non-floating
@@ -304,7 +314,7 @@
       # Finder extras
       "com.apple.finder" = {
         ShowRecentTags = false;
-        OpenWindowForNewRemovableDisk = true;  # Auto-open for mounted volumes
+        OpenWindowForNewRemovableDisk = true; # Auto-open for mounted volumes
       };
 
       # Disk images: skip verification
@@ -321,7 +331,7 @@
 
       # Safari
       "com.apple.Safari" = {
-        UniversalSearchEnabled = false;  # Don't send search queries to Apple
+        UniversalSearchEnabled = false; # Don't send search queries to Apple
         SuppressSearchSuggestions = true;
         ShowFullURLInSmartSearchField = true;
         HomePage = "about:blank";
@@ -334,16 +344,16 @@
 
       # Mail
       "com.apple.mail" = {
-        AddressesIncludeNameOnPasteboard = false;  # Copy addresses without name
+        AddressesIncludeNameOnPasteboard = false; # Copy addresses without name
         NSUserKeyEquivalents = {
-          Send = "@\\U21a9";  # Cmd+Enter to send
+          Send = "@\\U21a9"; # Cmd+Enter to send
         };
         DisableInlineAttachmentViewing = true;
       };
 
       # Terminal
       "com.apple.terminal" = {
-        StringEncodings = [ 4 ];  # UTF-8 only
+        StringEncodings = [ 4 ]; # UTF-8 only
       };
 
       # iTerm2
@@ -359,15 +369,15 @@
       # Activity Monitor
       "com.apple.ActivityMonitor" = {
         OpenMainWindow = true;
-        ShowCategory = 0;  # All processes
+        ShowCategory = 0; # All processes
         SortColumn = "CPUUsage";
         SortDirection = 0;
       };
 
       # TextEdit
       "com.apple.TextEdit" = {
-        RichText = 0;  # Plain text mode
-        PlainTextEncoding = 4;  # UTF-8
+        RichText = 0; # Plain text mode
+        PlainTextEncoding = 4; # UTF-8
         PlainTextEncodingForWrite = 4;
       };
 
@@ -386,9 +396,9 @@
       # Software Update
       "com.apple.SoftwareUpdate" = {
         AutomaticCheckEnabled = true;
-        ScheduleFrequency = 1;  # Daily
+        ScheduleFrequency = 1; # Daily
         AutomaticDownload = 1;
-        CriticalUpdateInstall = 1;  # Auto-install security updates
+        CriticalUpdateInstall = 1; # Auto-install security updates
         AutoUpdate = true;
       };
 

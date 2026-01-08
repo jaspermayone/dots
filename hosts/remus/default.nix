@@ -1,5 +1,12 @@
 # Remus - MacBook Pro M4 (dev laptop)
-{ config, pkgs, lib, inputs, hostname, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  hostname,
+  ...
+}:
 
 {
   # Host-specific overrides go here

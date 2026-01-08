@@ -1,12 +1,21 @@
 # modules/bluesky-pds/default.nix
 # NixOS module enabling Bluesky PDS with Caddy reverse proxy and optional gatekeeper
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 let
   cfg = config.services.bluesky-pds-hosting;
   pdsSettings = config.services.bluesky-pds.settings;
   gatekeeperPort = 3001;
   # When gatekeeper is enabled, Caddy proxies to gatekeeper; otherwise directly to PDS
-  proxyTarget = if cfg.enableGatekeeper then "localhost:${toString gatekeeperPort}" else "localhost:${toString cfg.port}";
+  proxyTarget =
+    if cfg.enableGatekeeper then
+      "localhost:${toString gatekeeperPort}"
+    else
+      "localhost:${toString cfg.port}";
 in
 {
   options.services.bluesky-pds-hosting = {
@@ -49,11 +58,10 @@ in
   config = lib.mkIf cfg.enable {
     services.bluesky-pds = {
       enable = true;
-      environmentFiles =
-        lib.lists.flatten [
-          [ cfg.environmentFile ]
-          (lib.optional (cfg.mailerEnvironmentFile != null) cfg.mailerEnvironmentFile)
-        ];
+      environmentFiles = lib.lists.flatten [
+        [ cfg.environmentFile ]
+        (lib.optional (cfg.mailerEnvironmentFile != null) cfg.mailerEnvironmentFile)
+      ];
       settings = {
         PDS_PORT = cfg.port;
         PDS_HOSTNAME = cfg.hostname;
@@ -95,26 +103,26 @@ in
           }
 
           ${lib.optionalString cfg.enableAgeAssurance ''
-          handle /xrpc/app.bsky.unspecced.getAgeAssuranceState {
-            header content-type "application/json"
-            header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
-            header access-control-allow-origin "*"
-            respond `{"lastInitiatedAt":"2025-07-14T14:22:43.912Z","status":"assured"}` 200
-          }
+            handle /xrpc/app.bsky.unspecced.getAgeAssuranceState {
+              header content-type "application/json"
+              header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
+              header access-control-allow-origin "*"
+              respond `{"lastInitiatedAt":"2025-07-14T14:22:43.912Z","status":"assured"}` 200
+            }
 
-          handle /xrpc/app.bsky.ageassurance.getConfig {
-            header content-type "application/json"
-            header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
-            header access-control-allow-origin "*"
-            respond `{"regions":[]}` 200
-          }
+            handle /xrpc/app.bsky.ageassurance.getConfig {
+              header content-type "application/json"
+              header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
+              header access-control-allow-origin "*"
+              respond `{"regions":[]}` 200
+            }
 
-          handle /xrpc/app.bsky.ageassurance.getState {
-            header content-type "application/json"
-            header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
-            header access-control-allow-origin "*"
-            respond `{"state":{"lastInitiatedAt":"2025-07-14T14:22:43.912Z","status":"assured","access":"full"},"metadata":{"accountCreatedAt":"2022-11-17T00:35:16.391Z"}}` 200
-          }
+            handle /xrpc/app.bsky.ageassurance.getState {
+              header content-type "application/json"
+              header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
+              header access-control-allow-origin "*"
+              respond `{"state":{"lastInitiatedAt":"2025-07-14T14:22:43.912Z","status":"assured","access":"full"},"metadata":{"accountCreatedAt":"2022-11-17T00:35:16.391Z"}}` 200
+            }
           ''}
 
           reverse_proxy ${proxyTarget}

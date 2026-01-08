@@ -49,7 +49,7 @@ in
       description = "Sync Knot repositories to GitHub";
       serviceConfig = {
         Type = "oneshot";
-        User = "git";  # official tangled module uses git user
+        User = "git"; # official tangled module uses git user
         EnvironmentFile = cfg.secretsFile;
         ExecStart = pkgs.writeShellScript "knot-sync" ''
           set -euo pipefail

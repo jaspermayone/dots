@@ -1,5 +1,10 @@
 # Status monitoring module - serves /status endpoints for shields.io badges
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -13,35 +18,41 @@ let
     mkdir -p "$STATUS_DIR"
 
     # Check each configured service
-    ${concatStringsSep "\n" (map (svc: ''
-      if systemctl is-active --quiet ${escapeShellArg svc}; then
-        echo "ok" > "$STATUS_DIR/${svc}"
-      else
-        rm -f "$STATUS_DIR/${svc}"
-      fi
-    '') cfg.services)}
+    ${concatStringsSep "\n" (
+      map (svc: ''
+        if systemctl is-active --quiet ${escapeShellArg svc}; then
+          echo "ok" > "$STATUS_DIR/${svc}"
+        else
+          rm -f "$STATUS_DIR/${svc}"
+        fi
+      '') cfg.services
+    )}
 
     # Always write host status (if this runs, host is up)
     echo "ok" > "$STATUS_DIR/${cfg.hostname}"
 
     # Check remote hosts via ping (Tailscale)
-    ${concatStringsSep "\n" (map (host: ''
-      if ${pkgs.iputils}/bin/ping -c 1 -W 2 ${escapeShellArg host} >/dev/null 2>&1; then
-        echo "ok" > "$STATUS_DIR/${host}"
-      else
-        rm -f "$STATUS_DIR/${host}"
-      fi
-    '') cfg.remoteHosts)}
+    ${concatStringsSep "\n" (
+      map (host: ''
+        if ${pkgs.iputils}/bin/ping -c 1 -W 2 ${escapeShellArg host} >/dev/null 2>&1; then
+          echo "ok" > "$STATUS_DIR/${host}"
+        else
+          rm -f "$STATUS_DIR/${host}"
+        fi
+      '') cfg.remoteHosts
+    )}
 
     # Build services JSON
     SERVICES_JSON="{"
-    ${concatStringsSep "\n" (imap0 (i: svc: ''
-      if systemctl is-active --quiet ${escapeShellArg svc}; then
-        SERVICES_JSON="$SERVICES_JSON${if i > 0 then "," else ""}\"${svc}\":true"
-      else
-        SERVICES_JSON="$SERVICES_JSON${if i > 0 then "," else ""}\"${svc}\":false"
-      fi
-    '') cfg.services)}
+    ${concatStringsSep "\n" (
+      imap0 (i: svc: ''
+        if systemctl is-active --quiet ${escapeShellArg svc}; then
+          SERVICES_JSON="$SERVICES_JSON${if i > 0 then "," else ""}\"${svc}\":true"
+        else
+          SERVICES_JSON="$SERVICES_JSON${if i > 0 then "," else ""}\"${svc}\":false"
+        fi
+      '') cfg.services
+    )}
     SERVICES_JSON="$SERVICES_JSON}"
 
     # Write full status JSON
@@ -70,13 +81,13 @@ in
 
     services = mkOption {
       type = types.listOf types.str;
-      default = [];
+      default = [ ];
       description = "List of systemd services to monitor";
     };
 
     remoteHosts = mkOption {
       type = types.listOf types.str;
-      default = [];
+      default = [ ];
       description = "List of remote hosts to check via ping (e.g. Tailscale hosts)";
     };
 
@@ -114,9 +125,9 @@ in
     # Caddy virtual host for status
     services.caddy.virtualHosts."${cfg.domain}".extraConfig = ''
       ${optionalString (cfg.cloudflareCredentialsFile != null) ''
-      tls {
-        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-      }
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
       ''}
 
       # Individual host status (returns 200 if file exists)
@@ -132,32 +143,36 @@ in
       }
 
       # Service status endpoints
-      ${concatStringsSep "\n" (map (svc: ''
-      @status_${svc} path /status/service/${svc}
-      handle @status_${svc} {
-        @online_${svc} file /var/lib/status/${svc}
-        handle @online_${svc} {
-          respond "ok" 200
-        }
-        handle {
-          respond "offline" 503
-        }
-      }
-      '') cfg.services)}
+      ${concatStringsSep "\n" (
+        map (svc: ''
+          @status_${svc} path /status/service/${svc}
+          handle @status_${svc} {
+            @online_${svc} file /var/lib/status/${svc}
+            handle @online_${svc} {
+              respond "ok" 200
+            }
+            handle {
+              respond "offline" 503
+            }
+          }
+        '') cfg.services
+      )}
 
       # Remote host status endpoints (Tailscale)
-      ${concatStringsSep "\n" (map (host: ''
-      @status_${host} path /status/${host}
-      handle @status_${host} {
-        @online_${host} file /var/lib/status/${host}
-        handle @online_${host} {
-          respond "ok" 200
-        }
-        handle {
-          respond "offline" 503
-        }
-      }
-      '') cfg.remoteHosts)}
+      ${concatStringsSep "\n" (
+        map (host: ''
+          @status_${host} path /status/${host}
+          handle @status_${host} {
+            @online_${host} file /var/lib/status/${host}
+            handle @online_${host} {
+              respond "ok" 200
+            }
+            handle {
+              respond "offline" 503
+            }
+          }
+        '') cfg.remoteHosts
+      )}
 
       # Full status JSON
       @status_json path /status

@@ -214,7 +214,7 @@ with lib;
         diff = {
           algorithm = "histogram";
           tool = "windsurf";
-          renames = "copies";  # Detect copies as well as renames
+          renames = "copies"; # Detect copies as well as renames
         };
 
         "difftool \"windsurf\"".cmd = "windsurf --diff $LOCAL $REMOTE";
@@ -285,13 +285,19 @@ with lib;
 
         branch.sort = "-committerdate";
         column.ui = "auto";
-      } // (if isDarwin then {
-        # macOS specific
-        credential = {
-          helper = "osxkeychain";
-        };
-        "credential \"https://dev.azure.com\"".useHttpPath = true;
-      } else { });
+      }
+      // (
+        if isDarwin then
+          {
+            # macOS specific
+            credential = {
+              helper = "osxkeychain";
+            };
+            "credential \"https://dev.azure.com\"".useHttpPath = true;
+          }
+        else
+          { }
+      );
     };
 
     # Delta for better diffs
