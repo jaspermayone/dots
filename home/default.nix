@@ -68,6 +68,84 @@
     nix-direnv.enable = true;
   };
 
+  # Alacritty terminal
+  programs.alacritty = {
+    enable = true;
+    settings = {
+      window = {
+        dimensions = {
+          columns = 132;
+          lines = 32;
+        };
+        padding = {
+          x = 8;
+          y = 8;
+        };
+        decorations = if isDarwin then "Buttonless" else "Full";
+        opacity = 1.0;
+        blur = true;
+      };
+
+      font = {
+        normal = {
+          family = "JetBrainsMono Nerd Font";
+          style = "Regular";
+        };
+        bold = {
+          family = "JetBrainsMono Nerd Font";
+          style = "Bold";
+        };
+        italic = {
+          family = "JetBrainsMono Nerd Font";
+          style = "Italic";
+        };
+        size = 14.0;
+      };
+
+      colors = {
+        primary = {
+          background = "#292B33";
+          foreground = "#FFFFFF";
+        };
+        normal = {
+          black = "#1D1F28";
+          red = "#F67E7D";
+          green = "#00BD9C";
+          yellow = "#E5C76B";
+          blue = "#6BB8FF";
+          magenta = "#DA70D6";
+          cyan = "#79DCDA";
+          white = "#FFFFFF";
+        };
+        bright = {
+          black = "#535353";
+          red = "#FF9391";
+          green = "#98C379";
+          yellow = "#F9E46B";
+          blue = "#91DDFF";
+          magenta = "#DA9EF4";
+          cyan = "#A3F7F0";
+          white = "#FEFFFF";
+        };
+      };
+
+      cursor = {
+        style = {
+          shape = "Block";
+          blinking = "On";
+        };
+        blink_interval = 500;
+      };
+
+      selection.save_to_clipboard = true;
+
+      terminal.shell = {
+        program = "zsh";
+        args = [ "-l" ];
+      };
+    };
+  };
+
   # RC files from ../rc/ directory (each file is linked as-is to ~/)
   home.file =
     builtins.listToAttrs (
