@@ -1,14 +1,58 @@
 # espanso match file - WIT (Wentworth) related matches
 
 matches:
-  - trigger: ">ccdr"
+  - trigger: ">cc1000"
     replace: |
       /**
        * Jasper Mayone <mayonej@wit.edu>
        * {{my_id}}
-       * COMP 1050 - Spring 2025
+       * COMP 1050 - Fall 2025
+       * Professor Micah Schuster <schusterm@wit.edu>
+       *
+       * $|$
+       *
+       */
+  - trigger: ">pe1000"
+    replace: "shusterm@wit.edu"
+
+  - trigger: ">cc1050"
+    replace: |
+      /**
+       * Jasper Mayone <mayonej@wit.edu>
+       * {{my_id}}
+       * COMP 1050 - Spring 2026
        * Professor Dave Rosenberg <rosenbergd@wit.edu>
        *
        * $|$
        *
        */
+  - trigger: ">pe1050"
+    replace: "rosenbergd@wit.edu"
+
+  - trigger: ">cc1200"
+    replace: |
+      /**
+       * Jasper Mayone <mayonej@wit.edu>
+       * {{my_id}}
+       * COMP 1200 - Spring 2026
+       * Professor Koorosh Firouzbakht <firouzbakhtk@wit.edu>
+       *
+       * $|$
+       *
+       */
+  - trigger: ">pe1200"
+    replace: "firouzbakhtk@wit.edu"
+
+  - trigger: ">ccCSAS2000"
+    replace: |
+      /**
+       * Jasper Mayone <mayonej@wit.edu>
+       * {{my_id}}
+       * CSAS 2000 - Spring 2026
+       * Professor Ella Howard <howarde@wit.edu>
+       *
+       * $|$
+       *
+       */
+  - trigger: ">peCSAS2000"
+    replace: "howarde@wit.edu"
