@@ -92,6 +92,9 @@
     pulse.enable = true;
   };
 
+  # Wayland/Ozone for Electron apps
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
   # Basic packages
   environment.systemPackages = with pkgs; [
     vim
@@ -102,6 +105,7 @@
     tmux
     usbutils
     kdePackages.kate
+    slack
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 

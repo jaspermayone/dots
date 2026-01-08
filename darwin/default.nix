@@ -97,6 +97,7 @@
 
       # Cloud/Dev CLIs (from taps)
       "heroku/brew/heroku"
+      "slack-cli"
       "stripe/stripe-cli/stripe"
       "vercel-cli"
       "withgraphite/tap/graphite"
@@ -146,6 +147,7 @@
       "espanso"
       "ngrok"
       "raycast"
+      "slack"
     ];
 
     # Mac App Store apps (requires `mas` CLI)
