@@ -97,7 +97,6 @@
 
       # Cloud/Dev CLIs (from taps)
       "heroku/brew/heroku"
-      "slack-cli"
       "stripe/stripe-cli/stripe"
       "vercel-cli"
       "withgraphite/tap/graphite"
@@ -142,13 +141,20 @@
 
     # GUI apps (casks) - shared across all Darwin machines
     casks = [
+      "alacritty"
       "bitwarden"
       "discord"
+      "element"
       "espanso"
       "google-chrome"
+      "iterm2"
       "ngrok"
+      "obsidian"
       "raycast"
+      "signal"
       "slack"
+      "slack-cli"
+      "spotify"
     ];
 
     # Mac App Store apps (requires `mas` CLI)

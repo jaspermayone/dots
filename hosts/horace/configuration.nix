@@ -102,9 +102,14 @@
     tmux
     usbutils
     kdePackages.kate
+    alacritty
     discord
+    element-desktop
     google-chrome
+    obsidian
+    signal-desktop
     slack
+    spotify
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
