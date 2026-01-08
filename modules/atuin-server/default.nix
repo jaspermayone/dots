@@ -1,6 +1,11 @@
 # modules/atuin-server/default.nix
 # NixOS module for self-hosted Atuin sync server
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 let
   cfg = config.atelier.services.atuin-server;
 in

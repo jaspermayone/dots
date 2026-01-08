@@ -1,5 +1,12 @@
 # Horace - NixOS desktop (named after Horace Slughorn)
-{ config, pkgs, lib, inputs, hostname, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  hostname,
+  ...
+}:
 
 {
   imports = [
@@ -22,7 +29,10 @@
 
   # Nix settings
   nix = {
-    settings.experimental-features = [ "nix-command" "flakes" ];
+    settings.experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     optimise.automatic = true;
   };
 
@@ -123,10 +133,13 @@
   users.users.jsp = {
     isNormalUser = true;
     description = "Jasper";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+    ];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
-     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
     ];
   };
 

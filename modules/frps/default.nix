@@ -32,14 +32,26 @@ in
     allowedTCPPorts = lib.mkOption {
       type = lib.types.listOf lib.types.port;
       default = lib.lists.range 20000 20099;
-      example = [ 20000 20001 20002 20003 20004 ];
+      example = [
+        20000
+        20001
+        20002
+        20003
+        20004
+      ];
       description = "TCP port range to allow for TCP tunnels (default: 20000-20099)";
     };
 
     allowedUDPPorts = lib.mkOption {
       type = lib.types.listOf lib.types.port;
       default = lib.lists.range 20000 20099;
-      example = [ 20000 20001 20002 20003 20004 ];
+      example = [
+        20000
+        20001
+        20002
+        20003
+        20004
+      ];
       description = "UDP port range to allow for UDP tunnels (default: 20000-20099)";
     };
 
@@ -91,7 +103,7 @@ in
             ''
           else
             ''auth.token = "${cfg.authToken}"'';
-        
+
         configFile = pkgs.writeText "frps.toml" ''
           bindAddr = "${cfg.bindAddr}"
           bindPort = ${toString cfg.bindPort}
@@ -108,7 +120,7 @@ in
 
           # Subdomain support for *.${cfg.domain}
           subDomainHost = "${cfg.domain}"
-          
+
           # Allow port ranges for TCP/UDP tunnels
           # Format: [[{"start": 20000, "end": 20099}]]
           allowPorts = [
@@ -138,7 +150,7 @@ in
     # Automatically configure Caddy for wildcard domain
     services.caddy = lib.mkIf cfg.enableCaddy {
       enable = true;
-      
+
       # Dashboard for base domain
       virtualHosts."${cfg.domain}" = {
         extraConfig = ''
@@ -148,12 +160,12 @@ in
           header {
             Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
           }
-          
+
           # Proxy /api/* to frps dashboard
           handle /api/* {
             reverse_proxy localhost:7400
           }
-          
+
           # Serve dashboard HTML
           handle {
             root * ${./.}

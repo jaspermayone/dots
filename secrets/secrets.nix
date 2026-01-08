@@ -14,7 +14,11 @@ let
 
   # Groups for convenience
   allUsers = [ jsp ];
-  allHosts = [ alastor dippet horace ];
+  allHosts = [
+    alastor
+    dippet
+    horace
+  ];
   all = allUsers ++ allHosts;
 in
 {
@@ -24,7 +28,10 @@ in
 
   # Cloudflare API credentials for ACME DNS challenge
   # Format: CF_DNS_API_TOKEN=xxxxx
-  "cloudflare-credentials.age".publicKeys = [ jsp alastor ];
+  "cloudflare-credentials.age".publicKeys = [
+    jsp
+    alastor
+  ];
 
   # Bore client token (same as frps-token, but separate file for clarity)
   # Used on client machines (remus, etc)
@@ -34,11 +41,16 @@ in
   # Generate with: openssl rand -hex 32
   "knot-secret.age".publicKeys = all;
 
-  "pds.age".publicKeys = [ jsp alastor ];
+  "pds.age".publicKeys = [
+    jsp
+    alastor
+  ];
 
   # If using Resend SMTP, include API key here too
-  "pds-mailer.age".publicKeys = [ jsp alastor ];
-
+  "pds-mailer.age".publicKeys = [
+    jsp
+    alastor
+  ];
 
   # WiFi passwords for NixOS machines
   # Format: NETWORK_PSK=password
@@ -68,7 +80,16 @@ in
   # restic/env.age: B2_ACCOUNT_ID and B2_ACCOUNT_KEY (or AWS_ACCESS_KEY_ID, etc.)
   # restic/repo.age: Repository URL (e.g., b2:bucket-name:/path)
   # restic/password.age: Repository encryption password
-  "restic/env.age".publicKeys = [ jsp alastor ];
-  "restic/repo.age".publicKeys = [ jsp alastor ];
-  "restic/password.age".publicKeys = [ jsp alastor ];
+  "restic/env.age".publicKeys = [
+    jsp
+    alastor
+  ];
+  "restic/repo.age".publicKeys = [
+    jsp
+    alastor
+  ];
+  "restic/password.age".publicKeys = [
+    jsp
+    alastor
+  ];
 }

@@ -25,9 +25,9 @@ let
     passwordFile = config.age.secrets."restic/password".path;
 
     # Tags for easier filtering during restore
-    extraBackupArgs =
-      (map (t: "--tag ${t}") (serviceCfg.tags or [ "service:${name}" ]))
-      ++ [ "--verbose" ];
+    extraBackupArgs = (map (t: "--tag ${t}") (serviceCfg.tags or [ "service:${name}" ])) ++ [
+      "--verbose"
+    ];
 
     # Retention policy
     pruneOpts = [
@@ -46,8 +46,12 @@ let
     };
 
     # Pre/post backup hooks for database consistency
-    backupPrepareCommand = lib.optionalString (serviceCfg.preBackup or null != null) serviceCfg.preBackup;
-    backupCleanupCommand = lib.optionalString (serviceCfg.postBackup or null != null) serviceCfg.postBackup;
+    backupPrepareCommand = lib.optionalString (
+      serviceCfg.preBackup or null != null
+    ) serviceCfg.preBackup;
+    backupCleanupCommand = lib.optionalString (
+      serviceCfg.postBackup or null != null
+    ) serviceCfg.postBackup;
   };
 
 in
@@ -74,7 +78,11 @@ in
 
             exclude = lib.mkOption {
               type = lib.types.listOf lib.types.str;
-              default = [ "*.log" "node_modules" ".git" ];
+              default = [
+                "*.log"
+                "node_modules"
+                ".git"
+              ];
               description = "Glob patterns to exclude from backup";
             };
 
@@ -121,11 +129,12 @@ in
     ];
 
     # Create restic backup jobs for each enabled service
-    services.restic.backups = lib.mapAttrs mkBackupJob (
-      lib.filterAttrs (n: v: v.enable) cfg.services
-    );
+    services.restic.backups = lib.mapAttrs mkBackupJob (lib.filterAttrs (n: v: v.enable) cfg.services);
 
     # Add restic and sqlite to system packages for manual operations
-    environment.systemPackages = [ pkgs.restic pkgs.sqlite ];
+    environment.systemPackages = [
+      pkgs.restic
+      pkgs.sqlite
+    ];
   };
 }

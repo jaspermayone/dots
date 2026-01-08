@@ -1,5 +1,11 @@
 # Shell configuration
-{ config, lib, pkgs, hostname, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  hostname,
+  ...
+}:
 
 let
   # Tangled setup script for configuring git remotes
@@ -286,7 +292,7 @@ in
         zsh_indicator = "";
         bash_indicator = "bsh";
         fish_indicator = "fish";
-        disabled = true;  # enable if you switch shells often
+        disabled = true; # enable if you switch shells often
       };
     };
   };
@@ -353,13 +359,13 @@ in
       keysync = "gpg --keyserver pgp.mit.edu --send-keys 00E643C21FAC965FFB28D3B714D0D45A1DADAAFA && gpg --keyserver keyserver.ubuntu.com --send-keys 00E643C21FAC965FFB28D3B714D0D45A1DADAAFA && gpg --keyserver keys.openpgp.org --send-keys 00E643C21FAC965FFB28D3B714D0D45A1DADAAFA && gpg --export me@jaspermayone.com | curl -T - https://keys.openpgp.org";
       gpgend = "gpg --keyserver hkps://keys.openpgp.org --send-keys 14D0D45A1DADAAFA";
 
-      path="echo -e \${PATH//:/\\n}";
+      path = "echo -e \${PATH//:/\\n}";
 
       # Vim
       vi = "vim";
 
-      afk="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend";
-      reload="exec \${SHELL} -l";
+      afk = "/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend";
+      reload = "exec \${SHELL} -l";
     };
 
     initContent = ''
@@ -521,14 +527,14 @@ in
     fzf
     tmux
     watch
-    gum         # Required for tangled-setup script
+    gum # Required for tangled-setup script
 
     # Dev tools
-    mise          # Version manager (formerly rtx)
-    flyctl        # Fly.io CLI
-    bun           # JavaScript runtime
-    nodePackages.pnpm  # Package manager
-    zmx-binary    # Session persistence for terminal processes
+    mise # Version manager (formerly rtx)
+    flyctl # Fly.io CLI
+    bun # JavaScript runtime
+    nodePackages.pnpm # Package manager
+    zmx-binary # Session persistence for terminal processes
   ];
 
   # Fuzzy finder integration

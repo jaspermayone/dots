@@ -1,6 +1,13 @@
 # Home Manager configuration
 # Shared between NixOS and Darwin
-{ config, pkgs, lib, hostname, isDarwin, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  hostname,
+  isDarwin,
+  ...
+}:
 
 {
   imports = [
@@ -65,7 +72,9 @@
   home.file = builtins.listToAttrs (
     map (name: {
       name = name;
-      value = { source = ../rc/${name}; };
+      value = {
+        source = ../rc/${name};
+      };
     }) (builtins.attrNames (builtins.readDir ../rc))
   );
 
@@ -92,7 +101,7 @@
         hostname = "tun.hogwarts.channel";
         user = "jsp";
         identityFile = "~/.ssh/id_ed25519";
-        zmx = true;  # auto-attach zmx session
+        zmx = true; # auto-attach zmx session
       };
 
       # Horace (named after Horace Slughorn)
