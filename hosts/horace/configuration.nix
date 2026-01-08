@@ -12,6 +12,7 @@
   imports = [
     ./hardware-configuration.nix
     inputs.rust-fp.nixosModules.default
+    ../../modules/wifi.nix
   ];
 
   # Boot loader
@@ -21,11 +22,19 @@
   # System version
   system.stateVersion = "25.11";
 
-  # Hostname
-  networking.hostName = hostname;
-
-  # Networking
-  networking.networkmanager.enable = true;
+  # WiFi with eduroam
+  jsp.network.wifi = {
+    enable = true;
+    hostName = hostname;
+    envFile = config.age.secrets.wifi-passwords.path;
+    profiles = {
+      "eduroam" = {
+        eduroam = true;
+        identity = "mayonej@wit.edu";
+        pskVar = "EDUROAM_PSK";
+      };
+    };
+  };
 
   # Nix settings
   nix = {
@@ -162,6 +171,9 @@
     path = "/home/jsp/.local/share/atuin/key";
     owner = "jsp";
     mode = "400";
+  };
+  age.secrets.wifi-passwords = {
+    file = ../../secrets/wifi-passwords.age;
   };
 
   # Automatic updates
