@@ -191,7 +191,7 @@
       AppleKeyboardUIMode = 3; # Full keyboard access
 
       # Scrolling
-      "com.apple.swipescrolldirection" = false; # (true = Natural scrolling
+      "com.apple.swipescrolldirection" = true; # Natural scrolling
 
       # Appearance
       AppleShowAllExtensions = true;
