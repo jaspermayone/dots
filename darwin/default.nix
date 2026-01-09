@@ -195,7 +195,7 @@
 
       # Appearance
       AppleShowAllExtensions = true;
-      NSTableViewDefaultSizeMode = 1;
+      NSTableViewDefaultSizeMode = 2;
 
       # Units
       AppleMeasurementUnits = "Inches";
