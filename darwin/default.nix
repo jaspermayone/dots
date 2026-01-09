@@ -272,7 +272,7 @@
     trackpad = {
       Clicking = true; # Tap to click
       TrackpadRightClick = true;
-      TrackpadThreeFingerDrag = true;
+      TrackpadThreeFingerDrag = false; # Keep false to allow three-finger gestures (Mission Control, etc.)
       Dragging = true;
     };
 
