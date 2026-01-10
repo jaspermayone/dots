@@ -487,6 +487,11 @@ in
       # Fix GPG issues with Homebrew install
       export GPG_TTY=$(tty)
 
+      # Claude Code GitHub token (for MCP server)
+      if [[ -f "$HOME/.config/claude/github-token" ]]; then
+        export GITHUB_PERSONAL_ACCESS_TOKEN=$(cat "$HOME/.config/claude/github-token")
+      fi
+
       # ============================================================================
       # SHELL INTEGRATIONS
       # ============================================================================

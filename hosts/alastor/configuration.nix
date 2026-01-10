@@ -118,8 +118,8 @@
       mode = "400";
       owner = "jsp";
     };
-    github-token = {
-      file = ../../secrets/github-token.age;
+    knot-sync-github-token = {
+      file = ../../secrets/knot-sync-github-token.age;
       mode = "400";
       owner = "git"; # tangled uses git user
     };
@@ -218,7 +218,7 @@
   jsp.services.knot-sync = {
     enable = true;
     repoDir = "/var/lib/knot/repos/did:plc:abgthiqrd7tczkafjm4ennbo";
-    secretsFile = config.age.secrets.github-token.path;
+    secretsFile = config.age.secrets.knot-sync-github-token.path;
   };
 
   # Caddy reverse proxy (with Cloudflare DNS plugin for ACME)

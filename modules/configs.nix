@@ -26,6 +26,10 @@ in
   # Mise (version manager) configuration
   xdg.configFile."mise/config.toml".source = ../configs/mise.toml;
 
+  # Claude Code configuration
+  home.file.".claude/CLAUDE.md".source = ../configs/claude/CLAUDE.md;
+  home.file.".claude/settings.json".source = ../configs/claude/settings.json;
+
   # Espanso configuration
   home.file = lib.mkMerge [
     # macOS espanso paths
@@ -103,6 +107,14 @@ in
           NPMRC_SECRET="$SECRETS_DIR/npmrc.age"
           if [ -f "$NPMRC_SECRET" ]; then
             $DRY_RUN_CMD $AGE -d -i "$SSH_KEY" "$NPMRC_SECRET" > "$HOME/.npmrc" 2>/dev/null || echo "Warning: Failed to decrypt npmrc"
+          fi
+
+          # Decrypt Claude GitHub token (for MCP server)
+          CLAUDE_GITHUB_SECRET="$SECRETS_DIR/claude-github-token.age"
+          if [ -f "$CLAUDE_GITHUB_SECRET" ]; then
+            $DRY_RUN_CMD mkdir -p "$HOME/.config/claude"
+            $DRY_RUN_CMD $AGE -d -i "$SSH_KEY" "$CLAUDE_GITHUB_SECRET" > "$HOME/.config/claude/github-token" 2>/dev/null || echo "Warning: Failed to decrypt Claude GitHub token"
+            $DRY_RUN_CMD chmod 600 "$HOME/.config/claude/github-token"
           fi
         fi
   '';

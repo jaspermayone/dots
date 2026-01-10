@@ -1,0 +1,5 @@
+- Always prefer using the gh cli commands for github actions wherever possible
+- Commits dont need to be super long or info heavy, a super concise summary is always better (find some balance)
+- When working on new features/issues make git worktrees wherever it feels appropriate
+- Always remove git worktrees when you are done using them
+- After addressing PR comments, you can resolve them if you have solved / addressed the comment
