@@ -26,12 +26,13 @@ in
   # Mise (version manager) configuration
   xdg.configFile."mise/config.toml".source = ../configs/mise.toml;
 
-  # Claude Code configuration
-  home.file.".claude/CLAUDE.md".source = ../configs/claude/CLAUDE.md;
-  home.file.".claude/settings.json".source = ../configs/claude/settings.json;
-
-  # Espanso configuration
+  # Home file configurations (merged together)
   home.file = lib.mkMerge [
+    # Claude Code configuration
+    {
+      ".claude/CLAUDE.md".source = ../configs/claude/CLAUDE.md;
+      ".claude/settings.json".source = ../configs/claude/settings.json;
+    }
     # macOS espanso paths
     (lib.mkIf isDarwin {
       "Library/Application Support/espanso/config/default.yml".source =
