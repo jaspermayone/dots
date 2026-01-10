@@ -28,7 +28,6 @@
   environment.systemPackages = with pkgs; [
     vim
     git
-    git-gui
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
 
     # CLI tools (migrated from homebrew)
