@@ -31,6 +31,7 @@
     EDITOR = "vim";
     VISUAL = "vim";
     PAGER = "less";
+    CLAUDE_CODE_DISABLE_TERMINAL_TITLE = "1";
   };
 
   # Vim configuration

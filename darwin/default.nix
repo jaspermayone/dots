@@ -28,6 +28,7 @@
   environment.systemPackages = with pkgs; [
     vim
     git
+    git-gui
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
 
     # CLI tools (migrated from homebrew)
@@ -47,7 +48,6 @@
 
     # Additional CLI tools
     lazygit
-    redis
     mkcert
     inetutils # telnet, ftp, etc.
     watchman
@@ -124,6 +124,7 @@
       # Databases (specific versions)
       "mysql@8.0"
       "postgresql@17"
+      "redis"
       "percona-toolkit"
       "pgvector"
 
@@ -437,8 +438,9 @@
   # Activation scripts for settings that can't be done declaratively
   # Note: these run as root during activation
   system.activationScripts.extraActivation.text = ''
-    # Symlink nix bitwarden-cli to homebrew bin for Raycast compatibility
+    # Symlink nix tools to homebrew bin for GUI app compatibility
     ln -sf /run/current-system/sw/bin/bw /opt/homebrew/bin/bw
+    ln -sf /run/current-system/sw/bin/git /opt/homebrew/bin/git
 
     # Show ~/Library folder (for primary user)
     chflags nohidden /Users/jsp/Library

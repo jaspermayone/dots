@@ -58,7 +58,11 @@ in
 
   # GitHub token for knot-sync service
   # Format: GITHUB_TOKEN=ghp_xxxxx
-  "github-token.age".publicKeys = all;
+  "knot-sync-github-token.age".publicKeys = all;
+
+  # GitHub Personal Access Token for Claude Code MCP server
+  # Format: ghp_xxxxx (just the token, no prefix)
+  "claude-github-token.age".publicKeys = all;
 
   # Atuin encryption key for sync
   # Contains the raw encryption key for Atuin shell history sync
