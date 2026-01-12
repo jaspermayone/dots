@@ -348,6 +348,8 @@ in
       pip = "pip3";
       python = "python3";
 
+      cl = "claude --allow-dangerously-skip-permissions";
+
       # Project shortcuts
       dns = "z dev/dns && source .env && source .venv/bin/activate";
 
