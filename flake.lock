@@ -632,11 +632,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1768339068,
-        "narHash": "sha256-B16xAV81om3UwDzojBhCkfTWh91kEyWbK5apT8QNwzI=",
+        "lastModified": 1768340313,
+        "narHash": "sha256-Fj7+U8Z9vCkUbpsMSqdRyhH21KDeyrFWIgA4u3z/fbA=",
         "owner": "jaspermayone",
         "repo": "strings",
-        "rev": "aba59361d8843e37f43b5ee79e602f3fb9c64aa8",
+        "rev": "1cce4c04251a64f3f23c41d14968b8f11578d483",
         "type": "github"
       },
       "original": {
