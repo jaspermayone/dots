@@ -53,6 +53,11 @@
       url = "github:tgirlcloud/pkgs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    strings = {
+      url = "github:jaspermayone/strings";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -68,6 +73,7 @@
       tangled,
       tgirlpkgs,
       rust-fp,
+      strings,
       ...
     }@inputs:
     let

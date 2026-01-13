@@ -4,10 +4,102 @@
   lib,
   pkgs,
   hostname,
+  inputs,
   ...
 }:
 
 let
+  # Strings CLI for uploading to pastebin
+  strings-cli = pkgs.writeShellScriptBin "strings" ''
+    #!/usr/bin/env bash
+    # strings - CLI for strings pastebin
+    # Usage: strings <file> or cat file | strings
+
+    set -e
+
+    STRINGS_HOST="''${STRINGS_HOST:-https://str.hogwarts.dev}"
+    STRINGS_USER="''${STRINGS_USER:-}"
+    STRINGS_PASS="''${STRINGS_PASS:-}"
+
+    # Try to load credentials from file if not set
+    if [[ -f "$HOME/.config/strings/credentials" ]]; then
+      source "$HOME/.config/strings/credentials"
+    fi
+
+    if [ -z "$STRINGS_USER" ] || [ -z "$STRINGS_PASS" ]; then
+      echo "Error: STRINGS_USER and STRINGS_PASS environment variables must be set" >&2
+      echo "Or create ~/.config/strings/credentials with:" >&2
+      echo "  STRINGS_USER=youruser" >&2
+      echo "  STRINGS_PASS=yourpass" >&2
+      exit 1
+    fi
+
+    # Determine filename and content
+    FILENAME=""
+    SLUG=""
+
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        -s|--slug)
+          SLUG="$2"
+          shift 2
+          ;;
+        -h|--host)
+          STRINGS_HOST="$2"
+          shift 2
+          ;;
+        *)
+          if [ -z "$FILENAME" ]; then
+            FILENAME="$1"
+          fi
+          shift
+          ;;
+      esac
+    done
+
+    if [ -n "$FILENAME" ]; then
+      if [ ! -f "$FILENAME" ]; then
+        echo "Error: File not found: $FILENAME" >&2
+        exit 1
+      fi
+      BASENAME=$(basename "$FILENAME")
+      CONTENT=$(cat "$FILENAME")
+    else
+      CONTENT=$(cat)
+      BASENAME=""
+    fi
+
+    # Build headers
+    HEADERS=(-H "Content-Type: text/plain")
+    [ -n "$BASENAME" ] && HEADERS+=(-H "X-Filename: $BASENAME")
+    [ -n "$SLUG" ] && HEADERS+=(-H "X-Slug: $SLUG")
+
+    # Make request
+    RESPONSE=$(${pkgs.curl}/bin/curl -s -X POST "$STRINGS_HOST/api/paste" \
+      -u "$STRINGS_USER:$STRINGS_PASS" \
+      "''${HEADERS[@]}" \
+      --data-binary "$CONTENT")
+
+    # Parse response
+    URL=$(echo "$RESPONSE" | ${pkgs.gnugrep}/bin/grep -o '"url":"[^"]*"' | cut -d'"' -f4)
+
+    if [ -n "$URL" ]; then
+      echo "$URL"
+
+      # Copy to clipboard if available
+      if command -v pbcopy &> /dev/null; then
+        echo -n "$URL" | pbcopy
+      elif command -v xclip &> /dev/null; then
+        echo -n "$URL" | xclip -selection clipboard
+      elif command -v wl-copy &> /dev/null; then
+        echo -n "$URL" | wl-copy
+      fi
+    else
+      echo "Error: $RESPONSE" >&2
+      exit 1
+    fi
+  '';
+
   # Tangled setup script for configuring git remotes
   tangled-setup = pkgs.writeShellScriptBin "tangled-setup" ''
     # Configuration
@@ -508,6 +600,7 @@ in
   home.packages = with pkgs; [
     # Custom scripts
     tangled-setup
+    strings-cli
 
     # File management
     tree
