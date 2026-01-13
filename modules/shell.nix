@@ -635,6 +635,9 @@ in
     bun # JavaScript runtime
     nodePackages.pnpm # Package manager
     zmx-binary # Session persistence for terminal processes
+
+    # Deployment
+    inputs.deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
   # Fuzzy finder integration
