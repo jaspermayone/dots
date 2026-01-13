@@ -17,6 +17,7 @@
     ../../modules/bluesky-pds/default.nix
     ../../modules/atuin-server
     ../../modules/restic
+    inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
   ];
 
@@ -154,6 +155,16 @@
     #   file = ../../secrets/restic/password.age;
     #   mode = "400";
     # };
+
+    # Strings pastebin secrets
+    strings-hogwarts = {
+      file = ../../secrets/strings-hogwarts.age;
+      mode = "400";
+    };
+    strings-witcc = {
+      file = ../../secrets/strings-witcc.age;
+      mode = "400";
+    };
   };
 
   # FRP tunnel server
@@ -177,6 +188,8 @@
       "tailscaled"
       "tangled-knot"
       "atuin-server"
+      "strings-hogwarts"
+      "strings-witcc"
     ];
     remoteHosts = [
       "remus"
@@ -221,6 +234,24 @@
     secretsFile = config.age.secrets.knot-sync-github-token.path;
   };
 
+  # Strings pastebin servers
+  services.strings.instances = {
+    hogwarts = {
+      enable = true;
+      baseUrl = "https://str.hogwarts.dev";
+      port = 3100;
+      username = "jsp";
+      passwordFile = config.age.secrets.strings-hogwarts.path;
+    };
+    witcc = {
+      enable = true;
+      baseUrl = "https://strings.witcc.dev";
+      port = 3101;
+      username = "witcc";
+      passwordFile = config.age.secrets.strings-witcc.path;
+    };
+  };
+
   # Caddy reverse proxy (with Cloudflare DNS plugin for ACME)
   services.caddy = {
     enable = true;
@@ -234,6 +265,34 @@
           Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         }
         reverse_proxy localhost:5555 {
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '';
+    };
+    virtualHosts."str.hogwarts.dev" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        }
+        reverse_proxy localhost:3100 {
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '';
+    };
+    virtualHosts."strings.witcc.dev" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        }
+        reverse_proxy localhost:3101 {
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }

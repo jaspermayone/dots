@@ -96,4 +96,19 @@ in
     jsp
     alastor
   ];
+
+  # Strings pastebin server secrets
+  # Format: AUTH_PASSWORD=yourpassword
+  "strings-hogwarts.age".publicKeys = [
+    jsp
+    alastor
+  ];
+  "strings-witcc.age".publicKeys = [
+    jsp
+    alastor
+  ];
+
+  # Strings CLI credentials (for use on client machines)
+  # Format: STRINGS_USER=username\nSTRINGS_PASS=password
+  "strings-cli.age".publicKeys = all;
 }
