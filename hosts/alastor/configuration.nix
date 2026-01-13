@@ -24,6 +24,9 @@
   # System version
   system.stateVersion = "24.05";
 
+  # Limit boot generations to prevent /boot from filling up
+  boot.loader.grub.configurationLimit = 10;
+
   # Hostname
   networking.hostName = hostname;
 
