@@ -8,6 +8,34 @@
   ...
 }:
 
+let
+  forks-sync = pkgs.writeShellScript "forks-sync" ''
+    set -euo pipefail
+
+    FORKS_DIR="/Users/jsp/forks"
+    ORG="jaspermayone-forks"
+
+    mkdir -p "$FORKS_DIR"
+    cd "$FORKS_DIR"
+
+    # Get list of repos from GitHub
+    repos=$(${pkgs.gh}/bin/gh repo list "$ORG" --limit 1000 --json name -q '.[].name')
+
+    for repo in $repos; do
+      if [ -d "$repo" ]; then
+        echo "Updating $repo..."
+        cd "$repo"
+        ${pkgs.git}/bin/git pull --ff-only || true
+        cd ..
+      else
+        echo "Cloning $repo..."
+        ${pkgs.gh}/bin/gh repo clone "$ORG/$repo" || true
+      fi
+    done
+
+    echo "Sync complete: $(date)"
+  '';
+in
 {
   # Disable nix-darwin's Nix management (using Determinate Nix installer)
   nix.enable = false;
@@ -26,6 +54,24 @@
       ];
       StandardOutPath = "/var/log/nix-darwin-upgrade.log";
       StandardErrorPath = "/var/log/nix-darwin-upgrade.log";
+    };
+  };
+
+  # Sync forks from jaspermayone-forks org hourly
+  launchd.daemons.forks-sync = {
+    script = ''
+      ${forks-sync}
+    '';
+    serviceConfig = {
+      StartInterval = 3600; # Every hour
+      StandardOutPath = "/var/log/forks-sync.log";
+      StandardErrorPath = "/var/log/forks-sync.log";
+      UserName = "jsp";
+      GroupName = "staff";
+      EnvironmentVariables = {
+        HOME = "/Users/jsp";
+        PATH = "${pkgs.git}/bin:${pkgs.gh}/bin:/usr/bin:/bin";
+      };
     };
   };
 
