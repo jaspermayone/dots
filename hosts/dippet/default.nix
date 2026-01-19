@@ -64,8 +64,8 @@ in
     '';
     serviceConfig = {
       StartInterval = 3600; # Every hour
-      StandardOutPath = "/var/log/forks-sync.log";
-      StandardErrorPath = "/var/log/forks-sync.log";
+      StandardOutPath = "/Users/jsp/Library/Logs/forks-sync.log";
+      StandardErrorPath = "/Users/jsp/Library/Logs/forks-sync.log";
       UserName = "jsp";
       GroupName = "staff";
       EnvironmentVariables = {
