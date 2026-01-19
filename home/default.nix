@@ -71,9 +71,9 @@
     nix-direnv.enable = true;
   };
 
-  # Try - ephemeral workspace manager
+  # Try - ephemeral workspace manager (local dev machines only)
   programs.try = {
-    enable = true;
+    enable = hostname == "remus";
     path = "~/dev/tries";
   };
 
