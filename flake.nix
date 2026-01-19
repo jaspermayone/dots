@@ -58,6 +58,10 @@
       url = "github:jaspermayone/strings";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    try = {
+      url = "github:tobi/try";
+    };
   };
 
   outputs =

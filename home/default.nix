@@ -6,6 +6,7 @@
   lib,
   hostname,
   isDarwin,
+  inputs,
   ...
 }:
 
@@ -16,6 +17,7 @@
     ../modules/ssh.nix
     ../modules/git.nix
     ../modules/configs.nix
+    inputs.try.homeManagerModules.default
   ];
 
   home.stateVersion = "24.05";
@@ -67,6 +69,12 @@
     enable = true;
     enableZshIntegration = true;
     nix-direnv.enable = true;
+  };
+
+  # Try - ephemeral workspace manager
+  programs.try = {
+    enable = true;
+    path = "~/dev/tries";
   };
 
   # Alacritty terminal
