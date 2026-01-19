@@ -24,12 +24,11 @@ let
     for repo in $repos; do
       if [ -d "$repo" ]; then
         echo "Updating $repo..."
-        cd "$repo"
-        ${pkgs.git}/bin/git pull --ff-only || true
-        cd ..
+        ${pkgs.git}/bin/git -C "$repo" pull --ff-only || true
       else
         echo "Cloning $repo..."
-        ${pkgs.gh}/bin/gh repo clone "$ORG/$repo" || true
+        ${pkgs.git}/bin/git clone "https://github.com/$ORG/$repo.git" || true
+        sleep 1
       fi
     done
 
