@@ -60,7 +60,8 @@
     };
 
     try = {
-      url = "github:tobi/try";
+      # TODO: switch back to tobi/try after https://github.com/tobi/try/pull/91 merges
+      url = "github:jaspermayone/try/fix/nix-include-lib-directory";
     };
   };
 

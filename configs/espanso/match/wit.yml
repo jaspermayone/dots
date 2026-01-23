@@ -3,56 +3,64 @@
 matches:
   - trigger: ">cc1000"
     replace: |
-      /**
-       * Jasper Mayone <mayonej@wit.edu>
-       * {{my_id}}
-       * COMP 1050 - Fall 2025
+      /* @formatter:off
+       *
+       * © Jasper Mayone <mayonej@wit.edu> ({{my_id}})
+       * Wentworth Institute of Technology
+       * COMP 1000 - Fall 2025
        * Professor Micah Schuster <schusterm@wit.edu>
        *
        * $|$
        *
+       * @formatter:on
        */
   - trigger: ">pe1000"
     replace: "shusterm@wit.edu"
 
   - trigger: ">cc1050"
     replace: |
-      /**
-       * Jasper Mayone <mayonej@wit.edu>
-       * {{my_id}}
+      /* @formatter:off
+       *
+       * © Jasper Mayone <mayonej@wit.edu> ({{my_id}})
+       * Wentworth Institute of Technology
        * COMP 1050 - Spring 2026
        * Professor Dave Rosenberg <rosenbergd@wit.edu>
        *
        * $|$
        *
+       * @formatter:on
        */
   - trigger: ">pe1050"
     replace: "rosenbergd@wit.edu"
 
   - trigger: ">cc1200"
     replace: |
-      /**
-       * Jasper Mayone <mayonej@wit.edu>
-       * {{my_id}}
+      /* @formatter:off
+       *
+       * © Jasper Mayone <mayonej@wit.edu> ({{my_id}})
+       * Wentworth Institute of Technology
        * COMP 1200 - Spring 2026
        * Professor Koorosh Firouzbakht <firouzbakhtk@wit.edu>
        *
        * $|$
        *
+       * @formatter:on
        */
   - trigger: ">pe1200"
     replace: "firouzbakhtk@wit.edu"
 
   - trigger: ">ccCSAS2000"
     replace: |
-      /**
-       * Jasper Mayone <mayonej@wit.edu>
-       * {{my_id}}
+      /* @formatter:off
+       *
+       * © Jasper Mayone <mayonej@wit.edu> ({{my_id}})
+       * Wentworth Institute of Technology
        * CSAS 2000 - Spring 2026
        * Professor Ella Howard <howarde@wit.edu>
        *
        * $|$
        *
+       * @formatter:on
        */
   - trigger: ">peCSAS2000"
     replace: "howarde@wit.edu"

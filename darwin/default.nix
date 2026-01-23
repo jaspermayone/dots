@@ -72,6 +72,7 @@
     };
 
     taps = [
+      "ArmMbed/homebrew-formulae"
       "bramstein/webfonttools"
       "charmbracelet/tap"
       "heroku/brew"
@@ -109,10 +110,15 @@
       # Custom/personal
       "jaspermayone/tap/boxcar"
       "minio/stable/mc"
+      "ruby"
 
       # Build tools
       "ccache"
+      "cmake"
       "sccache"
+
+      # Embedded development (Pico SDK)
+      "ArmMbed/homebrew-formulae/arm-none-eabi-gcc"
 
       # Languages/runtimes (specific versions)
       "composer"

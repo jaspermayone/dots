@@ -567,10 +567,12 @@ in
       export PATH="/opt/homebrew/opt/mysql@8.0/bin:$PATH"
       export PATH="/Users/jsp/.antigravity/antigravity/bin:$PATH"
       export PATH="$HOME/go/bin:$PATH"
+      export PATH="$HOME/toolchains/gcc-arm-none-eabi-10.3-2021.10/bin:$PATH"
 
       # ============================================================================
       # ENVIRONMENT VARIABLES
       # ============================================================================
+      export PICO_SDK_PATH="$HOME/dev/pico-sdk"
       export COMPOSE_BAKE=true
       export VISUAL="code --wait"
       export EDITOR="code --wait"
@@ -628,6 +630,9 @@ in
     tmux
     watch
     gum # Required for tangled-setup script
+
+    # Encryption
+    age # Modern encryption tool
 
     # Dev tools
     mise # Version manager (formerly rtx)
