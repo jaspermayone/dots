@@ -441,6 +441,7 @@ in
       python = "python3";
 
       cl = "claude --allow-dangerously-skip-permissions";
+      clo = "ollama launch claude"
 
       # Project shortcuts
       dns = "z dev/dns && source .env && source .venv/bin/activate";
