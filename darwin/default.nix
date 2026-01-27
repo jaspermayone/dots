@@ -67,7 +67,7 @@
     enable = true;
     onActivation = {
       autoUpdate = true;
-      cleanup = "zap"; # Remove unlisted packages
+      # cleanup = "zap"; # Remove unlisted packages
       upgrade = true;
     };
 
