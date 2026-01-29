@@ -72,7 +72,6 @@
     };
 
     taps = [
-      "ArmMbed/homebrew-formulae"
       "bramstein/webfonttools"
       "charmbracelet/tap"
       "heroku/brew"
@@ -117,9 +116,6 @@
       "cmake"
       "sccache"
 
-      # Embedded development (Pico SDK)
-      "ArmMbed/homebrew-formulae/arm-none-eabi-gcc"
-
       # Languages/runtimes (specific versions)
       "composer"
       "openjdk"
@@ -152,6 +148,7 @@
       "discord"
       "element"
       "espanso"
+      "gcc-arm-embedded" # ARM embedded toolchain for Pico SDK
       "google-chrome"
       "iterm2"
       "ngrok"

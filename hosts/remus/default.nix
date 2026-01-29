@@ -41,7 +41,6 @@
   # Laptop-specific homebrew packages
   homebrew.brews = [
     # Embedded development
-    "arm-none-eabi-gcc"
     "dfu-util"
     "open-ocd"
     "stlink"

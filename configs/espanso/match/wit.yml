@@ -1,8 +1,5 @@
 # espanso match file - WIT (Wentworth) related matches
-# Imports secrets.yml for sensitive variables (my_id)
-
-imports:
-  - "secrets.yml"
+# Uses my_id variable from secrets.yml (automatically loaded from match directory)
 
 global_vars:
   - name: my_name

@@ -17,7 +17,7 @@
     ../modules/ssh.nix
     ../modules/git.nix
     ../modules/configs.nix
-    inputs.try.homeManagerModules.default
+    inputs.try.homeModules.default
   ];
 
   home.stateVersion = "24.05";

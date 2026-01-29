@@ -110,9 +110,9 @@
       mkNixos =
         hostname: system:
         nixpkgs.lib.nixosSystem {
-          inherit system;
           specialArgs = { inherit inputs outputs hostname; };
           modules = [
+            { nixpkgs.hostPlatform = system; }
             ./hosts/${hostname}/configuration.nix
             agenix.nixosModules.default
             tgirlpkgs.nixosModules.default
@@ -136,9 +136,9 @@
       mkDarwin =
         hostname: system:
         nix-darwin.lib.darwinSystem {
-          inherit system;
           specialArgs = { inherit inputs outputs hostname; };
           modules = [
+            { nixpkgs.hostPlatform = system; }
             ./darwin
             ./hosts/${hostname}
             agenix.darwinModules.default
