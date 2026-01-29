@@ -39,6 +39,7 @@ in
         ../configs/espanso/config/default.yml;
       "Library/Application Support/espanso/match/base.yml".source = ../configs/espanso/match/base.yml;
       "Library/Application Support/espanso/match/wit.yml".source = ../configs/espanso/match/wit.yml;
+      "Library/Application Support/espanso/match/personal.yml".source = ../configs/espanso/match/personal.yml;
     })
 
     # Linux espanso paths
@@ -46,6 +47,7 @@ in
       ".config/espanso/config/default.yml".source = ../configs/espanso/config/default.yml;
       ".config/espanso/match/base.yml".source = ../configs/espanso/match/base.yml;
       ".config/espanso/match/wit.yml".source = ../configs/espanso/match/wit.yml;
+      ".config/espanso/match/personal.yml".source = ../configs/espanso/match/personal.yml;
     })
 
     # VS Code settings (macOS)
