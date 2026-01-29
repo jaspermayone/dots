@@ -2,6 +2,20 @@
 # Sensitive matches are in secrets.yml (encrypted with agenix)
 # For a complete introduction, visit the official docs at: https://espanso.org/docs/
 
+global_vars:
+  - name: newline
+    type: echo
+    params:
+      echo: "\n"
+  - name: space
+    type: echo
+    params:
+      echo: " "
+  - name: sp
+    type: echo
+    params:
+      echo: " "
+
 matches:
   # Symbols
   - trigger: ":euro"

@@ -38,9 +38,8 @@ matches:
       /*
        *
        * © {{current_year}} {{fl_name}} <{{personal_email}}>
-       * Licensed under the O'Saasy License Agreement (https://osaasy.dev/")
+       * Licensed under the O'Saasy License Agreement (https://osaasy.dev)
        *
-       * $|$
+       *{{sp}}$|$
        *
-       *
-       */
+       */{{newline}}
