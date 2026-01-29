@@ -73,7 +73,7 @@
 
   # Try - ephemeral workspace manager (local dev machines only)
   programs.try = {
-    enable = hostname == "remus";
+    enable = lib.elem hostname [ "remus" "dippet" "horace" ];
     path = "~/dev/tries";
   };
 

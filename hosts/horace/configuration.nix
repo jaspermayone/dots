@@ -111,6 +111,9 @@
     slack
     spotify
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
+
+    # Workspace management
+    wut # Custom package for Git worktree management
   ];
 
   # Firefox

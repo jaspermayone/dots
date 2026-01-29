@@ -596,6 +596,11 @@ in
 
       # Mise activation
       eval "$(mise activate zsh)"
+
+      # Wut activation (workspace manager)
+      if command -v wut &> /dev/null; then
+        eval "$(wut init)"
+      fi
     '';
   };
 
