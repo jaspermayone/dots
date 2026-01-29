@@ -60,8 +60,7 @@
     };
 
     try = {
-      # TODO: switch back to tobi/try after https://github.com/tobi/try/pull/91 merges
-      url = "github:jaspermayone/try/fix/nix-include-lib-directory";
+      url = "github:tobi/try";
     };
   };
 
@@ -79,6 +78,7 @@
       tgirlpkgs,
       rust-fp,
       strings,
+      try,
       ...
     }@inputs:
     let
