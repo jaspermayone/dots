@@ -1,26 +1,12 @@
 # espanso match file - WIT (Wentworth) related matches
-# Uses my_id variable from secrets.yml (automatically loaded from match directory)
-
-global_vars:
-  - name: my_name
-    type: echo
-    params:
-      echo: "Jasper Mayone"
-  - name: my_email
-    type: echo
-    params:
-      echo: "mayonej@wit.edu"
-  - name: school
-    type: echo
-    params:
-      echo: "Wentworth Institute of Technology"
+# Uses witw variable from secrets.yml (automatically loaded from match directory)
 
 matches:
   - trigger: ">cc1000"
     replace: |
       /* @formatter:off
        *
-       * © {{my_name}} <{{my_email}}> ({{my_id}})
+       * © {{fl_name}} <{{school_email}}> ({{witw}})
        * {{school}}
        * COMP 1000 - Fall 2025
        * Professor Micah Schuster <schusterm@wit.edu>
@@ -36,7 +22,7 @@ matches:
     replace: |
       /* @formatter:off
        *
-       * © {{my_name}} <{{my_email}}> ({{my_id}})
+       * © {{fl_name}} <{{school_email}}> ({{witw}})
        * {{school}}
        * COMP 1050 - Spring 2026
        * Professor Dave Rosenberg <rosenbergd@wit.edu>
@@ -52,7 +38,7 @@ matches:
     replace: |
       /* @formatter:off
        *
-       * © {{my_name}} <{{my_email}}> ({{my_id}})
+       * © {{fl_name}} <{{school_email}}> ({{witw}})
        * {{school}}
        * COMP 1200 - Spring 2026
        * Professor Koorosh Firouzbakht <firouzbakhtk@wit.edu>
@@ -68,7 +54,7 @@ matches:
     replace: |
       /* @formatter:off
        *
-       * © {{my_name}} <{{my_email}}> ({{my_id}})
+       * © {{fl_name}} <{{school_email}}> ({{witw}})
        * {{school}}
        * CSAS 2000 - Spring 2026
        * Professor Ella Howard <howarde@wit.edu>
