@@ -33,12 +33,12 @@ matches:
   - triggers: [";cf"]
     replace: "doug.ns.cloudflare.com\nsaanvi.ns.cloudflare.com"
 
-  - trigger: ";cc"
+  - triggers: [";cc"]
     replace: |
       /*
        *
        * © {{current_year}} {{fl_name}} <{{personal_email}}>
-       * Licensed under the O'Saasy License Agreement (https://osaasy.dev/)
+       * Licensed under the O'Saasy License Agreement (https://osaasy.dev/")
        *
        * $|$
        *
