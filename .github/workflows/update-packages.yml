@@ -1,0 +1,89 @@
+name: Update Custom Packages
+
+on:
+  schedule:
+    # Run daily at 4am UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-wut:
+    name: Update wut package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for new wut release
+        id: check-release
+        run: |
+          # Get latest release from GitHub
+          LATEST=$(curl -s https://api.github.com/repos/simonbs/wut/releases/latest | jq -r .tag_name)
+          CURRENT=$(grep 'version = ' packages/wut.nix | sed 's/.*"\(.*\)".*/\1/')
+
+          echo "Latest version: $LATEST"
+          echo "Current version: v$CURRENT"
+
+          if [ "$LATEST" != "v$CURRENT" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+            echo "new_version=${LATEST#v}" >> $GITHUB_OUTPUT
+            echo "Update needed: $LATEST"
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+            echo "Already up to date"
+          fi
+
+      - name: Update wut package
+        if: steps.check-release.outputs.update_needed == 'true'
+        env:
+          NEW_VERSION: ${{ steps.check-release.outputs.new_version }}
+        run: |
+          # Update version
+          sed -i "s/version = \".*\";/version = \"$NEW_VERSION\";/" packages/wut.nix
+
+          # Get new source hash
+          NEW_HASH=$(nix-prefetch-url --unpack "https://github.com/simonbs/wut/archive/refs/tags/v${NEW_VERSION}.tar.gz")
+          NEW_HASH_SRI=$(nix hash convert --hash-algo sha256 "$NEW_HASH")
+
+          # Update source hash
+          sed -i "s|hash = \"sha256-.*\";|hash = \"$NEW_HASH_SRI\";|" packages/wut.nix
+
+          # Try to build to get vendorHash
+          if ! nix build .#nixosConfigurations.horace.pkgs.wut 2>&1 | tee build.log; then
+            # Extract the correct vendorHash from the error message
+            VENDOR_HASH=$(grep "got:" build.log | tail -1 | awk '{print $2}')
+            if [ -n "$VENDOR_HASH" ]; then
+              sed -i "s|vendorHash = \"sha256-.*\";|vendorHash = \"$VENDOR_HASH\";|" packages/wut.nix
+            fi
+          fi
+
+      - name: Create Pull Request
+        if: steps.check-release.outputs.update_needed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update wut to v${{ steps.check-release.outputs.new_version }}"
+          title: "Update wut to v${{ steps.check-release.outputs.new_version }}"
+          body: |
+            Automated update of wut package to latest release.
+
+            **Changes:**
+            - Update wut to v${{ steps.check-release.outputs.new_version }}
+            - Update source hash
+            - Update vendorHash if needed
+
+            **Release Notes:** https://github.com/simonbs/wut/releases/tag/v${{ steps.check-release.outputs.new_version }}
+          branch: update-wut-v${{ steps.check-release.outputs.new_version }}
+          delete-branch: true
