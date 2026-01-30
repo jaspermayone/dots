@@ -102,6 +102,7 @@
     tmux
     usbutils
     kdePackages.kate
+    google-chrome
     alacritty
     discord
     element-desktop
