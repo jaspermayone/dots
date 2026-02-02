@@ -34,8 +34,9 @@ stdenvNoCC.mkDerivation rec {
     mkdir -p $out/lib/qmd $out/bin
     cp -r . $out/lib/qmd/
 
-    makeWrapper ${bun}/bin/bun $out/bin/qmd \
-      --add-flags "run $out/lib/qmd/src/cli.ts"
+    # Use the existing qmd wrapper script, but ensure it finds our bun
+    makeWrapper $out/lib/qmd/qmd $out/bin/qmd \
+      --prefix PATH : ${lib.makeBinPath [ bun ]}
 
     runHook postInstall
   '';
