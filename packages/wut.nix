@@ -6,13 +6,13 @@
 
 buildGoModule rec {
   pname = "wut";
-  version = "0.1.2";
+  version = "0.1.3";
 
   src = fetchFromGitHub {
     owner = "simonbs";
     repo = "wut";
     rev = "v${version}";
-    hash = "sha256-PEUHjiLA9d0xOoOepIlpCoDhIdLvYhC1WId878pLd6Q=";
+    hash = "sha256-HQ/UmVVurP3N/dfXZO7j8d8PlZxceYTz5h0NKMcc2Gw=";
   };
 
   vendorHash = "sha256-lIRqcB0iEgzx+yLLy1i4T1s1w6AV4lTjW+b9sJKCr5s="; # Placeholder - will be updated by build
