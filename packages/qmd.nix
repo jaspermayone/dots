@@ -14,7 +14,7 @@ stdenvNoCC.mkDerivation rec {
     owner = "tobi";
     repo = "qmd";
     rev = "47b705409eb1427e574ce82c16e1860b216869ed";
-    hash = lib.fakeHash;
+    hash = "sha256-mJxqZfTGjwHrZy0fxl3HA31Yg7YyIi876cXehmi0tIA=";
   };
 
   nativeBuildInputs = [

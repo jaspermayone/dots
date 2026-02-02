@@ -172,6 +172,7 @@
 
   home.packages = with pkgs; [
     eza
+    bun
     qmd
   ];
 
