@@ -61,16 +61,23 @@ jobs:
           sed -i "s|hash = \"sha256-.*\";|hash = \"$NEW_HASH_SRI\";|" packages/wut.nix
 
           # Try to build to get vendorHash
-          if ! nix build .#nixosConfigurations.horace.pkgs.wut 2>&1 | tee build.log; then
+          # Save build log but don't commit it
+          if ! nix build .#nixosConfigurations.horace.pkgs.wut 2>&1 | tee /tmp/build.log; then
             # Extract the correct vendorHash from the error message
-            VENDOR_HASH=$(grep "got:" build.log | tail -1 | awk '{print $2}')
+            VENDOR_HASH=$(grep "got:" /tmp/build.log | tail -1 | awk '{print $2}')
             if [ -n "$VENDOR_HASH" ]; then
               sed -i "s|vendorHash = \"sha256-.*\";|vendorHash = \"$VENDOR_HASH\";|" packages/wut.nix
             fi
           fi
 
+          # Save build log for later comment
+          echo "BUILD_LOG<<EOF" >> $GITHUB_ENV
+          cat /tmp/build.log >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Create Pull Request
         if: steps.check-release.outputs.update_needed == 'true'
+        id: create-pr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -87,3 +94,30 @@ jobs:
             **Release Notes:** https://github.com/simonbs/wut/releases/tag/v${{ steps.check-release.outputs.new_version }}
           branch: update-wut-v${{ steps.check-release.outputs.new_version }}
           delete-branch: true
+
+      - name: Add build log comment
+        if: steps.check-release.outputs.update_needed == 'true' && steps.create-pr.outputs.pull-request-number
+        uses: actions/github-script@v7
+        env:
+          BUILD_LOG: ${{ env.BUILD_LOG }}
+        with:
+          script: |
+            const buildLog = process.env.BUILD_LOG;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.create-pr.outputs.pull-request-number }},
+              body: `<details>\n<summary>Build Log</summary>\n\n\`\`\`\n${buildLog}\n\`\`\`\n\n</details>`
+            });
+
+      - name: Request review
+        if: steps.check-release.outputs.update_needed == 'true' && steps.create-pr.outputs.pull-request-number
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ steps.create-pr.outputs.pull-request-number }},
+              reviewers: ['jaspermayone']
+            });
