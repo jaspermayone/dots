@@ -1,16 +1,14 @@
 {
   lib,
-  buildNpmPackage,
+  stdenvNoCC,
   fetchFromGitHub,
-  nodejs,
-  python3,
-  stdenv,
-  darwin,
+  bun,
+  makeWrapper,
 }:
 
-buildNpmPackage rec {
+stdenvNoCC.mkDerivation rec {
   pname = "qmd";
-  version = "unstable-2025-01-31";
+  version = "unstable-2025-02-01";
 
   src = fetchFromGitHub {
     owner = "tobi";
@@ -19,28 +17,27 @@ buildNpmPackage rec {
     hash = lib.fakeHash;
   };
 
-  npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Placeholder - needs to be updated
-
   nativeBuildInputs = [
-    nodejs
-    python3
-  ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
-    darwin.cctools
+    bun
+    makeWrapper
   ];
 
-  buildInputs = lib.optionals stdenv.hostPlatform.isDarwin (
-    with darwin.apple_sdk.frameworks; [
-      Security
-    ]
-  );
+  buildPhase = ''
+    runHook preBuild
+    HOME=$TMPDIR bun install --frozen-lockfile --no-progress
+    runHook postBuild
+  '';
 
-  # Skip npm install scripts that might fail
-  npmInstallFlags = [ "--ignore-scripts" ];
+  installPhase = ''
+    runHook preInstall
 
-  # QMD requires Bun runtime but can be built with npm
-  postInstall = ''
-    # Ensure binary is executable
-    chmod +x $out/bin/qmd
+    mkdir -p $out/lib/qmd $out/bin
+    cp -r . $out/lib/qmd/
+
+    makeWrapper ${bun}/bin/bun $out/bin/qmd \
+      --add-flags "run $out/lib/qmd/src/cli.ts"
+
+    runHook postInstall
   '';
 
   meta = with lib; {
