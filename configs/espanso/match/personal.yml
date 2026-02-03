@@ -8,13 +8,16 @@ matches:
     replace: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
 
   # Social (public links)
-  - trigger: ";linkedin"
+  - triggers: [ ";linkedin", ";li" ]
     replace: "https://www.linkedin.com/in/jaspermayone/"
 
+  - triggers: [ ";github", ";gh" ]
+    replace: "https://github.com/jaspermayone"
+
   # Organizations (public info)
-  - triggers: [";pwlmission"]
+  - triggers: [";pwlmission", ";pwlmis"]
     label: "Patchwork Mission"
-    replace: "Empowering everyone to explore STEAM through a makerspace community that lowers barriers, welcomes every interest, and turns ideas into reality."
+    replace: "Inspiring human creativity in the age of artificial intelligence."
 
   - triggers: [";krn"]
     replace: "taciturnaxolotl"

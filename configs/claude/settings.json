@@ -24,5 +24,13 @@
     "texlab@claude-code-lsps": true,
     "vscode-langservers@claude-code-lsps": true,
     "github@claude-plugins-official": true
+  },
+  "mcpServers": {
+    "qmd": {
+      "command": "qmd",
+      "args": [
+        "mcp"
+      ]
+    }
   }
 }
