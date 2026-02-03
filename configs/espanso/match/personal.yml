@@ -17,7 +17,7 @@ matches:
   - triggers: [";website", ";site"]
     replace: "https://jaspermayone.com"
 
-  - triggers: ["cv"]
+  - triggers: [";cv"]
     replace: "https://jasper.cv"
 
   # Organizations (public info)

@@ -560,6 +560,11 @@ in
       # ============================================================================
       # PATH EXPORTS
       # ============================================================================
+      # Remus-specific: Run path_helper to setup PATH
+      if [[ $(hostname -s) == "remus" ]]; then
+        eval "$(/usr/libexec/path_helper -s)"
+      fi
+
       # Note: flyctl, bun, pnpm are now managed by nix
       export PATH="$HOME/bin:$PATH"
       export PATH="$HOME/.local/bin:$PATH"
