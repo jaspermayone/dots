@@ -115,6 +115,14 @@
       enable = true;
       dates = "weekly";
     };
+    # Use json-file log driver for compatibility with Kamal proxy log rotation
+    daemon.settings = {
+      log-driver = "json-file";
+      log-opts = {
+        max-size = "10m";
+        max-file = "3";
+      };
+    };
   };
 
   # User account
