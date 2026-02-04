@@ -173,6 +173,7 @@
   home.packages = with pkgs; [
     eza
     bun
+  ] ++ lib.optionals (hostname == "remus") [
     qmd
   ];
 
