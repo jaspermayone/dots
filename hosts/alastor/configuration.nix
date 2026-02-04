@@ -152,6 +152,10 @@
       file = ../../secrets/cloudflare-credentials.age;
       mode = "400";
     };
+    cloudflare-credentials-witcc = {
+      file = ../../secrets/cloudflare-credentials-witcc.age;
+      mode = "400";
+    };
     bore-token = {
       file = ../../secrets/bore-token.age;
       mode = "400";
@@ -325,7 +329,7 @@
     virtualHosts."strings.witcc.dev" = {
       extraConfig = ''
         tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN_WITCC}
         }
         header {
           Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
@@ -339,7 +343,7 @@
     virtualHosts."server-calendar.witcc.dev" = {
       extraConfig = ''
         tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN_WITCC}
         }
         header {
           Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
@@ -353,8 +357,10 @@
     };
   };
 
-  systemd.services.caddy.serviceConfig.EnvironmentFile =
-    config.age.secrets.cloudflare-credentials.path;
+  systemd.services.caddy.serviceConfig.EnvironmentFile = [
+    config.age.secrets.cloudflare-credentials.path
+    config.age.secrets.cloudflare-credentials-witcc.path
+  ];
 
   networking.firewall.allowedTCPPorts = [
     80

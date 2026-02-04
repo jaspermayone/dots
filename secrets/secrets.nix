@@ -33,6 +33,11 @@ in
     alastor
   ];
 
+  "cloudflare-credentials-witcc.age".publicKeys = [
+    jsp
+    alastor
+  ];
+
   # Bore client token (same as frps-token, but separate file for clarity)
   # Used on client machines (remus, etc)
   "bore-token.age".publicKeys = all;
