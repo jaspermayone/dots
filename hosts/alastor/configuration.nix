@@ -90,10 +90,19 @@
     useRoutingFeatures = "client";
   };
 
+  # Docker
+  virtualisation.docker = {
+    enable = true;
+    autoPrune = {
+      enable = true;
+      dates = "weekly";
+    };
+  };
+
   # User account
   users.users.jsp = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "wheel" "docker" ];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
@@ -298,6 +307,21 @@
         reverse_proxy localhost:3101 {
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
+        }
+      '';
+    };
+    virtualHosts."server-calendar.witcc.dev" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        }
+        reverse_proxy localhost:3002 {
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+          header_up X-Forwarded-Host {host}
         }
       '';
     };
