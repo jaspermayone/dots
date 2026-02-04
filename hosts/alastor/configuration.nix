@@ -24,8 +24,18 @@
   # System version
   system.stateVersion = "24.05";
 
-  # Limit boot generations to prevent /boot from filling up
+  # Prevent /boot partition from filling up
   boot.loader.grub.configurationLimit = 10;
+
+  # Automatic garbage collection to remove old generations
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 7d";
+  };
+
+  # Clean /tmp on boot
+  boot.tmp.cleanOnBoot = true;
 
   # Hostname
   networking.hostName = hostname;
