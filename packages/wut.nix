@@ -15,7 +15,7 @@ buildGoModule rec {
     hash = "sha256-HQ/UmVVurP3N/dfXZO7j8d8PlZxceYTz5h0NKMcc2Gw=";
   };
 
-  vendorHash = "sha256-lIRqcB0iEgzx+yLLy1i4T1s1w6AV4lTjW+b9sJKCr5s=";
+  vendorHash = null; # No vendor dependencies
 
   # Override to allow Go to download required toolchain
   preBuild = ''
