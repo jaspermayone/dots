@@ -15,7 +15,12 @@ buildGoModule rec {
     hash = "sha256-HQ/UmVVurP3N/dfXZO7j8d8PlZxceYTz5h0NKMcc2Gw=";
   };
 
-  vendorHash = "sha256-lIRqcB0iEgzx+yLLy1i4T1s1w6AV4lTjW+b9sJKCr5s="; # Placeholder - will be updated by build
+  vendorHash = "sha256-lIRqcB0iEgzx+yLLy1i4T1s1w6AV4lTjW+b9sJKCr5s=";
+
+  # Override to allow Go to download required toolchain
+  preBuild = ''
+    export GOTOOLCHAIN=auto
+  '';
 
   ldflags = [
     "-s"
