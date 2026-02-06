@@ -446,6 +446,9 @@
     ln -sf /run/current-system/sw/bin/bw /opt/homebrew/bin/bw
     ln -sf /run/current-system/sw/bin/git /opt/homebrew/bin/git
 
+    # Symlink LibreOffice CLI tool
+    ln -sf /Applications/LibreOffice.app/Contents/MacOS/soffice /opt/homebrew/bin/libreoffice
+
     # Show ~/Library folder (for primary user)
     chflags nohidden /Users/jsp/Library
 

@@ -50,6 +50,7 @@
   homebrew.casks = [
     "basictex"
     "gitkraken-cli"
+    "libreoffice"
   ];
 
   # Set the hostname
