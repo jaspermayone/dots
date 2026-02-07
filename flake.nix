@@ -98,6 +98,7 @@
             zmx-binary = prev.callPackage ./packages/zmx.nix { };
             wut = final.unstable.callPackage ./packages/wut.nix { };
             qmd = prev.callPackage ./packages/qmd.nix { };
+            projn = prev.callPackage ./packages/projn.nix { };
 
             # Caddy with Cloudflare DNS plugin for ACME DNS challenges
             caddy-cloudflare = prev.caddy.withPlugins {
