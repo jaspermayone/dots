@@ -78,7 +78,6 @@
       "jaspermayone/tap"
       "minio/stable"
       "oven-sh/bun"
-      "simonbs/wut"
       "sst/tap"
       "stripe/stripe-cli"
       "withgraphite/tap"
@@ -140,7 +139,6 @@
       "eget"
       "gitmoji"
       "create-dmg"
-      "simonbs/wut/wut"
     ];
 
     # GUI apps (casks) - shared across all Darwin machines
