@@ -28,12 +28,12 @@
   # Prevent /boot partition from filling up
   boot.loader.grub.configurationLimit = 10;
 
-  # Automatic garbage collection to remove old generations
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 7d";
-  };
+  # Automatic garbage collection disabled - using nh.clean instead
+  # nix.gc = {
+  #   automatic = true;
+  #   dates = "weekly";
+  #   options = "--delete-older-than 7d";
+  # };
 
   # Clean /tmp on boot
   boot.tmp.cleanOnBoot = true;
