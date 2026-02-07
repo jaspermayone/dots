@@ -648,7 +648,7 @@ in
     # Dev tools
     mise # Version manager (formerly rtx)
     flyctl # Fly.io CLI
-    bun # JavaScript runtime
+    unstable.bun # JavaScript runtime
     nodePackages.pnpm # Package manager
     zmx-binary # Session persistence for terminal processes
 
