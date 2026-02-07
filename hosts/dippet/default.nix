@@ -149,13 +149,10 @@ in
     "python@3.14"
   ];
 
-  # Docker Desktop for macOS (required for Spindle)
-  homebrew.casks = [
-    "docker"
-  ];
-
   # Dippet-specific homebrew casks
   homebrew.casks = [
+    # Docker Desktop for macOS (required for Spindle)
+    "docker"
     # Desktop apps are inherited from shared config (espanso, raycast, bitwarden)
   ];
 
