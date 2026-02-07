@@ -3,8 +3,8 @@
     "defaultMode": "default"
   },
   "attribution": {
-    "commit": "",
-    "pr": ""
+    "commit": "Commit assisted by Claude",
+    "pr": "PR assisted by Claude"
   },
   "teammateMode": "in-process",
   "env": {
