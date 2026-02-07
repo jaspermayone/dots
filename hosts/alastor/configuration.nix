@@ -19,6 +19,7 @@
     ../../modules/restic
     inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
+    inputs.tangled.nixosModules.spindle
   ];
 
   # System version
@@ -229,6 +230,7 @@
       "caddy"
       "tailscaled"
       "tangled-knot"
+      "tangled-spindle"
       "atuin-server"
       "strings-hogwarts"
       "strings-witcc"
@@ -248,6 +250,17 @@
       owner = "did:plc:abgthiqrd7tczkafjm4ennbo";
       hostname = "knot.jaspermayone.com";
       listenAddr = "127.0.0.1:5555";
+    };
+  };
+
+  # Tangled Spindle CI/CD runner (official module)
+  services.tangled.spindle = {
+    enable = true;
+    package = inputs.tangled.packages.${pkgs.stdenv.hostPlatform.system}.spindle;
+    server = {
+      owner = "did:plc:abgthiqrd7tczkafjm4ennbo";
+      hostname = "1.alastor.spindle.hogwarts.dev";
+      listenAddr = "127.0.0.1:6555";
     };
   };
 
@@ -352,6 +365,20 @@
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
           header_up X-Forwarded-Host {host}
+        }
+      '';
+    };
+    virtualHosts."1.alastor.spindle.hogwarts.dev" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        }
+        reverse_proxy localhost:6555 {
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
         }
       '';
     };

@@ -34,6 +34,23 @@ let
 
     echo "Sync complete: $(date)"
   '';
+
+  spindle-run = pkgs.writeShellScript "spindle-run" ''
+    set -euo pipefail
+
+    export SPINDLE_SERVER_HOSTNAME="1.dippet.spindle.hogwarts.dev"
+    export SPINDLE_SERVER_OWNER="did:plc:abgthiqrd7tczkafjm4ennbo"
+    export SPINDLE_SERVER_LISTEN_ADDR="127.0.0.1:6556"
+    export SPINDLE_SERVER_DB_PATH="/Users/jsp/Library/Application Support/spindle/spindle.db"
+    export SPINDLE_PIPELINES_LOG_DIR="/Users/jsp/Library/Logs/spindle"
+
+    # Create necessary directories
+    mkdir -p "/Users/jsp/Library/Application Support/spindle"
+    mkdir -p "/Users/jsp/Library/Logs/spindle"
+
+    # Run spindle
+    exec ${inputs.tangled.packages.${pkgs.stdenv.hostPlatform.system}.spindle}/bin/spindle
+  '';
 in
 {
   # Disable nix-darwin's Nix management (using Determinate Nix installer)
@@ -74,6 +91,30 @@ in
     };
   };
 
+  # Tangled Spindle CI/CD runner
+  launchd.daemons.tangled-spindle = {
+    script = ''
+      ${spindle-run}
+    '';
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = "/Users/jsp/Library/Logs/spindle.log";
+      StandardErrorPath = "/Users/jsp/Library/Logs/spindle.log";
+      UserName = "jsp";
+      GroupName = "staff";
+      EnvironmentVariables = {
+        HOME = "/Users/jsp";
+        PATH = "${pkgs.docker}/bin:/usr/bin:/bin";
+      };
+    };
+  };
+
+  # Cloudflare tunnel for Spindle
+  # Add this route to your existing cloudflared tunnel config:
+  #   - hostname: 1.dippet.spindle.hogwarts.dev
+  #     service: http://localhost:6556
+
   # Agenix identity path (use user SSH key on macOS)
   age.identityPaths = [ "/Users/jsp/.ssh/id_ed25519" ];
 
@@ -93,6 +134,7 @@ in
     mode = "400";
   };
 
+
   # Server packages (dippet-specific)
   homebrew.brews = [
     # Web/networking
@@ -105,6 +147,11 @@ in
     "augeas"
     "poppler"
     "python@3.14"
+  ];
+
+  # Docker Desktop for macOS (required for Spindle)
+  homebrew.casks = [
+    "docker"
   ];
 
   # Dippet-specific homebrew casks
