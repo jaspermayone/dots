@@ -16,6 +16,7 @@ pkgs.writeShellApplication {
     # Configuration - these can be overridden by environment variables
     GITHUB_USERNAME="''${GITHUB_USERNAME:-jaspermayone}"
     TANGLED_HANDLE="''${TANGLED_HANDLE:-jaspermayone.tngl.sh}"
+    TANGLED_REPO_PATH="''${TANGLED_REPO_PATH:-jaspermayone.com}"
     TANGLED_KNOT="''${TANGLED_KNOT:-knot.jaspermayone.com}"
     TANGLED_PDS="''${TANGLED_PDS:-https://tangled.sh}"
     PROJECTS_DIR="''${PROJECTS_DIR:-$HOME/projects}"
@@ -48,6 +49,7 @@ pkgs.writeShellApplication {
       echo "Environment variables:"
       echo "  GITHUB_USERNAME  - GitHub username (default: jaspermayone)"
       echo "  TANGLED_HANDLE   - Tangled handle (default: jaspermayone.tngl.sh)"
+      echo "  TANGLED_REPO_PATH- Tangled repo path (default: jaspermayone.com)"
       echo "  TANGLED_KNOT     - Tangled knot server (default: knot.jaspermayone.com)"
       echo "  TANGLED_PDS      - Tangled PDS URL (default: https://tangled.sh)"
       echo "  TANGLED_TOKEN    - Tangled authentication token (required for API)"
@@ -140,7 +142,7 @@ EOF
 
     # Add Tangled remote
     log "Adding Tangled remote..."
-    TANGLED_URL="ssh://git@$TANGLED_KNOT:$TANGLED_HANDLE/$PROJECT_NAME"
+    TANGLED_URL="git@$TANGLED_KNOT:$TANGLED_REPO_PATH/$PROJECT_NAME"
     git remote add tangled "$TANGLED_URL"
 
     # Push to Tangled

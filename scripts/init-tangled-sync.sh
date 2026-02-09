@@ -7,6 +7,7 @@ set -euo pipefail
 # Configuration
 GITHUB_USERNAME="${GITHUB_USERNAME:-jaspermayone}"
 TANGLED_HANDLE="${TANGLED_HANDLE:-jaspermayone.tngl.sh}"
+TANGLED_REPO_PATH="${TANGLED_REPO_PATH:-jaspermayone.com}"
 TANGLED_KNOT="${TANGLED_KNOT:-knot.jaspermayone.com}"
 
 # Colors
@@ -105,7 +106,7 @@ echo "$REPOS" | while IFS='|' read -r repo_name repo_url description default_bra
   case "$answer" in
     [Yy]* )
       echo "  Testing SSH connection..."
-      TANGLED_URL="ssh://git@$TANGLED_KNOT:$TANGLED_HANDLE/$repo_name"
+      TANGLED_URL="git@$TANGLED_KNOT:$TANGLED_REPO_PATH/$repo_name"
 
       # Clone to temp location and push
       TEMP_DIR=$(mktemp -d)

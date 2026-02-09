@@ -26,6 +26,12 @@ in
       description = "Tangled handle (e.g., user.tngl.sh)";
     };
 
+    tangledRepoPath = lib.mkOption {
+      type = lib.types.str;
+      default = "jaspermayone.com";
+      description = "Tangled repository path (e.g., user.com or user.tngl.sh)";
+    };
+
     tangledKnot = lib.mkOption {
       type = lib.types.str;
       default = "knot.jaspermayone.com";
@@ -69,6 +75,7 @@ in
           # Variables
           GITHUB_USERNAME="${cfg.githubUsername}"
           TANGLED_HANDLE="${cfg.tangledHandle}"
+          TANGLED_REPO_PATH="${cfg.tangledRepoPath}"
           TANGLED_KNOT="${cfg.tangledKnot}"
           WORK_DIR="${cfg.workDir}"
           LOG_FILE="${cfg.logFile}"
@@ -121,7 +128,7 @@ in
             # Check if Tangled remote exists
             cd "$REPO_DIR"
             TANGLED_REMOTE=$(${pkgs.git}/bin/git remote get-url tangled 2>/dev/null || echo "")
-            TANGLED_URL="ssh://git@$TANGLED_KNOT:$TANGLED_HANDLE/$repo_name"
+            TANGLED_URL="git@$TANGLED_KNOT:$TANGLED_REPO_PATH/$repo_name"
 
             if [ -z "$TANGLED_REMOTE" ]; then
               log "  Adding Tangled remote..."
