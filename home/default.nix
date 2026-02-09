@@ -17,6 +17,7 @@
     ../modules/ssh.nix
     ../modules/git.nix
     ../modules/configs.nix
+    ../modules/claude-code.nix
     inputs.try.homeModules.default
   ];
 
@@ -178,6 +179,15 @@
 
   # Git configuration
   jsp.git.enable = true;
+
+  # Claude Code configuration with guardrails
+  jsp.claude-code = {
+    enable = true;
+    guardrails = {
+      enable = true;
+      verbose = false; # Set to true for debugging
+    };
+  };
 
   # SSH configuration
   jsp.ssh = {
