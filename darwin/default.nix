@@ -120,6 +120,7 @@
       "composer"
       "openjdk"
       "openjdk@21"
+      "python@3.12"
       "rust" # Keep for toolchain management
 
       # Databases (specific versions)
