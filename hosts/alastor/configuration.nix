@@ -315,10 +315,9 @@
     port = 3200;
     host = "127.0.0.1";
     redis.createLocally = true;
-    # Database configuration can be added via extraEnvFiles if needed
-    # extraConfig = {
-    #   DATABASE_URL = "postgresql://...";
-    # };
+    extraConfig = {
+      REDIS_URL = "redis://localhost:6380";
+    };
   };
 
   # Configure docuseal Redis to use a different port
