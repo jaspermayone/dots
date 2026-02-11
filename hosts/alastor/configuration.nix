@@ -234,6 +234,8 @@
       "atuin-server"
       "strings-hogwarts"
       "strings-witcc"
+      "docuseal"
+      "redis-docuseal"
     ];
     remoteHosts = [
       "remus"
@@ -305,6 +307,18 @@
       username = "witcc";
       passwordFile = config.age.secrets.strings-witcc.path;
     };
+  };
+
+  # DocuSeal document signing
+  services.docuseal = {
+    enable = true;
+    port = 3200;
+    host = "127.0.0.1";
+    redis.createLocally = true;
+    # Database configuration can be added via extraEnvFiles if needed
+    # extraConfig = {
+    #   DATABASE_URL = "postgresql://...";
+    # };
   };
 
   # Caddy reverse proxy (with Cloudflare DNS plugin for ACME)
@@ -379,6 +393,21 @@
         reverse_proxy localhost:6555 {
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
+        }
+      '';
+    };
+    virtualHosts."sign.singlefeather.com" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        }
+        reverse_proxy localhost:3200 {
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+          header_up X-Forwarded-Host {host}
         }
       '';
     };
