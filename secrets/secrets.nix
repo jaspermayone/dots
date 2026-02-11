@@ -116,4 +116,11 @@ in
   # Strings CLI credentials (for use on client machines)
   # Format: STRINGS_USER=username\nSTRINGS_PASS=password
   "strings-cli.age".publicKeys = all;
+
+  # DocuSeal SMTP password (Google Workspace app password)
+  # Format: SMTP_PASSWORD=your-app-password
+  "docuseal-smtp.age".publicKeys = [
+    jsp
+    alastor
+  ];
 }

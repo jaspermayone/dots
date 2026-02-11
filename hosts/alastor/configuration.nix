@@ -208,6 +208,13 @@
       file = ../../secrets/strings-witcc.age;
       mode = "400";
     };
+
+    # DocuSeal SMTP password
+    docuseal-smtp = {
+      file = ../../secrets/docuseal-smtp.age;
+      mode = "400";
+      owner = "nobody"; # docuseal runs as nobody
+    };
   };
 
   # FRP tunnel server
@@ -317,7 +324,18 @@
     redis.createLocally = true;
     extraConfig = {
       REDIS_URL = "redis://localhost:6380";
+      SMTP_ADDRESS = "smtp.gmail.com";
+      SMTP_PORT = "465";
+      SMTP_DOMAIN = "singlefeather.com";
+      SMTP_USERNAME = "jasper.mayone@singlefeather.com";
+      SMTP_AUTHENTICATION = "plain";
+      SMTP_FROM = "legal@singlefeather.com";
+      SMTP_ENABLE_STARTTLS = "false"; # Port 465 uses implicit SSL/TLS, not STARTTLS
+      SMTP_SSL_VERIFY = "true"; # Enable certificate verification for security
     };
+    extraEnvFiles = [
+      config.age.secrets.docuseal-smtp.path
+    ];
   };
 
   # Configure docuseal Redis to use a different port
