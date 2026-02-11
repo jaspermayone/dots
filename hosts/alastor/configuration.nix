@@ -322,7 +322,7 @@
   };
 
   # Configure docuseal Redis to use a different port
-  services.redis.servers.docuseal.port = 6380;
+  services.redis.servers.docuseal.port = lib.mkForce 6380;
 
   # Caddy reverse proxy (with Cloudflare DNS plugin for ACME)
   services.caddy = {
