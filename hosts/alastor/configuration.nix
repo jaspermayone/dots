@@ -243,6 +243,7 @@
       "strings-witcc"
       "docuseal"
       "redis-docuseal"
+      "docker"
     ];
     remoteHosts = [
       "remus"
@@ -425,6 +426,21 @@
           Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         }
         reverse_proxy localhost:3200 {
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+          header_up X-Forwarded-Host {host}
+        }
+      '';
+    };
+    virtualHosts."idp.patchworklabs.org" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        header {
+          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        }
+        reverse_proxy localhost:3003 {
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
           header_up X-Forwarded-Host {host}
