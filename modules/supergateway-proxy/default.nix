@@ -77,9 +77,6 @@ let
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
-        # Rate limiting zone (10 req/sec per IP)
-        limit_req_zone $binary_remote_addr zone=${name}_ratelimit:10m rate=10r/s;
-
         # Custom log format with API key prefix
         access_log /var/log/nginx/${cfg.domain}.access.log;
         error_log /var/log/nginx/${cfg.domain}.error.log;
@@ -147,6 +144,14 @@ in {
     recommendedGzipSettings = true;
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
+
+    # Add rate limiting zones to http block
+    appendHttpConfig = ''
+      # Rate limiting zones for MCP proxies (10 req/sec per IP)
+      ${lib.concatMapStringsSep "\n" (name: ''
+        limit_req_zone $binary_remote_addr zone=${name}_ratelimit:10m rate=10r/s;
+      '') (builtins.attrNames mcpProxies)}
+    '';
   };
 
   # Generate auth config files before nginx starts
