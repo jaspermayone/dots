@@ -113,7 +113,7 @@ in
   # Supergateway MCP server for OmniFocus
   launchd.daemons.supergateway-omnifocus = {
     script = ''
-      ${pkgs.nodejs}/bin/npx -y supergateway --stdio "npx -y omnifocus-mcp" --port 8765
+      ${pkgs.nodejs}/bin/npx -y supergateway --stdio "npx -y omnifocus-mcp" --port 8765 --outputTransport streamable-http
     '';
     serviceConfig = {
       KeepAlive = true;
