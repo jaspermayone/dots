@@ -124,7 +124,6 @@ let
       locations."/health" = {
         return = "200 'OK'";
         extraConfig = ''
-          add_header Content-Type text/plain;
           access_log off;
         '';
       };
