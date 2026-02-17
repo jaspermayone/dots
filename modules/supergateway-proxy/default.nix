@@ -77,10 +77,12 @@ in {
       OUT="/var/lib/caddy/mcp-keys.env"
       mkdir -p /var/lib/caddy
       if [ -f "$SECRET" ]; then
-        ${lib.concatMapStringsSep "\n" (name: let cfg = mcpProxies.${name}; in ''
-          KEY=$(${pkgs.jq}/bin/jq -r '.["${cfg.secretKey}"][0] // ""' "$SECRET")
-          echo '${cfg.envVar}='"$KEY"
-        '') (builtins.attrNames mcpProxies)} > "$OUT"
+        (
+          ${lib.concatMapStringsSep "\n" (name: let cfg = mcpProxies.${name}; in ''
+            KEY=$(${pkgs.jq}/bin/jq -r '.["${cfg.secretKey}"][0] // ""' "$SECRET")
+            echo '${cfg.envVar}='"$KEY"
+          '') (builtins.attrNames mcpProxies)}
+        ) > "$OUT"
         chmod 600 "$OUT"
         chown caddy:caddy "$OUT"
       fi
