@@ -129,6 +129,47 @@ in
     };
   };
 
+  # QMD semantic search MCP for Obsidian vault
+  launchd.daemons.qmd-obsidian = {
+    script = ''
+      ${pkgs.nodejs}/bin/npx -y @tobilu/qmd mcp --http --port 8766
+    '';
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = "/Users/jsp/Library/Logs/qmd-obsidian.log";
+      StandardErrorPath = "/Users/jsp/Library/Logs/qmd-obsidian.log";
+      UserName = "jsp";
+      GroupName = "staff";
+      EnvironmentVariables = {
+        HOME = "/Users/jsp";
+        PATH = "${pkgs.nodejs}/bin:/usr/bin:/bin";
+      };
+    };
+  };
+
+  # Filesystem MCP for Obsidian vault read/write
+  launchd.daemons.supergateway-obsidian = {
+    script = ''
+      ${pkgs.nodejs}/bin/npx -y supergateway \
+        --stdio "${pkgs.nodejs}/bin/npx -y @modelcontextprotocol/server-filesystem /Users/jsp/Desktop/Jasper" \
+        --port 8767 \
+        --outputTransport streamableHttp
+    '';
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = "/Users/jsp/Library/Logs/supergateway-obsidian.log";
+      StandardErrorPath = "/Users/jsp/Library/Logs/supergateway-obsidian.log";
+      UserName = "jsp";
+      GroupName = "staff";
+      EnvironmentVariables = {
+        HOME = "/Users/jsp";
+        PATH = "${pkgs.nodejs}/bin:/usr/bin:/bin";
+      };
+    };
+  };
+
   # Cloudflare tunnel for Spindle
   # Add this route to your existing cloudflared tunnel config:
   #   - hostname: 1.dippet.spindle.hogwarts.dev

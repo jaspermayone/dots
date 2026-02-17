@@ -13,13 +13,19 @@ let
       envVar = "MCP_KEY_OMNIFOCUS";
     };
 
-    # Add more MCPs here:
-    # example = {
-    #   domain = "example.mcp.hogwarts.dev";
-    #   upstream = "dippet.wildebeest-stargazer.ts.net:8001";
-    #   secretKey = "example";
-    #   envVar = "MCP_KEY_EXAMPLE";
-    # };
+    obsidian = {
+      domain = "obsidian.mcp.hogwarts.dev";
+      upstream = "dippet.wildebeest-stargazer.ts.net:8767";
+      secretKey = "obsidian";
+      envVar = "MCP_KEY_OBSIDIAN";
+    };
+
+    obsidian-search = {
+      domain = "obsidian-search.mcp.hogwarts.dev";
+      upstream = "dippet.wildebeest-stargazer.ts.net:8766";
+      secretKey = "obsidian-search";
+      envVar = "MCP_KEY_OBSIDIAN_SEARCH";
+    };
   };
 
   # Generate Caddy virtualHost config for each MCP
