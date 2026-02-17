@@ -306,7 +306,7 @@
     };
     witcc = {
       enable = true;
-      baseUrl = "https://strings.witcc.dev";
+      baseUrl = "https://str.witcc.dev";
       port = 3101;
       username = "witcc";
       passwordFile = config.age.secrets.strings-witcc.path;
@@ -370,7 +370,7 @@
         }
       '';
     };
-    virtualHosts."strings.witcc.dev" = {
+    virtualHosts."str.witcc.dev" = {
       extraConfig = ''
         tls {
           dns cloudflare {env.CLOUDFLARE_API_TOKEN}
