@@ -156,23 +156,17 @@ in {
   # Generate auth config files before nginx starts
   systemd.services.nginx = {
     preStart = lib.mkBefore ''
-      # Create directory and placeholder auth configs so nginx -t passes
+      # Create directory and placeholder auth configs so nginx -t passes,
+      # then overwrite with real auth configs from agenix secret.
       mkdir -p /var/lib/nginx
       ${lib.concatMapStringsSep "\n" (name: ''
         if [ ! -f "/var/lib/nginx/auth-${name}.conf" ]; then
-          echo "# Placeholder auth config for ${name}" > "/var/lib/nginx/auth-${name}.conf"
-          echo "set \$valid_key_${name} 0;" >> "/var/lib/nginx/auth-${name}.conf"
+          printf '# Placeholder\nset $valid_key_${name} 0;\n' > "/var/lib/nginx/auth-${name}.conf"
         fi
-      '') (builtins.attrNames mcpProxies)}
-    '' + lib.mkAfter ''
-      # Now generate real auth configs from secret
-      echo "Generating MCP auth configs from secret..."
-      ${lib.concatMapStringsSep "\n" (name: ''
         ${generateAuthMap name}
       '') (builtins.attrNames mcpProxies)}
     '';
     serviceConfig = {
-      # Ensure nginx can read the secret
       SupplementaryGroups = [ "keys" ];
     };
   };
