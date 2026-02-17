@@ -132,12 +132,7 @@ let
   };
 
 in {
-  # Generate nginx virtual hosts for all MCP proxies
-  services.nginx.virtualHosts = pkgs.lib.attrsets.mergeAttrsList (
-    pkgs.lib.attrsets.mapAttrsToList mkSecureProxy mcpProxies
-  );
-
-  # Ensure nginx is enabled with recommended settings
+  # Nginx configuration with MCP proxies
   services.nginx = {
     enable = true;
     recommendedOptimisation = true;
@@ -152,6 +147,11 @@ in {
         limit_req_zone $binary_remote_addr zone=${name}_ratelimit:10m rate=10r/s;
       '') (builtins.attrNames mcpProxies)}
     '';
+
+    # Virtual hosts for all MCP proxies
+    virtualHosts = pkgs.lib.attrsets.mergeAttrsList (
+      pkgs.lib.attrsets.mapAttrsToList mkSecureProxy mcpProxies
+    );
   };
 
   # Generate auth config files before nginx starts
