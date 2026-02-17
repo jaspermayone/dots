@@ -113,7 +113,10 @@ in
   # QMD semantic search MCP for Obsidian vault
   launchd.daemons.qmd-obsidian = {
     script = ''
-      ${pkgs.nodejs}/bin/npx -y @tobilu/qmd mcp --http --port 8766
+      ${pkgs.nodejs}/bin/npx -y supergateway \
+        --stdio "npx -y @tobilu/qmd mcp" \
+        --port 8766 \
+        --outputTransport streamableHttp
     '';
     serviceConfig = {
       KeepAlive = true;
