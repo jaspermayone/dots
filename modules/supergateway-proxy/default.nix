@@ -6,7 +6,7 @@ let
   mcpProxies = {
     omnifocus = {
       domain = "omnifocus.mcp.hogwarts.dev";
-      upstream = "dippet.wildebeest-stargazer.ts.net:8000";
+      upstream = "dippet.wildebeest-stargazer.ts.net:8765";
       # Name of the key in mcp-api-keys.age JSON: { "omnifocus": ["key1"] }
       secretKey = "omnifocus";
       # Env var name that will hold the API key for use in Caddy config
