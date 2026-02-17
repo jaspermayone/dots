@@ -140,8 +140,8 @@ in {
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
 
-    # Add rate limiting zones to http block
-    appendHttpConfig = ''
+    # Add rate limiting zones to http block (early in config)
+    commonHttpConfig = ''
       # Rate limiting zones for MCP proxies (10 req/sec per IP)
       ${lib.concatMapStringsSep "\n" (name: ''
         limit_req_zone $binary_remote_addr zone=${name}_ratelimit:10m rate=10r/s;
