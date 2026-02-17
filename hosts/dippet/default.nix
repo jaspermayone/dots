@@ -110,25 +110,6 @@ in
     };
   };
 
-  # Supergateway MCP server for OmniFocus
-  launchd.daemons.supergateway-omnifocus = {
-    script = ''
-      ${pkgs.nodejs}/bin/npx -y supergateway --stdio "npx -y omnifocus-mcp" --port 8765 --outputTransport streamableHttp
-    '';
-    serviceConfig = {
-      KeepAlive = true;
-      RunAtLoad = true;
-      StandardOutPath = "/Users/jsp/Library/Logs/supergateway-omnifocus.log";
-      StandardErrorPath = "/Users/jsp/Library/Logs/supergateway-omnifocus.log";
-      UserName = "jsp";
-      GroupName = "staff";
-      EnvironmentVariables = {
-        HOME = "/Users/jsp";
-        PATH = "${pkgs.nodejs}/bin:/usr/bin:/bin";
-      };
-    };
-  };
-
   # QMD semantic search MCP for Obsidian vault
   launchd.daemons.qmd-obsidian = {
     script = ''
