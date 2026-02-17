@@ -17,6 +17,7 @@
     ../../modules/bluesky-pds/default.nix
     ../../modules/atuin-server
     ../../modules/restic
+    ../../modules/supergateway-proxy
     inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
     inputs.tangled.nixosModules.spindle

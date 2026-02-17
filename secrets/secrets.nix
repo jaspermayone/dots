@@ -118,4 +118,12 @@ in
     jsp
     alastor
   ];
+
+  # Supergateway MCP API keys
+  # Format: JSON with API keys for each MCP
+  # { "omnifocus": ["key1", "key2"], "other-mcp": ["key3"] }
+  "mcp-api-keys.age".publicKeys = [
+    jsp
+    alastor
+  ];
 }

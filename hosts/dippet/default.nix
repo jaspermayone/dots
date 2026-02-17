@@ -110,6 +110,25 @@ in
     };
   };
 
+  # Supergateway MCP server for OmniFocus
+  launchd.daemons.supergateway-omnifocus = {
+    script = ''
+      ${pkgs.nodejs}/bin/npx -y supergateway --stdio "npx -y omnifocus-mcp" --port 8000
+    '';
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = "/Users/jsp/Library/Logs/supergateway-omnifocus.log";
+      StandardErrorPath = "/Users/jsp/Library/Logs/supergateway-omnifocus.log";
+      UserName = "jsp";
+      GroupName = "staff";
+      EnvironmentVariables = {
+        HOME = "/Users/jsp";
+        PATH = "${pkgs.nodejs}/bin:/usr/bin:/bin";
+      };
+    };
+  };
+
   # Cloudflare tunnel for Spindle
   # Add this route to your existing cloudflared tunnel config:
   #   - hostname: 1.dippet.spindle.hogwarts.dev
