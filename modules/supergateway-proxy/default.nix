@@ -6,7 +6,7 @@ let
   mcpProxies = {
     omnifocus = {
       domain = "omnifocus.mcp.hogwarts.dev";
-      upstreamHost = "dippet.local";
+      upstreamHost = "dippet.wildebeest-stargazer.ts.net";
       upstreamPort = 8000;
     };
 
@@ -46,6 +46,8 @@ let
       exit 0
     fi
 
+    # Remove placeholder symlink (points to read-only Nix store) before writing
+    rm -f "$OUTPUT_FILE"
     {
       echo "# Generated at $(date) from agenix secret"
       echo "set \$valid_key_${name} 0;"
@@ -74,10 +76,14 @@ let
       '';
 
       locations."/" = {
-        proxyPass = "http://${cfg.upstreamHost}:${toString cfg.upstreamPort}";
+        # Use variable so nginx resolves the upstream at request time,
+        # not at startup — avoids "host not found" errors for .local names
+        proxyPass = "http://$mcp_upstream_${name}";
         proxyWebsockets = true;
 
         extraConfig = ''
+          set $mcp_upstream_${name} ${cfg.upstreamHost}:${toString cfg.upstreamPort};
+
           if ($http_authorization = "") {
             return 401 '{"error": "Missing Authorization header. Use: Bearer YOUR_API_KEY"}';
           }
@@ -122,9 +128,16 @@ in {
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
 
-    commonHttpConfig = lib.concatMapStringsSep "\n" (name: ''
-      limit_req_zone $binary_remote_addr zone=${name}_ratelimit:10m rate=10r/s;
-    '') (builtins.attrNames mcpProxies);
+    commonHttpConfig = ''
+      # Resolver needed for variable-based upstreams (defers DNS to request time)
+      resolver 100.100.100.100 1.1.1.1 valid=30s;
+      resolver_timeout 5s;
+
+      # Rate limiting zones for MCP proxies
+      ${lib.concatMapStringsSep "\n" (name: ''
+        limit_req_zone $binary_remote_addr zone=${name}_ratelimit:10m rate=10r/s;
+      '') (builtins.attrNames mcpProxies)}
+    '';
 
     virtualHosts = pkgs.lib.attrsets.mergeAttrsList (
       pkgs.lib.attrsets.mapAttrsToList mkSecureProxy mcpProxies
