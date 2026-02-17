@@ -68,36 +68,26 @@ in {
     pkgs.lib.attrsets.mapAttrsToList mkCaddyVhost mcpProxies
   );
 
-  # One-shot service that extracts API keys from the agenix JSON secret
-  # and writes them as KEY=VALUE pairs to /run/mcp-keys.env for Caddy to load
-  systemd.services.mcp-env-gen = {
-    description = "Generate MCP API key env vars from agenix secret";
-    before = [ "caddy.service" ];
-    wantedBy = [ "caddy.service" ];
-    after = [ "agenix.service" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-    script = ''
+  # Generate the env file at activation time (runs before any services start,
+  # after agenix has decrypted secrets) so Caddy's EnvironmentFile always exists.
+  system.activationScripts.mcp-caddy-env = {
+    deps = [ "agenix" ];
+    text = ''
       SECRET="${config.age.secrets.mcp-api-keys.path}"
-      OUT="/run/mcp-keys.env"
-
-      ${lib.concatMapStringsSep "\n" (name: let cfg = mcpProxies.${name}; in ''
-        KEY=$(${pkgs.jq}/bin/jq -r '.["${cfg.secretKey}"][0] // ""' "$SECRET")
-        echo '${cfg.envVar}='"$KEY"
-      '') (builtins.attrNames mcpProxies)} > "$OUT"
-
-      chmod 600 "$OUT"
+      OUT="/var/lib/caddy/mcp-keys.env"
+      mkdir -p /var/lib/caddy
+      if [ -f "$SECRET" ]; then
+        ${lib.concatMapStringsSep "\n" (name: let cfg = mcpProxies.${name}; in ''
+          KEY=$(${pkgs.jq}/bin/jq -r '.["${cfg.secretKey}"][0] // ""' "$SECRET")
+          echo '${cfg.envVar}='"$KEY"
+        '') (builtins.attrNames mcpProxies)} > "$OUT"
+        chmod 600 "$OUT"
+        chown caddy:caddy "$OUT"
+      fi
     '';
   };
 
-  # Load the generated env file into Caddy alongside the existing Cloudflare creds
-  systemd.services.caddy = {
-    requires = [ "mcp-env-gen.service" ];
-    after = [ "mcp-env-gen.service" ];
-    serviceConfig.EnvironmentFile = [ "/run/mcp-keys.env" ];
-  };
+  systemd.services.caddy.serviceConfig.EnvironmentFile = [ "/var/lib/caddy/mcp-keys.env" ];
 
   # Agenix secret for MCP API keys (JSON format)
   # { "omnifocus": ["key1", "key2"], "other-mcp": ["key1"] }
