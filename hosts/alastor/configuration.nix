@@ -444,6 +444,19 @@
         }
       '';
     };
+    virtualHosts."plex.hogwarts.dev" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        reverse_proxy pensieve.wildebeest-stargazer.ts.net:32400 {
+          flush_interval -1
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+          header_up Host {upstream_hostport}
+        }
+      '';
+    };
   };
 
   systemd.services.caddy.serviceConfig.EnvironmentFile = [
