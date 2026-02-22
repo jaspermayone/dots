@@ -116,6 +116,9 @@
     # Workspace management
     # TODO: Re-enable when nixpkgs updates to Go 1.25.6+
     # wut # Custom package for Git worktree management - requires Go 1.25.6
+
+    # Logic design
+    logisim-evolution
   ];
 
   # Firefox
