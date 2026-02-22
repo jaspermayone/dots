@@ -440,7 +440,7 @@ in
       pip = "pip3";
       python = "python3";
 
-      cl = "claude --allow-dangerously-skip-permissions";
+      cl = "claude --allow-dangerously-skip-permissions --worktree";
       clo = "ollama launch claude";
 
       # Project shortcuts
