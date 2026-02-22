@@ -36,6 +36,7 @@
     coreutils
     libyaml
     yubikey-manager
+    logisim-evolution
   ];
 
   # Laptop-specific homebrew packages
