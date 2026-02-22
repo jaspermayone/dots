@@ -1,12 +1,13 @@
 {
   lib,
-  stdenvNoCC,
+  buildNpmPackage,
   fetchFromGitHub,
   bun,
   makeWrapper,
+  sqlite,
 }:
 
-stdenvNoCC.mkDerivation rec {
+buildNpmPackage {
   pname = "qmd";
   version = "unstable-2025-02-01";
 
@@ -17,26 +18,35 @@ stdenvNoCC.mkDerivation rec {
     hash = "sha256-mJxqZfTGjwHrZy0fxl3HA31Yg7YyIi876cXehmi0tIA=";
   };
 
-  nativeBuildInputs = [
-    bun
-    makeWrapper
-  ];
+  npmDepsHash = "sha256-bfLuM2wiWW4XCqeJl6mAsTDHhPPdX6V/G56nDZXqEz8=";
 
-  buildPhase = ''
-    runHook preBuild
-    HOME=$TMPDIR bun install --frozen-lockfile --no-progress
-    runHook postBuild
+  # qmd uses bun.lock, not package-lock.json; provide a pre-generated one
+  postPatch = ''
+    cp ${./qmd-package-lock.json} package-lock.json
   '';
+
+  # Skip native addon install scripts (node-llama-cpp downloads prebuilt llama.cpp
+  # binaries at install time). Core full-text search works without it; only the
+  # optional vector embedding features are affected.
+  npmInstallFlags = [ "--ignore-scripts" ];
+
+  nativeBuildInputs = [ bun makeWrapper ];
+  buildInputs = [ sqlite ];
+
+  dontNpmBuild = true;
 
   installPhase = ''
     runHook preInstall
 
     mkdir -p $out/lib/qmd $out/bin
-    cp -r . $out/lib/qmd/
+    cp -r src $out/lib/qmd/
+    cp package.json $out/lib/qmd/
+    cp -r node_modules $out/lib/qmd/
 
-    # Use the existing qmd wrapper script, but ensure it finds our bun
-    makeWrapper $out/lib/qmd/qmd $out/bin/qmd \
-      --prefix PATH : ${lib.makeBinPath [ bun ]}
+    makeWrapper ${bun}/bin/bun $out/bin/qmd \
+      --add-flags "$out/lib/qmd/src/qmd.ts" \
+      --set LD_LIBRARY_PATH "${sqlite.out}/lib" \
+      --set DYLD_LIBRARY_PATH "${sqlite.out}/lib"
 
     runHook postInstall
   '';
