@@ -9,6 +9,7 @@ let
       upstream = "dippet.wildebeest-stargazer.ts.net:8767";
       secretKey = "obsidian";
       envVar = "MCP_KEY_OBSIDIAN";
+      favicon = "💎";
     };
 
     obsidian-search = {
@@ -16,6 +17,15 @@ let
       upstream = "dippet.wildebeest-stargazer.ts.net:8766";
       secretKey = "obsidian-search";
       envVar = "MCP_KEY_OBSIDIAN_SEARCH";
+      favicon = "🔍";
+    };
+
+    mbta = {
+      domain = "mbta.mcp.hogwarts.dev";
+      upstream = "dippet.wildebeest-stargazer.ts.net:8768";
+      secretKey = "mbta";
+      envVar = "MCP_KEY_MBTA";
+      favicon = "🚇";
     };
   };
 
@@ -35,6 +45,14 @@ let
         handle /health {
           respond "OK" 200
         }
+
+        ${lib.optionalString (cfg ? favicon) ''
+        # Favicon - no auth required
+        handle /favicon.ico {
+          header Content-Type image/svg+xml
+          respond `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">${cfg.favicon}</text></svg>` 200
+        }
+        ''}
 
         # Require Authorization header
         @missing_auth not header Authorization *

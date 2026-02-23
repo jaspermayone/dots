@@ -154,6 +154,37 @@ in
     };
   };
 
+  # MBTA MCP server (runs via Docker)
+  launchd.daemons.supergateway-mbta = {
+    script = ''
+      MBTA_API_KEY=$(cat /Users/jsp/.config/mbta/api-key)
+      ${pkgs.nodejs}/bin/npx -y supergateway \
+        --stdio "${pkgs.docker}/bin/docker run -i -e MBTA_API_KEY=$MBTA_API_KEY ghcr.io/crdant/mbta-mcp-server:latest" \
+        --port 8768 \
+        --outputTransport streamableHttp
+    '';
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = "/Users/jsp/Library/Logs/supergateway-mbta.log";
+      StandardErrorPath = "/Users/jsp/Library/Logs/supergateway-mbta.log";
+      UserName = "jsp";
+      GroupName = "staff";
+      EnvironmentVariables = {
+        HOME = "/Users/jsp";
+        PATH = "${pkgs.nodejs}/bin:${pkgs.docker}/bin:/usr/bin:/bin";
+      };
+    };
+  };
+
+  # MBTA API key for the MCP server
+  age.secrets.mbta-api-key = {
+    file = ../../secrets/mbta-api-key.age;
+    path = "/Users/jsp/.config/mbta/api-key";
+    owner = "jsp";
+    mode = "400";
+  };
+
   # Cloudflare tunnel for Spindle
   # Add this route to your existing cloudflared tunnel config:
   #   - hostname: 1.dippet.spindle.hogwarts.dev

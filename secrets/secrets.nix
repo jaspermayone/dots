@@ -126,4 +126,10 @@ in
     jsp
     alastor
   ];
+
+  # MBTA API key for the MBTA MCP server running on dippet
+  "mbta-api-key.age".publicKeys = [
+    jsp
+    dippet
+  ];
 }
