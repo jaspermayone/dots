@@ -163,7 +163,7 @@ in
 
       MBTA_API_KEY=$(cat /Users/jsp/.config/mbta/api-key)
       ${pkgs.nodejs}/bin/npx -y supergateway \
-        --stdio "${pkgs.docker}/bin/docker run -i -e MBTA_API_KEY=$MBTA_API_KEY ghcr.io/crdant/mbta-mcp-server:latest" \
+        --stdio "${pkgs.docker}/bin/docker run --pull never -i -e MBTA_API_KEY=$MBTA_API_KEY ghcr.io/crdant/mbta-mcp-server:latest" \
         --port 8768 \
         --outputTransport streamableHttp
     '';
