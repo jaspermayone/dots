@@ -173,8 +173,7 @@
 
   home.packages = with pkgs; [
     eza
-    qmd
-  ];
+  ] ++ lib.optionals stdenv.isDarwin [ pkgs.qmd ];
 
   # Git configuration
   jsp.git.enable = true;
