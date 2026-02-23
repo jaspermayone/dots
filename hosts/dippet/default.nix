@@ -157,6 +157,10 @@ in
   # MBTA MCP server (runs via Docker)
   launchd.daemons.supergateway-mbta = {
     script = ''
+      # Use a clean Docker config to avoid docker-credential-desktop issues
+      mkdir -p /Users/jsp/.config/mbta-docker
+      echo '{}' > /Users/jsp/.config/mbta-docker/config.json
+
       MBTA_API_KEY=$(cat /Users/jsp/.config/mbta/api-key)
       ${pkgs.nodejs}/bin/npx -y supergateway \
         --stdio "${pkgs.docker}/bin/docker run -i -e MBTA_API_KEY=$MBTA_API_KEY ghcr.io/crdant/mbta-mcp-server:latest" \
@@ -173,6 +177,7 @@ in
       EnvironmentVariables = {
         HOME = "/Users/jsp";
         PATH = "${pkgs.nodejs}/bin:${pkgs.docker}/bin:/usr/bin:/bin";
+        DOCKER_CONFIG = "/Users/jsp/.config/mbta-docker";
       };
     };
   };
