@@ -132,4 +132,16 @@ in
     jsp
     dippet
   ];
+
+  # Crane services — GitHub PAT for cloning cranebrowser/services (read-only)
+  "crane-services-token.age".publicKeys = [
+    jsp
+    alastor
+  ];
+
+  # Crane services — HMAC_SECRET for ext_proxy
+  "crane-services-hmac.age".publicKeys = [
+    jsp
+    alastor
+  ];
 }

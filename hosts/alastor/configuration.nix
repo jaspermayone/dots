@@ -18,6 +18,7 @@
     ../../modules/atuin-server
     ../../modules/restic
     ../../modules/supergateway-proxy
+    ../../modules/crane-services
     inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
     inputs.tangled.nixosModules.spindle
@@ -211,6 +212,16 @@
       file = ../../secrets/docuseal-smtp.age;
       mode = "400";
       owner = "nobody"; # docuseal runs as nobody
+    };
+
+    # Crane services
+    crane-services-token = {
+      file = ../../secrets/crane-services-token.age;
+      mode = "400";
+    };
+    crane-services-hmac = {
+      file = ../../secrets/crane-services-hmac.age;
+      mode = "400";
     };
   };
 
@@ -516,6 +527,17 @@
   #     };
   #   };
   # };
+
+  # Crane browser services
+  crane.services = {
+    enable = true;
+    hostname = "services.cranebrowser.com";
+    proxyBaseUrl = "https://services.cranebrowser.com/ext";
+    uboProxyBaseUrl = "https://services.cranebrowser.com/ubo/";
+    repoTokenFile = config.age.secrets.crane-services-token.path;
+    hmacSecretFile = config.age.secrets.crane-services-hmac.path;
+    openFirewall = false; # ports 80/443 already opened below
+  };
 
   # Automatic updates - checks daily at 4am
   system.autoUpgrade = {
