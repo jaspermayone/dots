@@ -468,6 +468,66 @@
         }
       '';
     };
+    virtualHosts."services.cranebrowser.com" = {
+      extraConfig = ''
+        tls {
+          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        }
+        header {
+          Strict-Transport-Security "max-age=63072000"
+        }
+
+        @root path /
+        redir @root https://cranebrowser.com 302
+
+        handle /robots.txt {
+          respond "User-agent: *\nDisallow: /\n" 200
+        }
+
+        handle /bangs.json {
+          header Cache-Control "public, max-age=86400, stale-if-error=604800"
+          header Access-Control-Allow-Origin *
+          root * /opt/crane-services/svc/bangs
+          file_server
+        }
+
+        handle_path /updates/mac* {
+          reverse_proxy https://updates.cranebrowser.com {
+            header_up Host updates.cranebrowser.com
+          }
+        }
+
+        handle_path /ext/* {
+          reverse_proxy localhost:9002 localhost:9003 {
+            lb_policy first
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-For {remote}
+          }
+        }
+
+        handle /com* {
+          reverse_proxy localhost:9002 localhost:9003 {
+            lb_policy first
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-For {remote}
+          }
+        }
+
+        handle_path /ubo/* {
+          reverse_proxy localhost:9001 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-For {remote}
+          }
+        }
+
+        handle_path /filters/* {
+          header Cache-Control "public, max-age=3600, stale-if-error=86400"
+          header Access-Control-Allow-Origin *
+          root * /opt/crane-services/filters
+          file_server
+        }
+      '';
+    };
   };
 
   systemd.services.caddy.serviceConfig.EnvironmentFile = [
@@ -536,6 +596,7 @@
     uboProxyBaseUrl = "https://services.cranebrowser.com/ubo/";
     repoTokenFile = config.age.secrets.crane-services-token.path;
     hmacSecretFile = config.age.secrets.crane-services-hmac.path;
+    behindProxy = true;
     openFirewall = false; # ports 80/443 already opened below
   };
 

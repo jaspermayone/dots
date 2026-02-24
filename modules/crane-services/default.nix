@@ -3,13 +3,15 @@
 # Clones cranebrowser/services from GitHub at activation time using a PAT,
 # then runs the compose stack. This avoids bundling the private repo into
 # the dots flake closure, which keeps `system.autoUpgrade` working correctly.
+#
+# When behindProxy = true (e.g. on alastor where Caddy already owns 80/443):
+# - nginx and acme.sh containers are disabled via compose.override.yml
+# - ubo_proxy and ext_proxy are exposed on localhost ports for Caddy to reach
 { config, lib, pkgs, ... }:
 
 let
   cfg = config.crane.services;
 
-  # Non-secret env vars rendered as a string (never goes in the Nix store
-  # with a secret value — HMAC_SECRET is appended at activation time).
   envVars = lib.concatLines (lib.filter (s: s != "") [
     "SERVICES_HOSTNAME=${cfg.hostname}"
     "PROXY_BASE_URL=${cfg.proxyBaseUrl}"
@@ -19,6 +21,26 @@ let
     (lib.optionalString (cfg.uboAssetsJsonSha256 != null)
       "UBO_ASSETS_JSON_SHA256=${cfg.uboAssetsJsonSha256}")
   ]);
+
+  # compose.override.yml written when behindProxy = true.
+  # Disables nginx + acme.sh (Caddy handles TLS and routing),
+  # and exposes the internal services on localhost ports for Caddy.
+  composeOverride = ''
+    services:
+      nginx:
+        profiles: ["disabled"]
+      acme.sh:
+        profiles: ["disabled"]
+      ubo_proxy:
+        ports:
+          - "127.0.0.1:9001:8000"
+      ext_proxy:
+        ports:
+          - "127.0.0.1:9002:8000"
+      ext_proxy_2:
+        ports:
+          - "127.0.0.1:9003:8000"
+  '';
 
 in {
   options.crane.services = {
@@ -71,10 +93,25 @@ in {
       '';
     };
 
+    behindProxy = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Run without nginx/acme.sh and expose internal services on localhost
+        ports instead. Use this when an external reverse proxy (e.g. Caddy)
+        already owns ports 80/443 and handles TLS.
+
+        Ports exposed on localhost:
+          9001 — ubo_proxy
+          9002 — ext_proxy
+          9003 — ext_proxy_2 (backup)
+      '';
+    };
+
     openFirewall = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Open ports 80 and 443 (TCP) and 443 (UDP/HTTP3) in the firewall.";
+      description = "Open ports 80 and 443 in the firewall. Set false when behindProxy = true.";
     };
   };
 
@@ -90,16 +127,13 @@ in {
 
     # ── Directory layout ──────────────────────────────────────────────────────
     systemd.tmpfiles.rules = [
-      "d /opt/crane-services                 0755 root root -"
-      "d /opt/crane-services/private         0750 root root -"
-      "d /opt/crane-services/private/certs   0750 root root -"
+      "d /opt/crane-services                  0755 root root -"
+      "d /opt/crane-services/private          0750 root root -"
+      "d /opt/crane-services/private/certs    0750 root root -"
       "d /opt/crane-services/private/acme-tmp 0755 root root -"
     ];
 
-    # ── Source sync + .env ────────────────────────────────────────────────────
-    # Runs on every nixos-rebuild switch. Clones on first run, pulls on
-    # subsequent runs. Secrets are read at runtime so they never touch the
-    # Nix store.
+    # ── Source sync + config files ────────────────────────────────────────────
     system.activationScripts.crane-services-deploy = {
       deps = [ "agenix" "users" "groups" ];
       text = ''
@@ -125,6 +159,13 @@ in {
           "$HMAC_SECRET" \
           > "$WORK_DIR/.env"
         chmod 600 "$WORK_DIR/.env"
+
+        ${lib.optionalString cfg.behindProxy ''
+          echo "[crane-services] writing compose.override.yml (behind-proxy mode)..."
+          cat > "$WORK_DIR/compose.override.yml" <<'EOF'
+        ${composeOverride}
+        EOF
+        ''}
       '';
     };
 
@@ -136,8 +177,8 @@ in {
       requires = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
 
-      # Restart when config values change across generations.
-      restartTriggers = [ cfg.hostname cfg.proxyBaseUrl cfg.uboProxyBaseUrl ];
+      restartTriggers = [ cfg.hostname cfg.proxyBaseUrl cfg.uboProxyBaseUrl
+                          (builtins.toJSON cfg.behindProxy) ];
 
       serviceConfig = {
         Type             = "oneshot";
@@ -166,7 +207,7 @@ in {
       description = "Daily crane services rebuild";
       wantedBy = [ "timers.target" ];
       timerConfig = {
-        OnCalendar = "05:00"; # offset from autoUpgrade at 04:00
+        OnCalendar = "05:00";
         Persistent = true;
       };
     };
