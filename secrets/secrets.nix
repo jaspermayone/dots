@@ -133,6 +133,12 @@ in
     dippet
   ];
 
+  # 17track API key for the parcel tracking MCP server running on dippet
+  "17track-api-key.age".publicKeys = [
+    jsp
+    dippet
+  ];
+
   # Crane services — GitHub PAT for cloning cranebrowser/services (read-only)
   "crane-services-token.age".publicKeys = [
     jsp

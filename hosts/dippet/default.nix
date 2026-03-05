@@ -190,6 +190,50 @@ in
     mode = "400";
   };
 
+  # 17track API key for the parcel tracking MCP server
+  age.secrets."17track-api-key" = {
+    file = ../../secrets/17track-api-key.age;
+    path = "/Users/jsp/.config/17track/api-key";
+    owner = "jsp";
+    mode = "400";
+  };
+
+  # Parcel tracking MCP server via 17track.net API
+  launchd.daemons.supergateway-parcel-tracking = {
+    script = ''
+      set -euo pipefail
+
+      MCP_DIR="/Users/jsp/.local/lib/parcel-mcp"
+      mkdir -p "$MCP_DIR"
+
+      # Install the package to a fixed location if not already present
+      if [ ! -d "$MCP_DIR/node_modules/parcel-mcp" ]; then
+        ${pkgs.nodejs}/bin/npm install --prefix "$MCP_DIR" parcel-mcp
+      fi
+
+      # Write config.json from agenix secret (parcel-mcp reads from __dirname)
+      TOKEN=$(cat /Users/jsp/.config/17track/api-key)
+      echo "{\"apiToken\": \"$TOKEN\"}" > "$MCP_DIR/node_modules/parcel-mcp/config.json"
+
+      exec ${pkgs.nodejs}/bin/npx -y supergateway \
+        --stdio "${pkgs.nodejs}/bin/node $MCP_DIR/node_modules/parcel-mcp/index.mjs" \
+        --port 8769 \
+        --outputTransport streamableHttp
+    '';
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = "/Users/jsp/Library/Logs/supergateway-parcel-tracking.log";
+      StandardErrorPath = "/Users/jsp/Library/Logs/supergateway-parcel-tracking.log";
+      UserName = "jsp";
+      GroupName = "staff";
+      EnvironmentVariables = {
+        HOME = "/Users/jsp";
+        PATH = "${pkgs.nodejs}/bin:/usr/bin:/bin";
+      };
+    };
+  };
+
   # Cloudflare tunnel for Spindle
   # Add this route to your existing cloudflared tunnel config:
   #   - hostname: 1.dippet.spindle.hogwarts.dev

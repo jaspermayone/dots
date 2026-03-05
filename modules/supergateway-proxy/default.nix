@@ -27,6 +27,14 @@ let
       envVar = "MCP_KEY_MBTA";
       favicon = "🚇";
     };
+
+    parcel-tracking = {
+      domain = "parcel-tracking.mcp.hogwarts.dev";
+      upstream = "dippet.wildebeest-stargazer.ts.net:8769";
+      secretKey = "parcel-tracking";
+      envVar = "MCP_KEY_PARCEL_TRACKING";
+      favicon = "📦";
+    };
   };
 
   # Generate Caddy virtualHost config for each MCP
