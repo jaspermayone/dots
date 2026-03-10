@@ -405,7 +405,7 @@
         directory = "/etc/traefik/conf.d";
         watch = true;
       };
-      log.level = "INFO";
+      log.level = "DEBUG";
     };
   };
 
