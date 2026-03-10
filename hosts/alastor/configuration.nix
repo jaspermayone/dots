@@ -424,8 +424,8 @@
 
   # Dynamic config fragment for services hosted directly in this file
   # (knot, strings, docuseal, idp, plex, crane, spindle)
-  environment.etc."traefik/conf.d/alastor.json" = {
-    text = builtins.toJSON {
+  environment.etc."traefik/conf.d/alastor.toml" = {
+    source = (pkgs.formats.toml { }).generate "alastor.toml" {
       http = {
         routers = {
           knot = {

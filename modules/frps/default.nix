@@ -136,8 +136,8 @@ in
       };
 
     # Traefik dynamic config fragment (file provider)
-    environment.etc."traefik/conf.d/frps.json" = lib.mkIf cfg.enableTraefik {
-      text = builtins.toJSON {
+    environment.etc."traefik/conf.d/frps.toml" = lib.mkIf cfg.enableTraefik {
+      source = (pkgs.formats.toml { }).generate "frps.toml" {
         http = {
           routers = {
             frps-dashboard = {

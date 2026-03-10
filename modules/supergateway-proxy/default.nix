@@ -149,8 +149,8 @@ in {
   users.groups.mcp-auth = { };
 
   # Traefik dynamic config fragment (file provider)
-  environment.etc."traefik/conf.d/mcp.json" = {
-    text = builtins.toJSON {
+  environment.etc."traefik/conf.d/mcp.toml" = {
+    source = (pkgs.formats.toml { }).generate "mcp.toml" {
       http = {
         middlewares.mcp-auth.forwardAuth = {
           address = "http://127.0.0.1:8094";

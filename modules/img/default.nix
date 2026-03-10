@@ -99,8 +99,8 @@ in
     users.users.nginx.extraGroups = [ "img" ];
 
     # Traefik dynamic config fragment (file provider)
-    environment.etc."traefik/conf.d/img.json" = {
-      text = builtins.toJSON {
+    environment.etc."traefik/conf.d/img.toml" = {
+      source = (pkgs.formats.toml { }).generate "img.toml" {
         http = {
           middlewares.img-auth.forwardAuth = {
             address = "http://127.0.0.1:${toString cfg.authentikPort}/outpost.goauthentik.io/auth/traefik";

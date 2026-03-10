@@ -56,8 +56,8 @@ in
     };
 
     # Traefik dynamic config fragment (file provider)
-    environment.etc."traefik/conf.d/authentik.json" = {
-      text = builtins.toJSON {
+    environment.etc."traefik/conf.d/authentik.toml" = {
+      source = (pkgs.formats.toml { }).generate "authentik.toml" {
         http = {
           routers.authentik = {
             rule = "Host(`${cfg.hostname}`)";

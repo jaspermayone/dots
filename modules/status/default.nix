@@ -199,8 +199,8 @@ in
     ];
 
     # Traefik dynamic config fragment (file provider)
-    environment.etc."traefik/conf.d/status.json" = {
-      text = builtins.toJSON {
+    environment.etc."traefik/conf.d/status.toml" = {
+      source = (pkgs.formats.toml { }).generate "status.toml" {
         http = {
           routers.status = {
             rule = "Host(`${cfg.domain}`)";

@@ -85,8 +85,8 @@ in
     users.groups.atuin = { };
 
     # Traefik dynamic config fragment (file provider)
-    environment.etc."traefik/conf.d/atuin.json" = {
-      text = builtins.toJSON {
+    environment.etc."traefik/conf.d/atuin.toml" = {
+      source = (pkgs.formats.toml { }).generate "atuin.toml" {
         http = {
           routers.atuin = {
             rule = "Host(`${cfg.hostname}`)";

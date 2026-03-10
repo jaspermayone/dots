@@ -141,8 +141,8 @@ in
     };
 
     # Traefik dynamic config fragment (file provider)
-    environment.etc."traefik/conf.d/pds.json" = {
-      text = builtins.toJSON {
+    environment.etc."traefik/conf.d/pds.toml" = {
+      source = (pkgs.formats.toml { }).generate "pds.toml" {
         http = {
           routers = lib.optionalAttrs cfg.enableAgeAssurance {
             pds-age = {
