@@ -378,9 +378,14 @@
   # Static config: entrypoints, ACME, and file provider pointing at /etc/traefik/conf.d/
   # Dynamic config for services defined directly in this file goes in the
   # environment.etc fragment below; modules each write their own fragment.
+  #
+  # We use staticConfigFile instead of staticConfigOptions because the NixOS
+  # traefik module unconditionally injects providers.file.filename via
+  # recursiveUpdate, which conflicts with providers.file.directory (they are
+  # mutually exclusive in Traefik v3). Using staticConfigFile bypasses that.
   services.traefik = {
     enable = true;
-    staticConfigOptions = {
+    staticConfigFile = (pkgs.formats.toml { }).generate "traefik-static.toml" {
       entryPoints = {
         web = {
           address = ":80";
@@ -400,7 +405,6 @@
           resolvers = [ "1.1.1.1:53" "1.0.0.1:53" ];
         };
       };
-      # Load additional dynamic config fragments from /etc/traefik/conf.d/
       providers.file = {
         directory = "/etc/traefik/conf.d";
         watch = true;
