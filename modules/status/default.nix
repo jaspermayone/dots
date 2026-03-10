@@ -64,6 +64,66 @@ let
     }
     EOF
   '';
+
+  # Python HTTP server that reads /var/lib/status/ and serves status endpoints
+  statusServer = pkgs.writeText "status-server.py" ''
+    import http.server
+    import os
+    import urllib.parse
+
+    STATUS_DIR = "/var/lib/status"
+
+    class StatusHandler(http.server.BaseHTTPRequestHandler):
+        def log_message(self, fmt, *args):
+            pass  # suppress access logs
+
+        def send_text(self, code, body, content_type="text/plain"):
+            encoded = body.encode()
+            self.send_response(code)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", len(encoded))
+            self.end_headers()
+            self.wfile.write(encoded)
+
+        def do_GET(self):
+            path = urllib.parse.urlparse(self.path).path.rstrip("/")
+
+            # GET /status  ->  serve status.json
+            if path == "/status":
+                p = os.path.join(STATUS_DIR, "status.json")
+                if os.path.exists(p):
+                    with open(p) as f:
+                        data = f.read()
+                    self.send_text(200, data, "application/json")
+                else:
+                    self.send_text(503, '{"error":"status not yet written"}', "application/json")
+                return
+
+            # GET /status/service/<name>
+            if path.startswith("/status/service/"):
+                name = path[len("/status/service/"):]
+                exists = os.path.exists(os.path.join(STATUS_DIR, name))
+                self.send_text(200 if exists else 503, "ok" if exists else "offline")
+                return
+
+            # GET /status/<name>  (host or any other named marker)
+            if path.startswith("/status/"):
+                name = path[len("/status/"):]
+                exists = os.path.exists(os.path.join(STATUS_DIR, name))
+                self.send_text(200 if exists else 503, "ok" if exists else "offline")
+                return
+
+            # Root  ->  info blurb
+            if path in ("", "/"):
+                self.send_text(200, "${cfg.domain} - see /status")
+                return
+
+            self.send_text(404, "not found")
+
+    if __name__ == "__main__":
+        server = http.server.HTTPServer(("127.0.0.1", ${toString cfg.port}), StatusHandler)
+        server.serve_forever()
+  '';
 in
 {
   options.atelier.services.status = {
@@ -79,6 +139,12 @@ in
       description = "Domain to serve status on";
     };
 
+    port = mkOption {
+      type = types.int;
+      default = 8093;
+      description = "Internal port for the status HTTP server";
+    };
+
     services = mkOption {
       type = types.listOf types.str;
       default = [ ];
@@ -89,12 +155,6 @@ in
       type = types.listOf types.str;
       default = [ ];
       description = "List of remote hosts to check via ping (e.g. Tailscale hosts)";
-    };
-
-    cloudflareCredentialsFile = mkOption {
-      type = types.nullOr types.path;
-      default = null;
-      description = "Path to Cloudflare credentials file for DNS challenge";
     };
   };
 
@@ -117,76 +177,43 @@ in
       };
     };
 
+    # Python HTTP server for status endpoints
+    systemd.services.status-server = {
+      description = "Status HTTP server";
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${pkgs.python3}/bin/python3 ${statusServer}";
+        Restart = "on-failure";
+        DynamicUser = true;
+        ReadOnlyPaths = [ "/var/lib/status" ];
+        PrivateTmp = true;
+        NoNewPrivileges = true;
+      };
+    };
+
     # Ensure status directory exists
     systemd.tmpfiles.rules = [
       "d /var/lib/status 0755 root root -"
     ];
 
-    # Caddy virtual host for status
-    services.caddy.virtualHosts."${cfg.domain}".extraConfig = ''
-      ${optionalString (cfg.cloudflareCredentialsFile != null) ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-      ''}
-
-      # Individual host status (returns 200 if file exists)
-      @status_host path /status/${cfg.hostname}
-      handle @status_host {
-        @online file /var/lib/status/${cfg.hostname}
-        handle @online {
-          respond "ok" 200
-        }
-        handle {
-          respond "offline" 503
-        }
-      }
-
-      # Service status endpoints
-      ${concatStringsSep "\n" (
-        map (svc: ''
-          @status_${svc} path /status/service/${svc}
-          handle @status_${svc} {
-            @online_${svc} file /var/lib/status/${svc}
-            handle @online_${svc} {
-              respond "ok" 200
-            }
-            handle {
-              respond "offline" 503
-            }
-          }
-        '') cfg.services
-      )}
-
-      # Remote host status endpoints (Tailscale)
-      ${concatStringsSep "\n" (
-        map (host: ''
-          @status_${host} path /status/${host}
-          handle @status_${host} {
-            @online_${host} file /var/lib/status/${host}
-            handle @online_${host} {
-              respond "ok" 200
-            }
-            handle {
-              respond "offline" 503
-            }
-          }
-        '') cfg.remoteHosts
-      )}
-
-      # Full status JSON
-      @status_json path /status
-      handle @status_json {
-        root * /var/lib/status
-        rewrite * /status.json
-        file_server
-        header Content-Type application/json
-      }
-
-      # Root redirect to status
-      handle {
-        respond "alastor.hogwarts.channel - see /status" 200
-      }
-    '';
+    # Traefik dynamic config fragment (file provider)
+    environment.etc."traefik/conf.d/status.json" = {
+      text = builtins.toJSON {
+        http = {
+          routers.status = {
+            rule = "Host(`${cfg.domain}`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "status";
+          };
+          services.status.loadBalancer.servers = [
+            { url = "http://127.0.0.1:${toString cfg.port}"; }
+          ];
+        };
+      };
+    };
   };
 }

@@ -36,11 +36,6 @@ in
       default = "/var/lib/atuin-server";
       description = "Directory for Atuin server data (SQLite database).";
     };
-
-    cloudflareCredentialsFile = lib.mkOption {
-      type = lib.types.path;
-      description = "Path to Cloudflare API credentials file for ACME.";
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -89,14 +84,22 @@ in
     };
     users.groups.atuin = { };
 
-    # Caddy reverse proxy
-    services.caddy.virtualHosts.${cfg.hostname} = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        reverse_proxy localhost:${toString cfg.port}
-      '';
+    # Traefik dynamic config fragment (file provider)
+    environment.etc."traefik/conf.d/atuin.json" = {
+      text = builtins.toJSON {
+        http = {
+          routers.atuin = {
+            rule = "Host(`${cfg.hostname}`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "atuin";
+          };
+          services.atuin.loadBalancer.servers = [
+            { url = "http://127.0.0.1:${toString cfg.port}"; }
+          ];
+        };
+      };
     };
   };
 }

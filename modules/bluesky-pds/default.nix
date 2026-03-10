@@ -1,5 +1,5 @@
 # modules/bluesky-pds/default.nix
-# NixOS module enabling Bluesky PDS with Caddy reverse proxy and optional gatekeeper
+# NixOS module enabling Bluesky PDS with Traefik reverse proxy and optional gatekeeper
 {
   lib,
   config,
@@ -8,18 +8,19 @@
 }:
 let
   cfg = config.services.bluesky-pds-hosting;
-  pdsSettings = config.services.bluesky-pds.settings;
   gatekeeperPort = 3001;
-  # When gatekeeper is enabled, Caddy proxies to gatekeeper; otherwise directly to PDS
+  stubsPort = 8092;
   proxyTarget =
     if cfg.enableGatekeeper then
-      "localhost:${toString gatekeeperPort}"
+      "http://127.0.0.1:${toString gatekeeperPort}"
     else
-      "localhost:${toString cfg.port}";
+      "http://127.0.0.1:${toString cfg.port}";
+
+  escapedHostname = lib.strings.replaceStrings [ "." ] [ "\\." ] cfg.hostname;
 in
 {
   options.services.bluesky-pds-hosting = {
-    enable = lib.mkEnableOption "Bluesky PDS hosting bundle (service + Caddy)";
+    enable = lib.mkEnableOption "Bluesky PDS hosting bundle (service + Traefik)";
     hostname = lib.mkOption {
       type = lib.types.str;
       example = "example.com";
@@ -84,7 +85,7 @@ in
     # PDS Gatekeeper for 2FA and spam prevention
     services.pds-gatekeeper = lib.mkIf cfg.enableGatekeeper {
       enable = true;
-      setupNginx = false; # We use Caddy
+      setupNginx = false;
       settings = {
         GATEKEEPER_PORT = gatekeeperPort;
         PDS_BASE_URL = "http://127.0.0.1:${toString cfg.port}";
@@ -93,40 +94,97 @@ in
       };
     };
 
-    # Caddy reverse proxy for PDS
-    services.caddy.virtualHosts = {
-      "${cfg.hostname}" = {
-        serverAliases = [ "*.${cfg.hostname}" ];
+    # Write age assurance stub JSON files
+    systemd.tmpfiles.rules = lib.mkIf cfg.enableAgeAssurance [
+      "d /var/lib/pds-stubs 0755 nginx nginx -"
+    ];
+
+    system.activationScripts.pds-age-stubs = lib.mkIf cfg.enableAgeAssurance {
+      text = ''
+        mkdir -p /var/lib/pds-stubs
+        cat > /var/lib/pds-stubs/getAgeAssuranceState.json << 'EOF'
+        {"lastInitiatedAt":"2025-07-14T14:22:43.912Z","status":"assured"}
+        EOF
+        cat > /var/lib/pds-stubs/getConfig.json << 'EOF'
+        {"regions":[]}
+        EOF
+        cat > /var/lib/pds-stubs/getState.json << 'EOF'
+        {"state":{"lastInitiatedAt":"2025-07-14T14:22:43.912Z","status":"assured","access":"full"},"metadata":{"accountCreatedAt":"2022-11-17T00:35:16.391Z"}}
+        EOF
+        chown -R nginx:nginx /var/lib/pds-stubs
+      '';
+    };
+
+    # nginx serves age assurance stubs on port 8092
+    services.nginx = lib.mkIf cfg.enableAgeAssurance {
+      enable = true;
+      virtualHosts."pds-age-stubs" = {
+        listen = [ { addr = "127.0.0.1"; port = stubsPort; } ];
+        root = "/var/lib/pds-stubs";
         extraConfig = ''
-          tls {
-            dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-          }
-
-          ${lib.optionalString cfg.enableAgeAssurance ''
-            handle /xrpc/app.bsky.unspecced.getAgeAssuranceState {
-              header content-type "application/json"
-              header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
-              header access-control-allow-origin "*"
-              respond `{"lastInitiatedAt":"2025-07-14T14:22:43.912Z","status":"assured"}` 200
-            }
-
-            handle /xrpc/app.bsky.ageassurance.getConfig {
-              header content-type "application/json"
-              header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
-              header access-control-allow-origin "*"
-              respond `{"regions":[]}` 200
-            }
-
-            handle /xrpc/app.bsky.ageassurance.getState {
-              header content-type "application/json"
-              header access-control-allow-headers "authorization,dpop,atproto-accept-labelers,atproto-proxy"
-              header access-control-allow-origin "*"
-              respond `{"state":{"lastInitiatedAt":"2025-07-14T14:22:43.912Z","status":"assured","access":"full"},"metadata":{"accountCreatedAt":"2022-11-17T00:35:16.391Z"}}` 200
-            }
-          ''}
-
-          reverse_proxy ${proxyTarget}
+          add_header Content-Type application/json;
+          add_header Access-Control-Allow-Origin *;
+          add_header Access-Control-Allow-Headers "authorization,dpop,atproto-accept-labelers,atproto-proxy";
         '';
+        locations = {
+          "/xrpc/app.bsky.unspecced.getAgeAssuranceState" = {
+            extraConfig = "try_files /getAgeAssuranceState.json =404;";
+          };
+          "/xrpc/app.bsky.ageassurance.getConfig" = {
+            extraConfig = "try_files /getConfig.json =404;";
+          };
+          "/xrpc/app.bsky.ageassurance.getState" = {
+            extraConfig = "try_files /getState.json =404;";
+          };
+        };
+      };
+    };
+
+    # Traefik dynamic config fragment (file provider)
+    environment.etc."traefik/conf.d/pds.json" = {
+      text = builtins.toJSON {
+        http = {
+          routers = lib.optionalAttrs cfg.enableAgeAssurance {
+            pds-age = {
+              rule = "Host(`${cfg.hostname}`) && PathPrefix(`/xrpc/app.bsky`)";
+              entryPoints = [ "websecure" ];
+              tls = {
+                certResolver = "cloudflare";
+                domains = [ { main = cfg.hostname; sans = [ "*.${cfg.hostname}" ]; } ];
+              };
+              middlewares = [ "hsts" ];
+              service = "pds-age";
+              priority = 10;
+            };
+          } // {
+            pds = {
+              rule = "Host(`${cfg.hostname}`)";
+              entryPoints = [ "websecure" ];
+              tls = {
+                certResolver = "cloudflare";
+                domains = [ { main = cfg.hostname; sans = [ "*.${cfg.hostname}" ]; } ];
+              };
+              middlewares = [ "hsts" ];
+              service = "pds";
+              priority = 5;
+            };
+            pds-handles = {
+              rule = "HostRegexp(`^.+\\.${escapedHostname}$`)";
+              entryPoints = [ "websecure" ];
+              tls.certResolver = "cloudflare";
+              middlewares = [ "hsts" ];
+              service = "pds";
+              priority = 1;
+            };
+          };
+          services = lib.optionalAttrs cfg.enableAgeAssurance {
+            pds-age.loadBalancer.servers = [
+              { url = "http://127.0.0.1:${toString stubsPort}"; }
+            ];
+          } // {
+            pds.loadBalancer.servers = [ { url = proxyTarget; } ];
+          };
+        };
       };
     };
 

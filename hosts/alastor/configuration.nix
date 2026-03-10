@@ -19,6 +19,8 @@
     ../../modules/restic
     ../../modules/supergateway-proxy
     ../../modules/crane-services
+    ../../modules/authentik
+    ../../modules/img
     inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
     inputs.tangled.nixosModules.spindle
@@ -29,13 +31,6 @@
 
   # Prevent /boot partition from filling up
   boot.loader.grub.configurationLimit = 10;
-
-  # Automatic garbage collection disabled - using nh.clean instead
-  # nix.gc = {
-  #   automatic = true;
-  #   dates = "weekly";
-  #   options = "--delete-older-than 7d";
-  # };
 
   # Clean /tmp on boot
   boot.tmp.cleanOnBoot = true;
@@ -70,7 +65,7 @@
     jq
     tmux
     bluesky-pds
-    inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default # agenix CLI
+    inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
   # NH - NixOS helper
@@ -88,7 +83,6 @@
       PasswordAuthentication = false;
       PermitRootLogin = "prohibit-password";
       KbdInteractiveAuthentication = false;
-      # Add non-ETM MACs for compatibility with Kamal/net-ssh
       Macs = [
         "hmac-sha2-512-etm@openssh.com"
         "hmac-sha2-256-etm@openssh.com"
@@ -118,7 +112,6 @@
       enable = true;
       dates = "weekly";
     };
-    # Use json-file log driver for compatibility with Kamal proxy log rotation
     daemon.settings = {
       log-driver = "json-file";
       log-opts = {
@@ -138,10 +131,7 @@
     ];
   };
 
-  # Enable zsh system-wide
   programs.zsh.enable = true;
-
-  # Sudo without password for wheel group
   security.sudo.wheelNeedsPassword = false;
 
   # Agenix secrets
@@ -163,7 +153,7 @@
     knot-sync-github-token = {
       file = ../../secrets/knot-sync-github-token.age;
       mode = "400";
-      owner = "git"; # tangled uses git user
+      owner = "git";
     };
     pds = {
       file = ../../secrets/pds.age;
@@ -183,21 +173,6 @@
       owner = "jsp";
       mode = "400";
     };
-    # Restic backup secrets (uncomment when ready)
-    # "restic/env" = {
-    #   file = ../../secrets/restic/env.age;
-    #   mode = "400";
-    # };
-    # "restic/repo" = {
-    #   file = ../../secrets/restic/repo.age;
-    #   mode = "400";
-    # };
-    # "restic/password" = {
-    #   file = ../../secrets/restic/password.age;
-    #   mode = "400";
-    # };
-
-    # Strings pastebin secrets
     strings-hogwarts = {
       file = ../../secrets/strings-hogwarts.age;
       mode = "400";
@@ -206,15 +181,11 @@
       file = ../../secrets/strings-witcc.age;
       mode = "400";
     };
-
-    # DocuSeal SMTP password
     docuseal-smtp = {
       file = ../../secrets/docuseal-smtp.age;
       mode = "400";
-      owner = "nobody"; # docuseal runs as nobody
+      owner = "nobody";
     };
-
-    # Crane services
     crane-services-token = {
       file = ../../secrets/crane-services-token.age;
       mode = "400";
@@ -223,7 +194,13 @@
       file = ../../secrets/crane-services-hmac.age;
       mode = "400";
     };
+    authentik-env = {
+      file = ../../secrets/authentik-env.age;
+      mode = "400";
+    };
   };
+
+  # ── Services ────────────────────────────────────────────────────────────────
 
   # FRP tunnel server
   atelier.services.frps = {
@@ -232,7 +209,7 @@
     bindPort = 7000;
     vhostHTTPPort = 7080;
     authTokenFile = config.age.secrets.frps-token.path;
-    enableCaddy = true;
+    enableTraefik = true;
   };
 
   # Status monitoring (served on alastor.hogwarts.channel)
@@ -242,7 +219,7 @@
     domain = "alastor.hogwarts.channel";
     services = [
       "frps"
-      "caddy"
+      "traefik"
       "tailscaled"
       "tangled-knot"
       "tangled-spindle"
@@ -257,10 +234,9 @@
       "remus"
       "dippet"
     ];
-    cloudflareCredentialsFile = config.age.secrets.cloudflare-credentials.path;
   };
 
-  # Tangled Knot server (official module)
+  # Tangled Knot server
   services.tangled.knot = {
     enable = true;
     package = inputs.tangled.packages.${pkgs.stdenv.hostPlatform.system}.knot;
@@ -271,7 +247,7 @@
     };
   };
 
-  # Tangled Spindle CI/CD runner (official module)
+  # Tangled Spindle CI/CD runner
   services.tangled.spindle = {
     enable = true;
     package = inputs.tangled.packages.${pkgs.stdenv.hostPlatform.system}.spindle;
@@ -289,25 +265,21 @@
     adminEmail = "pds-admin@hogwarts.dev";
     environmentFile = config.age.secrets.pds.path;
     mailerEnvironmentFile = config.age.secrets.pds-mailer.path;
-    enableGatekeeper = false; # Disabled for now - was causing pdsadmin issues
+    enableGatekeeper = false;
     enableAgeAssurance = true;
   };
 
-  # Atuin sync server
   atelier.services.atuin-server = {
     enable = true;
     hostname = "atuin.hogwarts.dev";
-    cloudflareCredentialsFile = config.age.secrets.cloudflare-credentials.path;
   };
 
-  # Knot to GitHub sync service
   jsp.services.knot-sync = {
     enable = true;
     repoDir = "/var/lib/knot/repos/did:plc:abgthiqrd7tczkafjm4ennbo";
     secretsFile = config.age.secrets.knot-sync-github-token.path;
   };
 
-  # Strings pastebin servers
   services.strings.instances = {
     hogwarts = {
       enable = true;
@@ -325,7 +297,6 @@
     };
   };
 
-  # DocuSeal document signing
   services.docuseal = {
     enable = true;
     port = 3200;
@@ -339,254 +310,27 @@
       SMTP_USERNAME = "jasper.mayone@singlefeather.com";
       SMTP_AUTHENTICATION = "plain";
       SMTP_FROM = "legal@singlefeather.com";
-      SMTP_ENABLE_STARTTLS = "false"; # Port 465 uses implicit SSL/TLS, not STARTTLS
-      SMTP_SSL_VERIFY = "true"; # Enable certificate verification for security
+      SMTP_ENABLE_STARTTLS = "false";
+      SMTP_SSL_VERIFY = "true";
     };
-    extraEnvFiles = [
-      config.age.secrets.docuseal-smtp.path
-    ];
+    extraEnvFiles = [ config.age.secrets.docuseal-smtp.path ];
   };
 
-  # Configure docuseal Redis to use a different port
   services.redis.servers.docuseal.port = lib.mkForce 6380;
 
-  # Caddy reverse proxy (with Cloudflare DNS plugin for ACME)
-  services.caddy = {
+  # Authentik identity provider
+  atelier.services.authentik = {
     enable = true;
-    package = pkgs.caddy-cloudflare;
-    virtualHosts."knot.jaspermayone.com" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        }
-        reverse_proxy localhost:5555 {
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-        }
-      '';
-    };
-    virtualHosts."str.hogwarts.dev" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        }
-        reverse_proxy localhost:3100 {
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-        }
-      '';
-    };
-    virtualHosts."str.witcc.dev" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        }
-        reverse_proxy localhost:3101 {
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-        }
-      '';
-    };
-    virtualHosts."server-calendar.witcc.dev" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        }
-        reverse_proxy localhost:3002 {
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-          header_up X-Forwarded-Host {host}
-        }
-      '';
-    };
-    virtualHosts."1.alastor.spindle.hogwarts.dev" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        }
-        reverse_proxy localhost:6555 {
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-        }
-      '';
-    };
-    virtualHosts."sign.singlefeather.com" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        }
-        reverse_proxy localhost:3200 {
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-          header_up X-Forwarded-Host {host}
-        }
-      '';
-    };
-    virtualHosts."idp.patchworklabs.org" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        }
-        reverse_proxy localhost:3003 {
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-          header_up X-Forwarded-Host {host}
-        }
-      '';
-    };
-    virtualHosts."plex.hogwarts.dev" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        reverse_proxy pensieve.wildebeest-stargazer.ts.net:32400 {
-          flush_interval -1
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-          header_up Host {upstream_hostport}
-        }
-      '';
-    };
-    virtualHosts."services.cranebrowser.com" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
-        header {
-          Strict-Transport-Security "max-age=63072000"
-        }
-
-        @root path /
-        redir @root https://cranebrowser.com 302
-
-        handle /robots.txt {
-          respond "User-agent: *\nDisallow: /\n" 200
-        }
-
-        handle /bangs.json {
-          header Cache-Control "public, max-age=86400, stale-if-error=604800"
-          header Access-Control-Allow-Origin *
-          root * /opt/crane-services/svc/bangs
-          file_server
-        }
-
-        handle_path /updates/mac* {
-          reverse_proxy https://updates.cranebrowser.com {
-            header_up Host updates.cranebrowser.com
-          }
-        }
-
-        handle_path /ext/* {
-          reverse_proxy localhost:9002 localhost:9003 {
-            lb_policy first
-            header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-For {remote}
-          }
-        }
-
-        handle /com* {
-          reverse_proxy localhost:9002 localhost:9003 {
-            lb_policy first
-            header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-For {remote}
-          }
-        }
-
-        handle_path /ubo/* {
-          reverse_proxy localhost:9001 {
-            header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-For {remote}
-          }
-        }
-
-        handle_path /filters/* {
-          header Cache-Control "public, max-age=3600, stale-if-error=86400"
-          header Access-Control-Allow-Origin *
-          root * /opt/crane-services/filters
-          file_server
-        }
-      '';
-    };
+    hostname = "a.hogwarts.dev";
+    environmentFile = config.age.secrets.authentik-env.path;
   };
 
-  systemd.services.caddy.serviceConfig.EnvironmentFile = [
-    config.age.secrets.cloudflare-credentials.path
-  ];
-
-  networking.firewall.allowedTCPPorts = [
-    80
-    443
-    2222
-  ]; # 2222 for knot SSH
-
-  # Castle backup system (disabled for now - enable when secrets are ready)
-  # To enable:
-  # 1. Create secrets: agenix -e secrets/restic/env.age (B2_ACCOUNT_ID=..., B2_ACCOUNT_KEY=...)
-  # 2. Create secrets: agenix -e secrets/restic/repo.age (b2:bucket-name:/backup-path)
-  # 3. Create secrets: agenix -e secrets/restic/password.age (repository encryption password)
-  # 4. Uncomment the age.secrets above
-  # 5. Uncomment castle.backup below
-  #
-  # castle.backup = {
-  #   enable = true;
-  #   services = {
-  #     knot = {
-  #       paths = [ "/var/lib/knot" "/home/git" ];
-  #       exclude = [ "*.log" ".git" ];
-  #       tags = [ "service:knot" "type:git" ];
-  #       preBackup = ''
-  #         systemctl stop tangled-knot || true
-  #       '';
-  #       postBackup = ''
-  #         systemctl start tangled-knot || true
-  #       '';
-  #     };
-  #     pds = {
-  #       paths = [ "/var/lib/pds" ];
-  #       exclude = [ "*.log" "node_modules" ];
-  #       tags = [ "service:pds" "type:atproto" ];
-  #       preBackup = ''
-  #         systemctl stop bluesky-pds || true
-  #       '';
-  #       postBackup = ''
-  #         systemctl start bluesky-pds || true
-  #       '';
-  #     };
-  #     atuin = {
-  #       paths = [ "/var/lib/atuin-server" ];
-  #       exclude = [ "*.log" ];
-  #       tags = [ "service:atuin" "type:sqlite" ];
-  #       preBackup = ''
-  #         sqlite3 /var/lib/atuin-server/atuin.db "PRAGMA wal_checkpoint(TRUNCATE);" || true
-  #         systemctl stop atuin-server || true
-  #       '';
-  #       postBackup = ''
-  #         systemctl start atuin-server || true
-  #       '';
-  #     };
-  #   };
-  # };
+  # img static site (Authentik-protected)
+  atelier.services.img = {
+    enable = true;
+    hostname = "img.hogwarts.dev";
+    authentikHostname = "a.hogwarts.dev";
+  };
 
   # Crane browser services
   crane.services = {
@@ -597,14 +341,260 @@
     repoTokenFile = config.age.secrets.crane-services-token.path;
     hmacSecretFile = config.age.secrets.crane-services-hmac.path;
     behindProxy = true;
-    openFirewall = false; # ports 80/443 already opened below
+    openFirewall = false;
   };
+
+  # ── nginx ────────────────────────────────────────────────────────────────────
+  # Port 8091: crane-services static files (bangs.json, filters/, robots.txt)
+  # Ports 8092, 8095 are handled by bluesky-pds and img modules respectively.
+  services.nginx = {
+    enable = true;
+    virtualHosts."crane-static" = {
+      listen = [ { addr = "127.0.0.1"; port = 8091; } ];
+      locations."/robots.txt" = {
+        extraConfig = ''
+          add_header Content-Type text/plain;
+          return 200 "User-agent: *\nDisallow: /\n";
+        '';
+      };
+      locations."/bangs.json" = {
+        root = "/opt/crane-services/svc/bangs";
+        extraConfig = ''
+          add_header Cache-Control "public, max-age=86400, stale-if-error=604800";
+          add_header Access-Control-Allow-Origin *;
+        '';
+      };
+      locations."/filters/" = {
+        alias = "/opt/crane-services/filters/";
+        extraConfig = ''
+          add_header Cache-Control "public, max-age=3600, stale-if-error=86400";
+          add_header Access-Control-Allow-Origin *;
+        '';
+      };
+    };
+  };
+
+  # ── Traefik ──────────────────────────────────────────────────────────────────
+  # Static config: entrypoints, ACME, and file provider pointing at /etc/traefik/conf.d/
+  # Dynamic config for services defined directly in this file goes in the
+  # environment.etc fragment below; modules each write their own fragment.
+  services.traefik = {
+    enable = true;
+    staticConfigOptions = {
+      entryPoints = {
+        web = {
+          address = ":80";
+          http.redirections.entryPoint = {
+            to = "websecure";
+            scheme = "https";
+            permanent = true;
+          };
+        };
+        websecure.address = ":443";
+      };
+      certificatesResolvers.cloudflare.acme = {
+        email = "webmaster@hogwarts.dev";
+        storage = "/var/lib/traefik/acme.json";
+        dnsChallenge = {
+          provider = "cloudflare";
+          resolvers = [ "1.1.1.1:53" "1.0.0.1:53" ];
+        };
+      };
+      # Load additional dynamic config fragments from /etc/traefik/conf.d/
+      providers.file = {
+        directory = "/etc/traefik/conf.d";
+        watch = true;
+      };
+      log.level = "INFO";
+    };
+  };
+
+  # Inject Cloudflare credentials for ACME DNS challenge
+  systemd.services.traefik.serviceConfig.EnvironmentFile = [
+    config.age.secrets.cloudflare-credentials.path
+  ];
+
+  # Dynamic config fragment for services hosted directly in this file
+  # (knot, strings, docuseal, idp, plex, crane, spindle)
+  environment.etc."traefik/conf.d/alastor.json" = {
+    text = builtins.toJSON {
+      http = {
+        routers = {
+          knot = {
+            rule = "Host(`knot.jaspermayone.com`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "knot";
+          };
+          str-hogwarts = {
+            rule = "Host(`str.hogwarts.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "str-hogwarts";
+          };
+          str-witcc = {
+            rule = "Host(`str.witcc.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "str-witcc";
+          };
+          server-calendar = {
+            rule = "Host(`server-calendar.witcc.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "server-calendar";
+          };
+          spindle = {
+            rule = "Host(`1.alastor.spindle.hogwarts.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "spindle";
+          };
+          docuseal = {
+            rule = "Host(`sign.singlefeather.com`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "docuseal";
+          };
+          idp = {
+            rule = "Host(`idp.patchworklabs.org`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "idp";
+          };
+          plex = {
+            rule = "Host(`plex.hogwarts.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            service = "plex";
+          };
+          # services.cranebrowser.com — root: redirect to main site
+          crane-root = {
+            rule = "Host(`services.cranebrowser.com`) && Path(`/`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" "crane-root-redirect" ];
+            service = "crane-noop";
+            priority = 30;
+          };
+          # /robots.txt
+          crane-robots = {
+            rule = "Host(`services.cranebrowser.com`) && Path(`/robots.txt`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-static";
+            priority = 25;
+          };
+          # /bangs.json
+          crane-bangs = {
+            rule = "Host(`services.cranebrowser.com`) && Path(`/bangs.json`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-static";
+            priority = 25;
+          };
+          # /filters/*
+          crane-filters = {
+            rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/filters/`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-static";
+            priority = 25;
+          };
+          # /updates/mac* — proxy upstream
+          crane-updates = {
+            rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/updates/mac`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-updates";
+            priority = 25;
+          };
+          # /ext/* — ext proxy (port 9002/9003)
+          crane-ext = {
+            rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/ext/`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-ext";
+            priority = 20;
+          };
+          # /com* — ext proxy
+          crane-com = {
+            rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/com`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-ext";
+            priority = 20;
+          };
+          # /ubo/* — ubo proxy (port 9001)
+          crane-ubo = {
+            rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/ubo/`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-ubo";
+            priority = 20;
+          };
+        };
+        middlewares = {
+          # Global HSTS middleware — referenced as "hsts" by all file-provider routers
+          hsts.headers = {
+            stsSeconds = 31536000;
+            stsIncludeSubdomains = true;
+            stsPreload = true;
+          };
+          crane-root-redirect.redirectRegex = {
+            regex = ".*";
+            replacement = "https://cranebrowser.com";
+            permanent = false;
+          };
+        };
+        services = {
+          knot.loadBalancer.servers = [ { url = "http://127.0.0.1:5555"; } ];
+          str-hogwarts.loadBalancer.servers = [ { url = "http://127.0.0.1:3100"; } ];
+          str-witcc.loadBalancer.servers = [ { url = "http://127.0.0.1:3101"; } ];
+          server-calendar.loadBalancer.servers = [ { url = "http://127.0.0.1:3002"; } ];
+          spindle.loadBalancer.servers = [ { url = "http://127.0.0.1:6555"; } ];
+          docuseal.loadBalancer.servers = [ { url = "http://127.0.0.1:3200"; } ];
+          idp.loadBalancer.servers = [ { url = "http://127.0.0.1:3003"; } ];
+          plex.loadBalancer.servers = [ { url = "http://pensieve.wildebeest-stargazer.ts.net:32400"; } ];
+          crane-static.loadBalancer.servers = [ { url = "http://127.0.0.1:8091"; } ];
+          crane-ext.loadBalancer.servers = [
+            { url = "http://127.0.0.1:9002"; }
+            { url = "http://127.0.0.1:9003"; }
+          ];
+          crane-ubo.loadBalancer.servers = [ { url = "http://127.0.0.1:9001"; } ];
+          crane-updates.loadBalancer.servers = [ { url = "https://updates.cranebrowser.com"; } ];
+          # Dummy backend for the redirect router (never actually contacted)
+          crane-noop.loadBalancer.servers = [ { url = "http://127.0.0.1:1"; } ];
+        };
+      };
+    };
+  };
+
+  networking.firewall.allowedTCPPorts = [
+    80
+    443
+    2222 # knot SSH
+  ];
 
   # Automatic updates - checks daily at 4am
   system.autoUpgrade = {
     enable = true;
     flake = "github:jaspermayone/dots#alastor";
     dates = "04:00";
-    allowReboot = false; # Set to true if you want automatic reboots when needed
+    allowReboot = false;
   };
 }

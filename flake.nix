@@ -62,6 +62,11 @@
     try = {
       url = "github:tobi/try";
     };
+
+    authentik-nix = {
+      url = "github:nix-community/authentik-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

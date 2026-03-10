@@ -1,4 +1,4 @@
-# Supergateway MCP reverse proxy via Caddy
+# Supergateway MCP reverse proxy via Traefik + Python forward-auth
 { config, pkgs, lib, ... }:
 
 let
@@ -6,118 +6,167 @@ let
   mcpProxies = {
     obsidian = {
       domain = "obsidian.mcp.hogwarts.dev";
-      upstream = "dippet.wildebeest-stargazer.ts.net:8767";
+      upstream = "http://dippet.wildebeest-stargazer.ts.net:8767";
       secretKey = "obsidian";
-      envVar = "MCP_KEY_OBSIDIAN";
       favicon = "💎";
     };
-
     obsidian-search = {
       domain = "obsidian-search.mcp.hogwarts.dev";
-      upstream = "dippet.wildebeest-stargazer.ts.net:8766";
+      upstream = "http://dippet.wildebeest-stargazer.ts.net:8766";
       secretKey = "obsidian-search";
-      envVar = "MCP_KEY_OBSIDIAN_SEARCH";
       favicon = "🔍";
     };
-
     mbta = {
       domain = "mbta.mcp.hogwarts.dev";
-      upstream = "dippet.wildebeest-stargazer.ts.net:8768";
+      upstream = "http://dippet.wildebeest-stargazer.ts.net:8768";
       secretKey = "mbta";
-      envVar = "MCP_KEY_MBTA";
       favicon = "🚇";
     };
-
     parcel-tracking = {
       domain = "parcel-tracking.mcp.hogwarts.dev";
-      upstream = "dippet.wildebeest-stargazer.ts.net:8769";
+      upstream = "http://dippet.wildebeest-stargazer.ts.net:8769";
       secretKey = "parcel-tracking";
-      envVar = "MCP_KEY_PARCEL_TRACKING";
       favicon = "📦";
     };
   };
 
-  # Generate Caddy virtualHost config for each MCP
-  mkCaddyVhost = name: cfg: {
-    "${cfg.domain}" = {
-      extraConfig = ''
-        tls {
-          dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-        }
+  mcpNames = builtins.attrNames mcpProxies;
 
-        header {
-          Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        }
+  # Python forward-auth service: validates Bearer tokens from mcp-api-keys JSON
+  mcpAuthServer = pkgs.writeText "mcp-auth-server.py" ''
+    import http.server
+    import json
+    import os
 
-        # Health check - no auth required
-        handle /health {
-          respond "OK" 200
-        }
+    KEYS_FILE = os.environ["KEYS_FILE"]
 
-        ${lib.optionalString (cfg ? favicon) ''
-        # Favicon - no auth required
-        handle /favicon.ico {
-          header Content-Type image/svg+xml
-          respond `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">${cfg.favicon}</text></svg>` 200
-        }
-        ''}
+    def load_keys():
+        with open(KEYS_FILE) as f:
+            return json.load(f)
 
-        # Require Authorization header
-        @missing_auth not header Authorization *
-        handle @missing_auth {
-          respond `{"error": "Missing Authorization header. Use: Bearer YOUR_API_KEY"}` 401
-        }
+    class AuthHandler(http.server.BaseHTTPRequestHandler):
+        def log_message(self, fmt, *args):
+            pass
 
-        # Validate API key against secret
-        @invalid_auth not header Authorization "Bearer {env.${cfg.envVar}}"
-        handle @invalid_auth {
-          respond `{"error": "Invalid API key"}` 403
-        }
+        def send_status(self, code, body=""):
+            encoded = body.encode()
+            self.send_response(code)
+            self.send_header("Content-Length", len(encoded))
+            self.end_headers()
+            if encoded:
+                self.wfile.write(encoded)
 
-        # Proxy to upstream MCP (flush_interval -1 enables SSE streaming)
-        reverse_proxy ${cfg.upstream} {
-          flush_interval -1
-          header_up Host {upstream_hostport}
-          header_up X-Forwarded-Proto {scheme}
-          header_up X-Forwarded-For {remote}
-        }
-      '';
+        def do_GET(self):
+            host = self.headers.get("X-Forwarded-Host", "")
+            auth = self.headers.get("Authorization", "")
+
+            try:
+                keys = load_keys()
+            except Exception as e:
+                self.send_status(500, f"key load error: {e}")
+                return
+
+            matched_keys = None
+            for key_name, key_list in keys.items():
+                if host.startswith(key_name + "."):
+                    matched_keys = key_list
+                    break
+
+            if matched_keys is None:
+                self.send_status(403, "unknown host")
+                return
+
+            if not auth.startswith("Bearer "):
+                self.send_status(401, "missing Authorization header")
+                return
+
+            token = auth[len("Bearer "):]
+            if token in matched_keys:
+                self.send_status(200)
+            else:
+                self.send_status(403, "invalid token")
+
+    if __name__ == "__main__":
+        server = http.server.HTTPServer(("127.0.0.1", 8094), AuthHandler)
+        server.serve_forever()
+  '';
+
+  # Build routers attrset for all MCPs
+  mcpRouters = lib.foldl' (acc: name:
+    let mcpCfg = mcpProxies.${name}; in
+    acc // {
+      "mcp-${name}-public" = {
+        rule = "Host(`${mcpCfg.domain}`) && (Path(`/health`) || Path(`/favicon.ico`))";
+        entryPoints = [ "websecure" ];
+        tls.certResolver = "cloudflare";
+        service = "mcp-${name}";
+        priority = 20;
+      };
+      "mcp-${name}" = {
+        rule = "Host(`${mcpCfg.domain}`)";
+        entryPoints = [ "websecure" ];
+        tls.certResolver = "cloudflare";
+        middlewares = [ "hsts" "mcp-auth" ];
+        service = "mcp-${name}";
+        priority = 10;
+      };
+    }
+  ) {} mcpNames;
+
+  # Build services attrset for all MCPs
+  mcpServices = lib.foldl' (acc: name:
+    let mcpCfg = mcpProxies.${name}; in
+    acc // {
+      "mcp-${name}".loadBalancer = {
+        servers = [ { url = mcpCfg.upstream; } ];
+        responseForwarding.flushInterval = "-1"; # SSE streaming
+      };
+    }
+  ) {} mcpNames;
+
+in {
+  # Python forward-auth service
+  systemd.services.mcp-auth = {
+    description = "MCP bearer-token forward-auth service";
+    after = [ "network.target" "agenix.service" ];
+    wantedBy = [ "multi-user.target" ];
+    environment.KEYS_FILE = config.age.secrets.mcp-api-keys.path;
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.python3}/bin/python3 ${mcpAuthServer}";
+      Restart = "on-failure";
+      User = "mcp-auth";
+      Group = "mcp-auth";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
     };
   };
 
-in {
-  # Add a virtual host to Caddy for each MCP
-  services.caddy.virtualHosts = pkgs.lib.attrsets.mergeAttrsList (
-    pkgs.lib.attrsets.mapAttrsToList mkCaddyVhost mcpProxies
-  );
+  users.users.mcp-auth = {
+    isSystemUser = true;
+    group = "mcp-auth";
+  };
+  users.groups.mcp-auth = { };
 
-  # Generate the env file at activation time (runs before any services start,
-  # after agenix has decrypted secrets) so Caddy's EnvironmentFile always exists.
-  system.activationScripts.mcp-caddy-env = {
-    deps = [ "agenix" ];
-    text = ''
-      SECRET="${config.age.secrets.mcp-api-keys.path}"
-      OUT="/var/lib/caddy/mcp-keys.env"
-      mkdir -p /var/lib/caddy
-      if [ -f "$SECRET" ]; then
-        (
-          ${lib.concatMapStringsSep "\n" (name: let cfg = mcpProxies.${name}; in ''
-            KEY=$(${pkgs.jq}/bin/jq -r '.["${cfg.secretKey}"][0] // ""' "$SECRET")
-            echo '${cfg.envVar}='"$KEY"
-          '') (builtins.attrNames mcpProxies)}
-        ) > "$OUT"
-        chmod 600 "$OUT"
-        chown caddy:caddy "$OUT"
-      fi
-    '';
+  # Traefik dynamic config fragment (file provider)
+  environment.etc."traefik/conf.d/mcp.json" = {
+    text = builtins.toJSON {
+      http = {
+        middlewares.mcp-auth.forwardAuth = {
+          address = "http://127.0.0.1:8094";
+          authRequestHeaders = [ "Authorization" "X-Forwarded-Host" ];
+        };
+        routers = mcpRouters;
+        services = mcpServices;
+      };
+    };
   };
 
-  systemd.services.caddy.serviceConfig.EnvironmentFile = [ "/var/lib/caddy/mcp-keys.env" ];
-
   # Agenix secret for MCP API keys (JSON format)
-  # { "omnifocus": ["key1", "key2"], "other-mcp": ["key1"] }
   age.secrets.mcp-api-keys = {
     file = ../../secrets/mcp-api-keys.age;
     mode = "400";
+    owner = "mcp-auth";
+    group = "mcp-auth";
   };
 }

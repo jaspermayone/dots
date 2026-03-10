@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.atelier.services.frps;
+  escapedDomain = lib.strings.replaceStrings [ "." ] [ "\\." ] cfg.domain;
 in
 {
   options.atelier.services.frps = {
@@ -32,26 +33,14 @@ in
     allowedTCPPorts = lib.mkOption {
       type = lib.types.listOf lib.types.port;
       default = lib.lists.range 20000 20099;
-      example = [
-        20000
-        20001
-        20002
-        20003
-        20004
-      ];
+      example = [ 20000 20001 20002 20003 20004 ];
       description = "TCP port range to allow for TCP tunnels (default: 20000-20099)";
     };
 
     allowedUDPPorts = lib.mkOption {
       type = lib.types.listOf lib.types.port;
       default = lib.lists.range 20000 20099;
-      example = [
-        20000
-        20001
-        20002
-        20003
-        20004
-      ];
+      example = [ 20000 20001 20002 20003 20004 ];
       description = "UDP port range to allow for UDP tunnels (default: 20000-20099)";
     };
 
@@ -73,10 +62,10 @@ in
       description = "Base domain for subdomains (e.g., *.tun.hogwarts.channel)";
     };
 
-    enableCaddy = lib.mkOption {
+    enableTraefik = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Automatically configure Caddy reverse proxy for wildcard domain";
+      description = "Automatically configure Traefik reverse proxy for wildcard domain";
     };
   };
 
@@ -122,7 +111,6 @@ in
           subDomainHost = "${cfg.domain}"
 
           # Allow port ranges for TCP/UDP tunnels
-          # Format: [[{"start": 20000, "end": 20099}]]
           allowPorts = [
             { start = 20000, end = 20099 }
           ]
@@ -147,57 +135,46 @@ in
         };
       };
 
-    # Automatically configure Caddy for wildcard domain
-    services.caddy = lib.mkIf cfg.enableCaddy {
-      enable = true;
-
-      # Dashboard for base domain
-      virtualHosts."${cfg.domain}" = {
-        extraConfig = ''
-          tls {
-            dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-          }
-          header {
-            Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-          }
-
-          # Proxy /api/* to frps dashboard
-          handle /api/* {
-            reverse_proxy localhost:7400
-          }
-
-          # Serve dashboard HTML
-          handle {
-            root * ${./.}
-            try_files dashboard.html
-            file_server
-          }
-        '';
-      };
-
-      # Wildcard subdomain proxy to frps
-      virtualHosts."*.${cfg.domain}" = {
-        extraConfig = ''
-          tls {
-            dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-          }
-          header {
-            Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-          }
-          reverse_proxy localhost:${toString cfg.vhostHTTPPort} {
-            header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-For {remote}
-            header_up Host {host}
-          }
-          handle_errors {
-            @404 expression {http.error.status_code} == 404
-            handle @404 {
-              root * ${./.}
-              rewrite * /404.html
-              file_server
-            }
-          }
-        '';
+    # Traefik dynamic config fragment (file provider)
+    environment.etc."traefik/conf.d/frps.json" = lib.mkIf cfg.enableTraefik {
+      text = builtins.toJSON {
+        http = {
+          routers = {
+            frps-dashboard = {
+              rule = "Host(`${cfg.domain}`)";
+              entryPoints = [ "websecure" ];
+              tls = {
+                certResolver = "cloudflare";
+                domains = [
+                  { main = cfg.domain; sans = [ "*.${cfg.domain}" ]; }
+                ];
+              };
+              middlewares = [ "hsts" ];
+              service = "frps-dashboard";
+            };
+            frps-tunnels = {
+              rule = "HostRegexp(`^.+\\.${escapedDomain}$`)";
+              entryPoints = [ "websecure" ];
+              tls = {
+                certResolver = "cloudflare";
+                domains = [
+                  { main = "*.${cfg.domain}"; sans = [ cfg.domain ]; }
+                ];
+              };
+              middlewares = [ "hsts" ];
+              service = "frps-tunnels";
+              priority = 1;
+            };
+          };
+          services = {
+            frps-dashboard.loadBalancer.servers = [
+              { url = "http://127.0.0.1:7400"; }
+            ];
+            frps-tunnels.loadBalancer.servers = [
+              { url = "http://127.0.0.1:${toString cfg.vhostHTTPPort}"; }
+            ];
+          };
+        };
       };
     };
   };

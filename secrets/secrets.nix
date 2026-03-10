@@ -150,4 +150,10 @@ in
     jsp
     alastor
   ];
+
+  # Authentik environment variables
+  "authentik-env.age".publicKeys = [
+    jsp
+    alastor
+  ];
 }
