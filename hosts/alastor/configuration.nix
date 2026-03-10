@@ -409,11 +409,7 @@
         directory = "/etc/traefik/conf.d";
         watch = true;
       };
-      log.level = "DEBUG";
-      api = {
-        insecure = true;
-        dashboard = true;
-      };
+      log.level = "INFO";
     };
   };
 
