@@ -406,6 +406,10 @@
         watch = true;
       };
       log.level = "DEBUG";
+      api = {
+        insecure = true;
+        dashboard = true;
+      };
     };
   };
 
