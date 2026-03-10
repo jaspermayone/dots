@@ -892,11 +892,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1768344684,
-        "narHash": "sha256-dk2eLFwSH06ozgEkJ8lwUrIVoO5wCNJ+Zs5mu0a1tt0=",
+        "lastModified": 1773179737,
+        "narHash": "sha256-QkFlEghr+7FN7e4NkiznD8xYGU6vJ24xn1sf4bWDCGI=",
         "owner": "jaspermayone",
         "repo": "strings",
-        "rev": "8991b3efc080a527edcb16acfe469781bae1c27a",
+        "rev": "ee634cf80829eca5baa7ec82f3b51182c7d88940",
         "type": "github"
       },
       "original": {
