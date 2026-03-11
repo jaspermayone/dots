@@ -103,6 +103,7 @@ in
         Environment = [
           "PORT=${toString cfg.port}"
           "PUBLIC_URL=https://${cfg.hostname}"
+          "LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc ]}"
         ];
         ExecStart = "${pkgs.bun}/bin/bun src/index.ts";
         Restart = "on-failure";
