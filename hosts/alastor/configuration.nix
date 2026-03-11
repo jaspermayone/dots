@@ -21,6 +21,7 @@
     ../../modules/crane-services
     ../../modules/authentik
     ../../modules/img
+    ../../modules/l4
     inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
     inputs.tangled.nixosModules.spindle
@@ -198,6 +199,10 @@
       file = ../../secrets/authentik-env.age;
       mode = "400";
     };
+    l4-env = {
+      file = ../../secrets/l4-env.age;
+      mode = "400";
+    };
   };
 
   # ── Services ────────────────────────────────────────────────────────────────
@@ -323,6 +328,13 @@
     enable = true;
     hostname = "a.hogwarts.dev";
     environmentFile = config.age.secrets.authentik-env.path;
+  };
+
+  # l4 image CDN
+  atelier.services.l4 = {
+    enable = true;
+    hostname = "l4.jaspermayone.com";
+    environmentFile = config.age.secrets.l4-env.path;
   };
 
   # img static site (Authentik-protected)

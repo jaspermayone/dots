@@ -156,4 +156,12 @@ in
     jsp
     alastor
   ];
+
+  # l4 image CDN environment variables
+  # Format: S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_ENDPOINT, R2_PUBLIC_URL,
+  #         AUTH_TOKEN, SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET
+  "l4-env.age".publicKeys = [
+    jsp
+    alastor
+  ];
 }
