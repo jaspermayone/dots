@@ -151,7 +151,6 @@
       "espanso"
       "gcc-arm-embedded" # ARM embedded toolchain for Pico SDK
       "google-chrome"
-      "iterm2"
       "ngrok"
       "obsidian"
       "raycast"
