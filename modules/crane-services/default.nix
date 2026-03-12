@@ -4,9 +4,9 @@
 # then runs the compose stack. This avoids bundling the private repo into
 # the dots flake closure, which keeps `system.autoUpgrade` working correctly.
 #
-# When behindProxy = true (e.g. on alastor where Caddy already owns 80/443):
+# When behindProxy = true (e.g. on alastor where Traefik already owns 80/443):
 # - nginx and acme.sh containers are disabled via compose.override.yml
-# - ubo_proxy and ext_proxy are exposed on localhost ports for Caddy to reach
+# - ubo_proxy and ext_proxy are exposed on localhost ports for Traefik to reach
 { config, lib, pkgs, ... }:
 
 let
@@ -98,7 +98,7 @@ in {
       default = false;
       description = ''
         Run without nginx/acme.sh and expose internal services on localhost
-        ports instead. Use this when an external reverse proxy (e.g. Caddy)
+        ports instead. Use this when an external reverse proxy (e.g. Traefik)
         already owns ports 80/443 and handles TLS.
 
         Ports exposed on localhost:

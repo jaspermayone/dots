@@ -420,5 +420,18 @@ in
         # Additional user settings
         cfg.settings
       ];
+
+    # Replace the read-only Nix store symlink with a writable copy so Claude
+    # Code can update settings at runtime. Nix remains the source of truth —
+    # each rebuild resets the file to the managed content.
+    home.activation.makeClaudeSettingsMutable = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      settings_file="$HOME/.claude/settings.json"
+      if [ -L "$settings_file" ]; then
+        nix_content=$(cat "$settings_file")
+        rm "$settings_file"
+        echo "$nix_content" > "$settings_file"
+        chmod 600 "$settings_file"
+      fi
+    '';
   };
 }

@@ -536,16 +536,16 @@
             service = "crane-updates";
             priority = 25;
           };
-          # /ext/* — ext proxy (port 9002/9003)
+          # /ext/* — ext proxy (port 9002/9003); strip /ext prefix so proxy sees /proxy, /cws_snippet, etc.
           crane-ext = {
             rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/ext/`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" ];
+            middlewares = [ "hsts" "crane-strip-ext" ];
             service = "crane-ext";
             priority = 20;
           };
-          # /com* — ext proxy
+          # /com* — ext proxy (no prefix stripping; proxy handles /com directly)
           crane-com = {
             rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/com`)";
             entryPoints = [ "websecure" ];
@@ -554,12 +554,12 @@
             service = "crane-ext";
             priority = 20;
           };
-          # /ubo/* — ubo proxy (port 9001)
+          # /ubo/* — ubo proxy (port 9001); strip /ubo prefix so proxy sees /assets.json, etc.
           crane-ubo = {
             rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/ubo/`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" ];
+            middlewares = [ "hsts" "crane-strip-ubo" ];
             service = "crane-ubo";
             priority = 20;
           };
@@ -576,6 +576,8 @@
             replacement = "https://cranebrowser.com";
             permanent = false;
           };
+          crane-strip-ext.stripPrefix.prefixes = [ "/ext" ];
+          crane-strip-ubo.stripPrefix.prefixes = [ "/ubo" ];
         };
         services = {
           knot.loadBalancer.servers = [ { url = "http://127.0.0.1:5555"; } ];
