@@ -78,8 +78,11 @@
     path = "~/dev/tries";
   };
 
-  # Ghostty terminal
-  programs.ghostty.enable = true;
+  # Ghostty terminal (installed as app bundle on macOS, skip nixpkgs package)
+  programs.ghostty = {
+    enable = true;
+    package = null;
+  };
 
   # RC files from ../rc/ directory (each file is linked as-is to ~/)
   home.file =

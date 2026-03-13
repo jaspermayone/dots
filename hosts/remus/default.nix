@@ -50,6 +50,7 @@
   # Remus-specific homebrew casks
   homebrew.casks = [
     "basictex"
+    "ghostty"
     "gitkraken-cli"
     "libreoffice"
   ];
