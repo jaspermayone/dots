@@ -1,9 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "companyAnnouncements": [
-    "Hi Jasper!",
-  ],
-  "cleanupPeriodDays": 90,
+"cleanupPeriodDays": 90,
   "attribution": {
     "commit": "",
     "pr": ""
@@ -14,7 +11,7 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "ENABLE_LSP_TOOL": "1",
-    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
   },
   "worktree": {
     "symlinkDirectories": [
@@ -103,7 +100,7 @@
       "Bash(git commit *)",
       "Bash(git commit)",
       "Bash(git push *)",
-      "Bash(git push)",
+      "Bash(git push)"
     ],
     "deny": [
       "Bash(git merge *)",

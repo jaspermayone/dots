@@ -19,6 +19,7 @@
     ../../modules/restic
     ../../modules/supergateway-proxy
     ../../modules/crane-services
+    ../../modules/traefik
     ../../modules/authentik
     ../../modules/img
     ../../modules/l4
@@ -387,48 +388,16 @@
   };
 
   # ── Traefik ──────────────────────────────────────────────────────────────────
-  # Static config: entrypoints, ACME, and file provider pointing at /etc/traefik/conf.d/
-  # Dynamic config for services defined directly in this file goes in the
-  # environment.etc fragment below; modules each write their own fragment.
-  #
-  # We use staticConfigFile instead of staticConfigOptions because the NixOS
-  # traefik module unconditionally injects providers.file.filename via
-  # recursiveUpdate, which conflicts with providers.file.directory (they are
-  # mutually exclusive in Traefik v3). Using staticConfigFile bypasses that.
-  services.traefik = {
+  # Runs as its own Docker Compose stack (modules/traefik) so it is fully
+  # decoupled from the NixOS rebuild cycle. Dynamic config fragments in
+  # /etc/traefik/conf.d/ are still written by NixOS modules below and
+  # hot-reloaded by Traefik without a container restart.
+  services.traefik-compose = {
     enable = true;
-    staticConfigFile = (pkgs.formats.toml { }).generate "traefik-static.toml" {
-      entryPoints = {
-        web = {
-          address = ":80";
-          http.redirections.entryPoint = {
-            to = "websecure";
-            scheme = "https";
-            permanent = true;
-          };
-        };
-        websecure.address = ":443";
-      };
-      certificatesResolvers.cloudflare.acme = {
-        email = "webmaster@hogwarts.dev";
-        storage = "/var/lib/traefik/acme.json";
-        dnsChallenge = {
-          provider = "cloudflare";
-          resolvers = [ "1.1.1.1:53" "1.0.0.1:53" ];
-        };
-      };
-      providers.file = {
-        directory = "/etc/traefik/conf.d";
-        watch = true;
-      };
-      log.level = "INFO";
-    };
+    acmeEmail = "webmaster@hogwarts.dev";
+    cloudflareCredentialsFile = config.age.secrets.cloudflare-credentials.path;
+    openFirewall = false; # ports opened explicitly in networking.firewall below
   };
-
-  # Inject Cloudflare credentials for ACME DNS challenge
-  systemd.services.traefik.serviceConfig.EnvironmentFile = [
-    config.age.secrets.cloudflare-credentials.path
-  ];
 
   # Dynamic config fragment for services hosted directly in this file
   # (knot, strings, docuseal, idp, plex, crane, spindle)
@@ -607,6 +576,7 @@
     443
     2222 # knot SSH
   ];
+  networking.firewall.allowedUDPPorts = [ 443 ]; # HTTP/3 (QUIC)
 
   # Automatic updates - checks daily at 4am
   system.autoUpgrade = {
