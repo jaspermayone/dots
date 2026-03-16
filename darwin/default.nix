@@ -341,27 +341,6 @@
         "springboard-show-duration" = 0;
       };
 
-      # Safari
-      "com.apple.Safari" = {
-        UniversalSearchEnabled = false; # Don't send search queries to Apple
-        SuppressSearchSuggestions = true;
-        ShowFullURLInSmartSearchField = true;
-        HomePage = "about:blank";
-        IncludeDevelopMenu = true;
-        WebKitDeveloperExtrasEnabledPreferenceKey = true;
-        "com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled" = true;
-        WarnAboutFraudulentWebsites = true;
-        SendDoNotTrackHTTPHeader = true;
-      };
-
-      # Mail
-      "com.apple.mail" = {
-        AddressesIncludeNameOnPasteboard = false; # Copy addresses without name
-        NSUserKeyEquivalents = {
-          Send = "@\\U21a9"; # Cmd+Enter to send
-        };
-        DisableInlineAttachmentViewing = true;
-      };
 
       # Terminal
       "com.apple.terminal" = {
@@ -399,11 +378,6 @@
         "advanced-image-options" = true;
       };
 
-      # Mac App Store
-      "com.apple.appstore" = {
-        ShowDebugMenu = true;
-        WebKitDeveloperExtras = true;
-      };
 
       # Software Update
       "com.apple.SoftwareUpdate" = {
@@ -425,15 +399,7 @@
         disableHotPlug = true;
       };
 
-      # Messages
-      "com.apple.messageshelper.MessageController" = {
-        SOInputLineSettings = {
-          automaticQuoteSubstitutionEnabled = false;
-        };
-      };
-      "com.apple.messages.text" = {
-        NSAutomaticSpellingCorrectionEnabled = false;
-      };
+
     };
   };
 

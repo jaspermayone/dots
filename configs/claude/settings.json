@@ -1,13 +1,31 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "companyAnnouncements": [
+    "Hi Jasper!",
+  ],
+  "cleanupPeriodDays": 90,
   "attribution": {
     "commit": "",
     "pr": ""
   },
-  "teammateMode": "in-process",
+  "teammateMode": "tmux",
   "bypassPermissions": true,
   "skipDangerousModePermissionPrompt": true,
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ENABLE_LSP_TOOL": "1",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
+  },
+  "worktree": {
+    "symlinkDirectories": [
+      "node_modules",
+      "vendor/bundle",
+      "vendor/cache",
+      "vendor/gems",
+      "vendor/ruby",
+      "target",
+      ".cache"
+    ]
   },
   "includeCoAuthoredBy": false,
   "enabledPlugins": {
@@ -28,7 +46,8 @@
     "texlab@claude-code-lsps": true,
     "typescript-lsp@claude-plugins-official": true,
     "vercel@claude-plugins-official": true,
-    "vscode-langservers@claude-code-lsps": true
+    "vscode-langservers@claude-code-lsps": true,
+    "superpowers@claude-plugins-official": true
   },
   "mcpServers": {
     "qmd": {
@@ -80,14 +99,16 @@
       "Edit",
       "Write"
     ],
-    "deny": [
+    "ask": [
       "Bash(git commit *)",
+      "Bash(git commit)",
       "Bash(git push *)",
       "Bash(git push)",
+    ],
+    "deny": [
       "Bash(git merge *)",
       "Bash(git rebase *)",
       "Bash(git reset *)",
-      "Bash(git commit)",
       "Bash(rm -rf *)",
       "Read(.env)",
       "Read(.env.*)",
