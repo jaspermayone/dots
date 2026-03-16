@@ -82,6 +82,8 @@
   programs.ghostty = {
     enable = true;
     package = null;
+    # systemd socket activation requires a package; disable on packageless installs
+    systemd.enable = false;
   };
 
   # RC files from ../rc/ directory (each file is linked as-is to ~/)
