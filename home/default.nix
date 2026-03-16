@@ -134,6 +134,7 @@
         user = "jsp";
         identityFile = "~/.ssh/id_ed25519";
         zmx = true; # auto-attach zmx session
+        extraOptions.SetEnv = "TERM=xterm-256color";
       };
 
       # Horace (named after Horace Slughorn)
