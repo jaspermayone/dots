@@ -1,8 +1,9 @@
 # crane services — Docker Compose stack for cranebrowser backend
 #
-# Clones cranebrowser/services from GitHub at activation time using a PAT,
-# then runs the compose stack. This avoids bundling the private repo into
-# the dots flake closure, which keeps `system.autoUpgrade` working correctly.
+# Clones cranebrowser/services from GitHub using a PAT via a systemd service
+# (after network is up), then runs the compose stack. This avoids bundling
+# the private repo into the dots flake closure, which keeps
+# `system.autoUpgrade` working correctly.
 #
 # When behindProxy = true (e.g. on alastor where Traefik already owns 80/443):
 # - nginx and acme.sh containers are disabled via compose.override.yml
@@ -133,24 +134,13 @@ in {
       "d /opt/crane-services/private/acme-tmp 0755 root root -"
     ];
 
-    # ── Source sync + config files ────────────────────────────────────────────
-    system.activationScripts.crane-services-deploy = {
+    # ── Config files (activation — no network needed) ─────────────────────────
+    system.activationScripts.crane-services-config = {
       deps = [ "agenix" "users" "groups" ];
       text = ''
         set -euo pipefail
 
-        TOKEN=$(cat "${cfg.repoTokenFile}")
-        REPO_URL="https://x-access-token:$TOKEN@github.com/cranebrowser/services.git"
         WORK_DIR="/opt/crane-services"
-
-        if [ -d "$WORK_DIR/.git" ]; then
-          echo "[crane-services] pulling latest source..."
-          ${pkgs.git}/bin/git -C "$WORK_DIR" remote set-url origin "$REPO_URL"
-          ${pkgs.git}/bin/git -C "$WORK_DIR" pull --ff-only
-        else
-          echo "[crane-services] cloning cranebrowser/services..."
-          ${pkgs.git}/bin/git clone "$REPO_URL" "$WORK_DIR"
-        fi
 
         echo "[crane-services] writing .env..."
         HMAC_SECRET=$(cat "${cfg.hmacSecretFile}")
@@ -166,6 +156,37 @@ in {
         ${composeOverride}
         EOF
         ''}
+      '';
+    };
+
+    # ── Source sync (systemd — runs after network is up) ───────────────────────
+    systemd.services.crane-services-sync = {
+      description = "Clone/pull crane-services source from GitHub";
+      after    = [ "network-online.target" ];
+      wants    = [ "network-online.target" ];
+      before   = [ "crane-services.service" ];
+      requiredBy = [ "crane-services.service" ];
+
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+
+      script = ''
+        set -euo pipefail
+
+        TOKEN=$(cat "${cfg.repoTokenFile}")
+        REPO_URL="https://x-access-token:$TOKEN@github.com/cranebrowser/services.git"
+        WORK_DIR="/opt/crane-services"
+
+        if [ -d "$WORK_DIR/.git" ]; then
+          echo "[crane-services] pulling latest source..."
+          ${pkgs.git}/bin/git -C "$WORK_DIR" remote set-url origin "$REPO_URL"
+          ${pkgs.git}/bin/git -C "$WORK_DIR" pull --ff-only
+        else
+          echo "[crane-services] cloning cranebrowser/services..."
+          ${pkgs.git}/bin/git clone "$REPO_URL" "$WORK_DIR"
+        fi
       '';
     };
 
