@@ -421,6 +421,10 @@ in
         cfg.settings
       ];
 
+    # Force-overwrite so HM never tries to create a .backup file for settings.json.
+    # This avoids the backup accumulation problem without any activation script side-effects.
+    home.file.".claude/settings.json".force = lib.mkForce true;
+
     # Replace the read-only Nix store symlink with a writable copy so Claude
     # Code can update settings at runtime. Nix remains the source of truth —
     # each rebuild resets the file to the managed content.
