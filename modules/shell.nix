@@ -599,8 +599,7 @@ in
       # ============================================================================
       # Note: zoxide, fzf, atuin are initialized by home-manager programs.*
 
-      # Mise activation
-      eval "$(mise activate zsh)"
+      # Note: mise activation handled by programs.mise below
 
       # Wut activation (workspace manager)
       if command -v wut &> /dev/null; then
@@ -646,7 +645,6 @@ in
     age # Modern encryption tool
 
     # Dev tools
-    mise # Version manager (formerly rtx)
     flyctl # Fly.io CLI
     unstable.bun # JavaScript runtime
     nodePackages.pnpm # Package manager
@@ -675,6 +673,12 @@ in
 
   # Zoxide (better cd)
   programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  # Mise (version manager, formerly rtx)
+  programs.mise = {
     enable = true;
     enableZshIntegration = true;
   };

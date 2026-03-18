@@ -55,6 +55,8 @@ let
         volumes:
           - "${staticConfig}:/etc/traefik/traefik.toml:ro"
           - "/etc/traefik/conf.d:/etc/traefik/conf.d:ro"
+          - "/etc/static/traefik:/etc/static/traefik:ro"
+          - "/nix/store:/nix/store:ro"
           - "/var/lib/traefik:/var/lib/traefik"
         env_file:
           - "${cfg.cloudflareCredentialsFile}"

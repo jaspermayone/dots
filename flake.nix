@@ -104,6 +104,7 @@
             wut = final.unstable.callPackage ./packages/wut.nix { };
             qmd = prev.callPackage ./packages/qmd.nix { };
             projn = prev.callPackage ./packages/projn.nix { };
+            atuin = prev.callPackage ./packages/atuin.nix { rustPlatform = final.unstable.rustPlatform; };
 
             # Caddy with Cloudflare DNS plugin for ACME DNS challenges
             caddy-cloudflare = prev.caddy.withPlugins {
