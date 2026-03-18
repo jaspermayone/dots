@@ -599,6 +599,9 @@ in
       # ============================================================================
       # Note: zoxide, fzf, atuin are initialized by home-manager programs.*
 
+      # Atuin hex (pty proxy for overlay rendering)
+      eval "$(atuin hex init)"
+
       # Note: mise activation handled by programs.mise below
 
       # Wut activation (workspace manager)
@@ -695,10 +698,14 @@ in
       sync_frequency = "5m";
       sync_address = "https://atuin.hogwarts.dev";
       key_path = "~/.local/share/atuin/key";
-      search_mode = "fuzzy";
+      search_mode = "daemon-fuzzy";
       update_check = false;
       style = "auto";
       inline_height = 30;
+      daemon = {
+        enabled = true;
+        autostart = false;
+      };
     };
   };
 
