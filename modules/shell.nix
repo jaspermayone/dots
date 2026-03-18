@@ -699,6 +699,9 @@ in
       sync_address = "https://atuin.hogwarts.dev";
       key_path = "~/.local/share/atuin/key";
       search_mode = "daemon-fuzzy";
+      search_mode_shell_up_key_binding = "daemon-fuzzy";
+      filter_mode = "host";
+      filter_mode_shell_up_key_binding = "host";
       update_check = false;
       style = "auto";
       inline_height = 30;

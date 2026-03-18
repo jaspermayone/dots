@@ -31,6 +31,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     "sync"
     "clipboard"
     "daemon"
+    "server"
   ];
 
   nativeBuildInputs = [ installShellFiles ];
