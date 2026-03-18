@@ -25,13 +25,11 @@ rustPlatform.buildRustPackage (finalAttrs: {
     sed -i 's/^rust-version = "[^"]*"/rust-version = "1.85.0"/' Cargo.toml
   '';
 
-  buildNoDefaultFeatures = true;
   buildFeatures = [
     "client"
     "sync"
     "clipboard"
     "daemon"
-    "server"
   ];
 
   nativeBuildInputs = [ installShellFiles ];
