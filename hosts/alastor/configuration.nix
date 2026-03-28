@@ -370,12 +370,40 @@
   };
 
   services.redis.servers.docuseal.port = lib.mkForce 6380;
+  services.redis.servers.fundingfindr = {
+    enable = true;
+    port = 6382;
+    bind = "127.0.0.1";
+  };
 
   # Authentik identity provider
   atelier.services.authentik = {
     enable = true;
     hostname = "a.hogwarts.dev";
     environmentFile = config.age.secrets.authentik-env.path;
+  };
+
+  # PostgreSQL for FundingFindr
+  services.postgresql = {
+    enable = true;
+    package = pkgs.postgresql_16;
+    ensureUsers = [
+      {
+        name = "fundingfindr";
+        ensureDBOwnership = true;
+      }
+    ];
+    ensureDatabases = [
+      "funding_findr_production"
+      "funding_findr_queue_production"
+      "funding_findr_cache_production"
+      "funding_findr_cable_production"
+    ];
+    authentication = pkgs.lib.mkOverride 10 ''
+      local all all trust
+      host all all 127.0.0.1/32 scram-sha-256
+      host all all ::1/128 scram-sha-256
+    '';
   };
 
   # FundingFindr CMS (Strapi on port 1337)
@@ -392,7 +420,8 @@
   # FundingFindr Rails app (Puma on port 3300)
   systemd.services.funding_findr = {
     description = "FundingFindr Puma HTTP Server";
-    after = [ "network.target" "postgresql.service" "redis.service" ];
+    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
+    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
