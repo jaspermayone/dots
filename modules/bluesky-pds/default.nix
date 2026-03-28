@@ -146,7 +146,7 @@ in
         http = {
           routers = lib.optionalAttrs cfg.enableAgeAssurance {
             pds-age = {
-              rule = "Host(`${cfg.hostname}`) && PathPrefix(`/xrpc/app.bsky`)";
+              rule = "Host(`${cfg.hostname}`) && (Path(`/xrpc/app.bsky.unspecced.getAgeAssuranceState`) || Path(`/xrpc/app.bsky.ageassurance.getConfig`) || Path(`/xrpc/app.bsky.ageassurance.getState`))";
               entryPoints = [ "websecure" ];
               tls = {
                 certResolver = "cloudflare";
