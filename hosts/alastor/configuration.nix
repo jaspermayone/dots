@@ -365,12 +365,12 @@
     extraConfig = {
       REDIS_URL = "redis://localhost:6380";
       SMTP_ADDRESS = "smtp.gmail.com";
-      SMTP_PORT = "465";
+      SMTP_PORT = "587";
       SMTP_DOMAIN = "singlefeather.com";
       SMTP_USERNAME = "jasper.mayone@singlefeather.com";
       SMTP_AUTHENTICATION = "plain";
       SMTP_FROM = "legal@singlefeather.com";
-      SMTP_ENABLE_STARTTLS = "false";
+      SMTP_ENABLE_STARTTLS = "true";
       SMTP_SSL_VERIFY = "true";
     };
     extraEnvFiles = [ config.age.secrets.docuseal-smtp.path ];
@@ -451,6 +451,8 @@
         "PUMA_PID=/home/fundingfindr/funding_findr/tmp/pids/puma.pid"
         "PUMA_STATE=/home/fundingfindr/funding_findr/tmp/pids/puma.state"
         "RUBY_YJIT_ENABLE=1"
+        "BUNDLE_PATH=vendor/bundle"
+        "BUNDLE_WITHOUT=development:test"
       ];
       ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec puma -C config/puma.rb'";
       ExecReload = "/run/current-system/sw/bin/bash -lc 'bundle exec pumactl -S /home/fundingfindr/funding_findr/tmp/pids/puma.state phased-restart'";
