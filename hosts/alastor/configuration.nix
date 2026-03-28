@@ -20,6 +20,7 @@
     ../../modules/supergateway-proxy
     ../../modules/crane-services
     ../../modules/traefik
+    ../../modules/strapi
     ../../modules/authentik
     ../../modules/img
     ../../modules/l4
@@ -196,6 +197,11 @@
       file = ../../secrets/crane-services-hmac.age;
       mode = "400";
     };
+    strapi-env = {
+      file = ../../secrets/strapi-env.age;
+      mode = "400";
+      owner = "jsp";
+    };
     authentik-env = {
       file = ../../secrets/authentik-env.age;
       mode = "400";
@@ -329,6 +335,17 @@
     enable = true;
     hostname = "a.hogwarts.dev";
     environmentFile = config.age.secrets.authentik-env.path;
+  };
+
+  # FundingFindr CMS (Strapi on port 1337)
+  atelier.services.strapi = {
+    enable = true;
+    hostname = "cms.fundingfindr.co";
+    port = 1337;
+    projectDir = "/home/jsp/funding_findr/cms";
+    user = "jsp";
+    group = "users";
+    environmentFile = config.age.secrets.strapi-env.path;
   };
 
   # l4 image CDN
@@ -532,6 +549,14 @@
             service = "crane-ubo";
             priority = 20;
           };
+          # FundingFindr Rails app (Puma on port 3300)
+          funding-findr = {
+            rule = "Host(`fundingfindr.co`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "funding-findr";
+          };
         };
         middlewares = {
           # Global HSTS middleware — referenced as "hsts" by all file-provider routers
@@ -566,6 +591,7 @@
           crane-updates.loadBalancer.servers = [ { url = "https://updates.cranebrowser.com"; } ];
           # Dummy backend for the redirect router (never actually contacted)
           crane-noop.loadBalancer.servers = [ { url = "http://127.0.0.1:1"; } ];
+          funding-findr.loadBalancer.servers = [ { url = "http://127.0.0.1:3300"; } ];
         };
       };
     };
