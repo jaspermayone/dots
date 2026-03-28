@@ -164,4 +164,10 @@ in
     jsp
     alastor
   ];
+
+"strapi-env.age".publicKeys = [ 
+alastor
+jsp
+ ];
+
 }
