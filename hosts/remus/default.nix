@@ -37,6 +37,7 @@
     libyaml
     yubikey-manager
     logisim-evolution
+    micromdm # includes mdmctl CLI
   ];
 
   # Laptop-specific homebrew packages
