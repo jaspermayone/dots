@@ -76,7 +76,14 @@
     bun
     gnumake
     gcc
+    pkg-config
+    libyaml
+    libffi
     libpq
+    zlib
+    openssl
+    libxml2
+    libxslt
   ];
 
   # NH - NixOS helper
