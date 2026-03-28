@@ -390,7 +390,6 @@
     ensureUsers = [
       {
         name = "fundingfindr";
-        ensureDBOwnership = true;
       }
     ];
     ensureDatabases = [
@@ -399,6 +398,16 @@
       "funding_findr_cache_production"
       "funding_findr_cable_production"
     ];
+    initialScript = pkgs.writeText "postgres-init.sql" ''
+      GRANT ALL PRIVILEGES ON DATABASE funding_findr_production TO fundingfindr;
+      GRANT ALL PRIVILEGES ON DATABASE funding_findr_queue_production TO fundingfindr;
+      GRANT ALL PRIVILEGES ON DATABASE funding_findr_cache_production TO fundingfindr;
+      GRANT ALL PRIVILEGES ON DATABASE funding_findr_cable_production TO fundingfindr;
+      ALTER DATABASE funding_findr_production OWNER TO fundingfindr;
+      ALTER DATABASE funding_findr_queue_production OWNER TO fundingfindr;
+      ALTER DATABASE funding_findr_cache_production OWNER TO fundingfindr;
+      ALTER DATABASE funding_findr_cable_production OWNER TO fundingfindr;
+    '';
     authentication = pkgs.lib.mkOverride 10 ''
       local all all trust
       host all all 127.0.0.1/32 scram-sha-256
