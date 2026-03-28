@@ -69,6 +69,14 @@
     tmux
     bluesky-pds
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
+    # FundingFindr deploy toolchain
+    pkgs.unstable.ruby_4_0
+    pkgs.unstable.bundler
+    nodejs_22
+    bun
+    gnumake
+    gcc
+    libpq
   ];
 
   # NH - NixOS helper
@@ -134,8 +142,41 @@
     ];
   };
 
+  # FundingFindr deploy user
+  users.users.fundingfindr = {
+    isNormalUser = true;
+    group = "users";
+    shell = pkgs.bash;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILAuYbGwEnWMap90JJmUAlZv4lBme1av/rifDdRmcFku github-actions-fundingfindr"
+    ];
+  };
+
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
+  security.sudo.extraRules = [
+    {
+      users = [ "fundingfindr" ];
+      commands = [
+        {
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl start funding_findr";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl stop funding_findr";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart strapi";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
 
   # Agenix secrets
   age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
@@ -342,10 +383,40 @@
     enable = true;
     hostname = "cms.fundingfindr.co";
     port = 1337;
-    projectDir = "/home/jsp/funding_findr/cms";
-    user = "jsp";
+    projectDir = "/home/fundingfindr/funding_findr/cms";
+    user = "fundingfindr";
     group = "users";
     environmentFile = config.age.secrets.strapi-env.path;
+  };
+
+  # FundingFindr Rails app (Puma on port 3300)
+  systemd.services.funding_findr = {
+    description = "FundingFindr Puma HTTP Server";
+    after = [ "network.target" "postgresql.service" "redis.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      User = "fundingfindr";
+      Group = "users";
+      WorkingDirectory = "/home/fundingfindr/funding_findr";
+      EnvironmentFile = "/etc/funding_findr/env";
+      Environment = [
+        "RAILS_ENV=production"
+        "PORT=3300"
+        "PUMA_PID=/home/fundingfindr/funding_findr/tmp/pids/puma.pid"
+        "PUMA_STATE=/home/fundingfindr/funding_findr/tmp/pids/puma.state"
+        "RUBY_YJIT_ENABLE=1"
+      ];
+      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec puma -C config/puma.rb'";
+      ExecReload = "/run/current-system/sw/bin/bash -lc 'bundle exec pumactl -S /home/fundingfindr/funding_findr/tmp/pids/puma.state phased-restart'";
+      ExecStop = "/run/current-system/sw/bin/bash -lc 'bundle exec pumactl -S /home/fundingfindr/funding_findr/tmp/pids/puma.state stop'";
+      KillMode = "process";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "funding_findr";
+    };
   };
 
   # l4 image CDN
