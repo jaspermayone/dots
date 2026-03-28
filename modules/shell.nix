@@ -440,7 +440,8 @@ in
       pip = "pip3";
       python = "python3";
 
-      cl = "claude --allow-dangerously-skip-permissions";
+      cl = "claude --enable-auto-mode";
+      cld = "claude --allow-dangerously-skip-permissions";
       clo = "ollama launch claude";
 
       # Project shortcuts
