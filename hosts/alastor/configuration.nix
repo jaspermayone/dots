@@ -371,7 +371,7 @@
       SMTP_AUTHENTICATION = "plain";
       SMTP_FROM = "legal@singlefeather.com";
       SMTP_ENABLE_STARTTLS = "true";
-      SMTP_SSL_VERIFY = "true";
+      SMTP_SSL_VERIFY = "false";
     };
     extraEnvFiles = [ config.age.secrets.docuseal-smtp.path ];
   };

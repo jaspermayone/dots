@@ -8,6 +8,45 @@
 }:
 let
   cfg = config.atelier.services.atuin-server;
+
+  # nixpkgs dropped the "server" feature at 18.12.0 (cargoHash changed too,
+  # so we can't just patch buildFeatures on the current pkg — we pin 18.11.0).
+  atuinWithServer = pkgs.rustPlatform.buildRustPackage {
+    pname = "atuin";
+    version = "18.11.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "atuinsh";
+      repo = "atuin";
+      tag = "v18.11.0";
+      hash = "sha256-yjsCNN15E06te6cueSZksg7mcMyx2FiXKrbGAEcQWmg=";
+    };
+
+    cargoHash = "sha256-xaALIVJpMek4nbSozxtOEWivRDlMmKdu6KqKiNMp0jk=";
+
+    buildNoDefaultFeatures = true;
+    buildFeatures = [ "client" "sync" "server" "clipboard" "daemon" ];
+
+    nativeBuildInputs = [ pkgs.installShellFiles ];
+
+    postInstall = lib.optionalString (pkgs.stdenv.buildPlatform.canExecute pkgs.stdenv.hostPlatform) ''
+      installShellCompletion --cmd atuin \
+        --bash <($out/bin/atuin gen-completions -s bash) \
+        --fish <($out/bin/atuin gen-completions -s fish) \
+        --zsh <($out/bin/atuin gen-completions -s zsh)
+    '';
+
+    checkFlags = [
+      "--skip=registration"
+      "--skip=sync"
+      "--skip=change_password"
+      "--skip=multi_user_test"
+    ];
+
+    preCheck = "export HOME=$(mktemp -d)";
+
+    meta.mainProgram = "atuin";
+  };
 in
 {
   options.atelier.services.atuin-server = {
@@ -54,7 +93,7 @@ in
 
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${pkgs.atuin}/bin/atuin server start";
+        ExecStart = "${atuinWithServer}/bin/atuin server start";
         Restart = "on-failure";
         User = "atuin";
         Group = "atuin";
