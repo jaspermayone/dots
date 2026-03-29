@@ -359,7 +359,6 @@
 
   services.docuseal = {
     enable = true;
-    package = pkgs.unstable.docuseal;
     port = 3200;
     host = "127.0.0.1";
     redis.createLocally = true;
