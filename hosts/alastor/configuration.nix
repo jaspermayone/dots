@@ -758,6 +758,24 @@
             service = "crane-ubo";
             priority = 20;
           };
+          # /accounts/* — accounts service (port 9004)
+          crane-accounts = {
+            rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/accounts/`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-accounts";
+            priority = 20;
+          };
+          # /memory/* — memory service (port 9005)
+          crane-memory = {
+            rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/memory/`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "crane-memory";
+            priority = 20;
+          };
           # FundingFindr Rails app (Puma on port 3300)
           funding-findr = {
             rule = "Host(`fundingfindr.co`)";
@@ -798,6 +816,8 @@
           ];
           crane-ubo.loadBalancer.servers = [ { url = "http://127.0.0.1:9001"; } ];
           crane-updates.loadBalancer.servers = [ { url = "https://updates.cranebrowser.com"; } ];
+          crane-accounts.loadBalancer.servers = [ { url = "http://127.0.0.1:9004"; } ];
+          crane-memory.loadBalancer.servers = [ { url = "http://127.0.0.1:9005"; } ];
           # Dummy backend for the redirect router (never actually contacted)
           crane-noop.loadBalancer.servers = [ { url = "http://127.0.0.1:1"; } ];
           funding-findr.loadBalancer.servers = [ { url = "http://127.0.0.1:3300"; } ];

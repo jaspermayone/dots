@@ -41,6 +41,12 @@ let
       ext_proxy_2:
         ports:
           - "127.0.0.1:9003:8000"
+      accounts:
+        ports:
+          - "127.0.0.1:9004:8000"
+      memory:
+        ports:
+          - "127.0.0.1:9005:8000"
   '';
 
 in {
@@ -115,6 +121,8 @@ in {
           9001 — ubo_proxy
           9002 — ext_proxy
           9003 — ext_proxy_2 (backup)
+          9004 — accounts
+          9005 — memory
       '';
     };
 
