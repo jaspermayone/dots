@@ -364,16 +364,12 @@
     redis.createLocally = true;
     extraConfig = {
       REDIS_URL = "redis://localhost:6380";
-      SMTP_ADDRESS = "smtp.gmail.com";
-      SMTP_PORT = "587";
-      SMTP_DOMAIN = "singlefeather.com";
-      SMTP_USERNAME = "jasper.mayone@singlefeather.com";
-      SMTP_AUTHENTICATION = "plain";
-      SMTP_FROM = "legal@singlefeather.com";
-      SMTP_ENABLE_STARTTLS = "true";
-      SMTP_SSL_VERIFY = "false";
     };
-    extraEnvFiles = [ config.age.secrets.docuseal-smtp.path ];
+    # SMTP is configured via the DocuSeal UI (Settings → Email) with Noverify.
+    # Do NOT set SMTP_ADDRESS or other SMTP_* env vars here — when SMTP_ADDRESS
+    # is present in the env the ActionMailerConfigsInterceptor short-circuits and
+    # uses the env-var path, which has no openssl_verify_mode support in 2.2.0,
+    # causing CRL certificate errors. The DB/UI path correctly applies VERIFY_NONE.
   };
 
   services.redis.servers.docuseal.port = lib.mkForce 6380;
