@@ -600,8 +600,21 @@ in
       # ============================================================================
       # Note: zoxide, fzf, atuin are initialized by home-manager programs.*
 
-      # Atuin hex (pty proxy for overlay rendering)
-      eval "$(atuin hex init)"
+      # Atuin hex (pty proxy for overlay rendering) - inlined to pass --disable-up-arrow
+      if [[ "$-" == *i* ]] && [[ -t 0 ]] && [[ -t 1 ]]; then
+        _atuin_hex_tmux_current="''${TMUX:-}"
+        _atuin_hex_tmux_previous="''${ATUIN_HEX_TMUX:-}"
+
+        if [[ -z "''${ATUIN_HEX_ACTIVE:-}" ]] || [[ "$_atuin_hex_tmux_current" != "$_atuin_hex_tmux_previous" ]]; then
+          export ATUIN_HEX_ACTIVE=1
+          export ATUIN_HEX_TMUX="$_atuin_hex_tmux_current"
+          exec atuin hex
+        fi
+
+        unset _atuin_hex_tmux_current _atuin_hex_tmux_previous
+      fi
+
+      eval "$(atuin init zsh --disable-up-arrow)"
 
       # Note: mise activation handled by programs.mise below
 
@@ -699,8 +712,8 @@ in
       sync_frequency = "5m";
       sync_address = "https://atuin.hogwarts.dev";
       key_path = "~/.local/share/atuin/key";
-      search_mode = "daemon-fuzzy";
-      search_mode_shell_up_key_binding = "daemon-fuzzy";
+      # search_mode = "daemon-fuzzy";
+      # search_mode_shell_up_key_binding = "daemon-fuzzy";
       filter_mode = "host";
       filter_mode_shell_up_key_binding = "host";
       update_check = false;
