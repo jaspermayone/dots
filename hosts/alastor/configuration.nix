@@ -462,6 +462,96 @@
     };
   };
 
+  # FundingFindr GoodJob worker — critical queue (user-triggered, transactional)
+  systemd.services.funding_findr_worker_critical = {
+    description = "FundingFindr GoodJob Worker (critical)";
+    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
+    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      User = "fundingfindr";
+      Group = "users";
+      WorkingDirectory = "/home/fundingfindr/funding_findr";
+      EnvironmentFile = "/etc/funding_findr/env";
+      Environment = [
+        "RAILS_ENV=production"
+        "RUBY_YJIT_ENABLE=1"
+        "BUNDLE_PATH=vendor/bundle"
+        "BUNDLE_WITHOUT=development:test"
+        "GOOD_JOB_QUEUES=critical"
+        "GOOD_JOB_MAX_THREADS=5"
+      ];
+      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
+      KillMode = "process";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "funding_findr_worker_critical";
+    };
+  };
+
+  # FundingFindr GoodJob worker — default queue (scheduled jobs, bulk email)
+  systemd.services.funding_findr_worker_default = {
+    description = "FundingFindr GoodJob Worker (default)";
+    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
+    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      User = "fundingfindr";
+      Group = "users";
+      WorkingDirectory = "/home/fundingfindr/funding_findr";
+      EnvironmentFile = "/etc/funding_findr/env";
+      Environment = [
+        "RAILS_ENV=production"
+        "RUBY_YJIT_ENABLE=1"
+        "BUNDLE_PATH=vendor/bundle"
+        "BUNDLE_WITHOUT=development:test"
+        "GOOD_JOB_QUEUES=default"
+        "GOOD_JOB_MAX_THREADS=10"
+      ];
+      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
+      KillMode = "process";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "funding_findr_worker_default";
+    };
+  };
+
+  # FundingFindr GoodJob worker — low queue (batch imports, sweeps)
+  systemd.services.funding_findr_worker_low = {
+    description = "FundingFindr GoodJob Worker (low)";
+    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
+    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      User = "fundingfindr";
+      Group = "users";
+      WorkingDirectory = "/home/fundingfindr/funding_findr";
+      EnvironmentFile = "/etc/funding_findr/env";
+      Environment = [
+        "RAILS_ENV=production"
+        "RUBY_YJIT_ENABLE=1"
+        "BUNDLE_PATH=vendor/bundle"
+        "BUNDLE_WITHOUT=development:test"
+        "GOOD_JOB_QUEUES=low"
+        "GOOD_JOB_MAX_THREADS=5"
+      ];
+      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
+      KillMode = "process";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "funding_findr_worker_low";
+    };
+  };
+
   # l4 image CDN
   atelier.services.l4 = {
     enable = true;
