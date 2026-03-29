@@ -94,6 +94,15 @@ in {
       '';
     };
 
+    jwtSecretFile = lib.mkOption {
+      type = lib.types.path;
+      description = ''
+        Path to a file containing the raw JWT_SECRET value for the accounts and memory services.
+        Generate with: openssl rand -base64 32
+        Use an agenix secret: config.age.secrets.crane-services-jwt.path
+      '';
+    };
+
     behindProxy = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -144,9 +153,11 @@ in {
 
         echo "[crane-services] writing .env..."
         HMAC_SECRET=$(cat "${cfg.hmacSecretFile}")
-        printf '%s\nHMAC_SECRET=%s\n' \
+        JWT_SECRET=$(cat "${cfg.jwtSecretFile}")
+        printf '%s\nHMAC_SECRET=%s\nJWT_SECRET=%s\n' \
           ${lib.escapeShellArg envVars} \
           "$HMAC_SECRET" \
+          "$JWT_SECRET" \
           > "$WORK_DIR/.env"
         chmod 600 "$WORK_DIR/.env"
 
