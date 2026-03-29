@@ -245,6 +245,10 @@
       file = ../../secrets/crane-services-hmac.age;
       mode = "400";
     };
+    crane-services-jwt = {
+      file = ../../secrets/crane-services-jwt.age;
+      mode = "400";
+    };
     strapi-env = {
       file = ../../secrets/strapi-env.age;
       mode = "400";
@@ -574,6 +578,7 @@
     uboProxyBaseUrl = "https://services.cranebrowser.com/ubo/";
     repoTokenFile = config.age.secrets.crane-services-token.path;
     hmacSecretFile = config.age.secrets.crane-services-hmac.path;
+    jwtSecretFile = config.age.secrets.crane-services-jwt.path;
     behindProxy = true;
     openFirewall = false;
   };

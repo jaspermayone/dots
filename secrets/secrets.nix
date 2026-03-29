@@ -151,6 +151,13 @@ in
     alastor
   ];
 
+  # Crane services — JWT_SECRET for accounts + memory services
+  # Generate with: openssl rand -base64 32
+  "crane-services-jwt.age".publicKeys = [
+    jsp
+    alastor
+  ];
+
   # Authentik environment variables
   "authentik-env.age".publicKeys = [
     jsp
