@@ -179,6 +179,7 @@ in
       zmk = "zmx kill";
       zma = "zmx attach";
       ash = "autossh -M 0 -q";
+      sshraw = "ssh -o RemoteCommand=none -t";
     };
   };
 }

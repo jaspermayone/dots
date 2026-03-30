@@ -163,6 +163,7 @@
 
   home-manager.users.fundingfindr = import ./home-fundingfindr.nix;
 
+  programs.nix-ld.enable = true;
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
   security.sudo.extraRules = [
