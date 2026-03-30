@@ -455,6 +455,7 @@
       EnvironmentFile = "/etc/funding_findr/env";
       Environment = [
         "RAILS_ENV=production"
+        "APPSIGNAL_APP_ENV=production"
         "PORT=3300"
         "PUMA_PID=/home/fundingfindr/funding_findr/tmp/pids/puma.pid"
         "PUMA_STATE=/home/fundingfindr/funding_findr/tmp/pids/puma.state"
@@ -488,6 +489,7 @@
       EnvironmentFile = "/etc/funding_findr/env";
       Environment = [
         "RAILS_ENV=production"
+        "APPSIGNAL_APP_ENV=production"
         "RUBY_YJIT_ENABLE=1"
         "BUNDLE_PATH=vendor/bundle"
         "BUNDLE_WITHOUT=development:test"
@@ -518,6 +520,7 @@
       EnvironmentFile = "/etc/funding_findr/env";
       Environment = [
         "RAILS_ENV=production"
+        "APPSIGNAL_APP_ENV=production"
         "RUBY_YJIT_ENABLE=1"
         "BUNDLE_PATH=vendor/bundle"
         "BUNDLE_WITHOUT=development:test"
@@ -548,6 +551,7 @@
       EnvironmentFile = "/etc/funding_findr/env";
       Environment = [
         "RAILS_ENV=production"
+        "APPSIGNAL_APP_ENV=production"
         "RUBY_YJIT_ENABLE=1"
         "BUNDLE_PATH=vendor/bundle"
         "BUNDLE_WITHOUT=development:test"
