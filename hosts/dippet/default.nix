@@ -259,6 +259,29 @@ in
   };
 
 
+  # Ollama embedding server — serves nomic-embed-text (768d) for FundingFindr
+  # Listens on 0.0.0.0:11434 so alastor can reach it over Tailscale.
+  # Traefik on alastor proxies ollama.hogwarts.dev → this host with BasicAuth.
+  # After first deploy: ollama pull nomic-embed-text
+  launchd.daemons.ollama = {
+    script = ''
+      exec /opt/homebrew/bin/ollama serve
+    '';
+    serviceConfig = {
+      KeepAlive = true;
+      RunAtLoad = true;
+      StandardOutPath = "/Users/jsp/Library/Logs/ollama.log";
+      StandardErrorPath = "/Users/jsp/Library/Logs/ollama.log";
+      UserName = "jsp";
+      GroupName = "staff";
+      EnvironmentVariables = {
+        HOME = "/Users/jsp";
+        PATH = "/opt/homebrew/bin:/usr/bin:/bin";
+        OLLAMA_HOST = "0.0.0.0:11434";
+      };
+    };
+  };
+
   # Server packages (dippet-specific)
   homebrew.brews = [
     # Web/networking
@@ -266,6 +289,9 @@ in
     "cloudflared"
     "certbot"
     "unbound"
+
+    # Ollama — LLM/embedding server (nomic-embed-text for FundingFindr)
+    "ollama"
 
     # Libraries/tools currently installed
     "augeas"

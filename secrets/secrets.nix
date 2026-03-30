@@ -172,9 +172,17 @@ in
     alastor
   ];
 
-"strapi-env.age".publicKeys = [ 
+"strapi-env.age".publicKeys = [
 alastor
 jsp
  ];
+
+  # Ollama BasicAuth credentials for Traefik (htpasswd format)
+  # Generate with: htpasswd -nB ollama | tr -d '\n'
+  # agenix -e ollama-basicauth.age
+  "ollama-basicauth.age".publicKeys = [
+    jsp
+    alastor
+  ];
 
 }

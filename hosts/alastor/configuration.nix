@@ -266,6 +266,10 @@
       file = ../../secrets/l4-env.age;
       mode = "400";
     };
+    ollama-basicauth = {
+      file = ../../secrets/ollama-basicauth.age;
+      mode = "400";
+    };
   };
 
   # ── Services ────────────────────────────────────────────────────────────────
@@ -560,6 +564,32 @@
     };
   };
 
+  # Qdrant vector database (used by FundingFindr for semantic search)
+  # Binds to 127.0.0.1:6333 — only accessible from this host
+  # Data persisted at /var/lib/qdrant
+  systemd.services.qdrant = {
+    description = "Qdrant Vector Database";
+    after = [ "docker.service" "network.target" ];
+    requires = [ "docker.service" ];
+    wantedBy = [ "multi-user.target" ];
+    preStart = "mkdir -p /var/lib/qdrant";
+    serviceConfig = {
+      Type = "simple";
+      ExecStartPre = [
+        "-${pkgs.docker}/bin/docker stop qdrant"
+        "-${pkgs.docker}/bin/docker rm qdrant"
+        "${pkgs.docker}/bin/docker pull qdrant/qdrant:latest"
+      ];
+      ExecStart = "${pkgs.docker}/bin/docker run --name qdrant -p 127.0.0.1:6333:6333 -v /var/lib/qdrant:/qdrant/storage qdrant/qdrant:latest";
+      ExecStop = "${pkgs.docker}/bin/docker stop qdrant";
+      Restart = "on-failure";
+      RestartSec = "10s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "qdrant";
+    };
+  };
+
   # l4 image CDN
   atelier.services.l4 = {
     enable = true;
@@ -788,6 +818,15 @@
             middlewares = [ "hsts" ];
             service = "funding-findr";
           };
+          # Ollama embedding server on dippet (Mac mini) via Tailscale
+          # BasicAuth protects the endpoint; Rails reads credentials from credentials.yml
+          ollama = {
+            rule = "Host(`ollama.hogwarts.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" "ollama-auth" ];
+            service = "ollama";
+          };
         };
         middlewares = {
           # Global HSTS middleware — referenced as "hsts" by all file-provider routers
@@ -803,6 +842,7 @@
           };
           crane-strip-ext.stripPrefix.prefixes = [ "/ext" ];
           crane-strip-ubo.stripPrefix.prefixes = [ "/ubo" ];
+          ollama-auth.basicAuth.usersFile = config.age.secrets.ollama-basicauth.path;
         };
         services = {
           knot.loadBalancer.servers = [ { url = "http://127.0.0.1:5555"; } ];
@@ -825,6 +865,7 @@
           # Dummy backend for the redirect router (never actually contacted)
           crane-noop.loadBalancer.servers = [ { url = "http://127.0.0.1:1"; } ];
           funding-findr.loadBalancer.servers = [ { url = "http://127.0.0.1:3300"; } ];
+          ollama.loadBalancer.servers = [ { url = "http://dippet.wildebeest-stargazer.ts.net:11434"; } ];
         };
       };
     };
