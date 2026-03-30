@@ -830,6 +830,33 @@
     };
   };
 
+  # ── Logging → AppSignal ─────────────────────────────────────────────────────
+  # Forward systemd journal entries to rsyslog, then ship FundingFindr logs to
+  # AppSignal over TLS. Only the four funding_findr syslog identifiers are
+  # forwarded — other services on this host are unaffected.
+  services.journald.extraConfig = ''
+    ForwardToSyslog=yes
+  '';
+
+  services.rsyslogd = {
+    enable = true;
+    extraConfig = ''
+      # TLS stream driver for AppSignal
+      $ActionSendStreamDriver gtls
+      $ActionSendStreamDriverMode 1
+      $ActionSendStreamDriverAuthMode anon
+      $DefaultNetstreamDriverCAFile /etc/ssl/certs/ca-bundle.crt
+
+      $template AppsignalFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [ls-18f58f60-a8bb-4270-9a62-d1f8b50d6310@59115] %msg%\n"
+
+      if $programname == 'funding_findr' \
+      or $programname == 'funding_findr_worker_critical' \
+      or $programname == 'funding_findr_worker_default' \
+      or $programname == 'funding_findr_worker_low' \
+      then @@appsignal-endpoint.net:6514;AppsignalFormat
+    '';
+  };
+
   networking.firewall.allowedTCPPorts = [
     80
     443
