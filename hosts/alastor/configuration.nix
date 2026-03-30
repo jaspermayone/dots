@@ -156,8 +156,12 @@
     shell = pkgs.bash;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILAuYbGwEnWMap90JJmUAlZv4lBme1av/rifDdRmcFku github-actions-fundingfindr"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIAYUD7hlKah/XLITcqAl9qW1Qi/pZRhU3H99SUMzMNt maria@marianewman.co"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
     ];
   };
+
+  home-manager.users.fundingfindr = import ./home-fundingfindr.nix;
 
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
