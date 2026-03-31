@@ -151,7 +151,7 @@
       "espanso"
       "gcc-arm-embedded" # ARM embedded toolchain for Pico SDK
       "google-chrome"
-      "ngrok"
+      # "ngrok"  # temporarily removed: download URL returning 500 (2026-03-30)
       "obsidian"
       "raycast"
       "signal"
