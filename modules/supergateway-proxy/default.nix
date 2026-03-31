@@ -22,12 +22,6 @@ let
       secretKey = "mbta";
       favicon = "🚇";
     };
-    parcel-tracking = {
-      domain = "parcel-tracking.mcp.hogwarts.dev";
-      upstream = "http://dippet.wildebeest-stargazer.ts.net:8769";
-      secretKey = "parcel-tracking";
-      favicon = "📦";
-    };
   };
 
   mcpNames = builtins.attrNames mcpProxies;

@@ -137,6 +137,14 @@
         extraOptions.SetEnv = "TERM=xterm-256color";
       };
 
+      # Dippet (Mac Mini server)
+      dippet = {
+        hostname = "10.11.0.36";
+        user = "jsp";
+        identityFile = "~/.ssh/id_ed25519";
+        extraOptions.SetEnv = "TERM=xterm-256color";
+      };
+
       # Horace (named after Horace Slughorn)
       horace = {
         hostname = "horace";
