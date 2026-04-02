@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-"cleanupPeriodDays": 90,
+  "cleanupPeriodDays": 90,
   "attribution": {
     "commit": "",
     "pr": ""
@@ -26,25 +26,7 @@
   },
   "includeCoAuthoredBy": false,
   "enabledPlugins": {
-    "clangd-lsp@claude-plugins-official": true,
-    "clangd@claude-code-lsps": true,
-    "commit-commands@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "frontend-design@claude-plugins-official": true,
-    "github@claude-plugins-official": true,
-    "jdtls@claude-code-lsps": true,
-    "pyright@claude-code-lsps": true,
-    "ruby-lsp@claude-code-lsps": true,
     "ruby-lsp@claude-plugins-official": true,
-    "safety-net@cc-marketplace": true,
-    "security-guidance@claude-plugins-official": true,
-    "stripe@claude-plugins-official": true,
-    "swift-lsp@claude-plugins-official": true,
-    "texlab@claude-code-lsps": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "vercel@claude-plugins-official": true,
-    "vscode-langservers@claude-code-lsps": true,
-    "superpowers@claude-plugins-official": true
   },
   "mcpServers": {
     "qmd": {
