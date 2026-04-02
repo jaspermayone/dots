@@ -186,6 +186,18 @@
           command = "/run/current-system/sw/bin/systemctl restart strapi";
           options = [ "NOPASSWD" ];
         }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker@critical";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker@default";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker@low";
+          options = [ "NOPASSWD" ];
+        }
       ];
     }
   ];
