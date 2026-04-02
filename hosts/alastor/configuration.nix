@@ -187,15 +187,15 @@
           options = [ "NOPASSWD" ];
         }
         {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker@critical";
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_critical";
           options = [ "NOPASSWD" ];
         }
         {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker@default";
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_default";
           options = [ "NOPASSWD" ];
         }
         {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker@low";
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_low";
           options = [ "NOPASSWD" ];
         }
       ];
