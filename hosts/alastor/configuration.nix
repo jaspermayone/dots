@@ -664,6 +664,32 @@
     };
   };
 
+  # ── soju IRC bouncer ─────────────────────────────────────────────────────────
+  services.soju = {
+    enable = true;
+    hostName = "irc.hogwarts.dev";
+    listen = [ ":6697" ];
+    tlsCertificate = "/var/lib/acme/irc.hogwarts.dev/fullchain.pem";
+    tlsCertificateKey = "/var/lib/acme/irc.hogwarts.dev/key.pem";
+    enableMessageLogging = true;
+    acceptProxyIP = [ ];
+  };
+
+  # Let soju read ACME certs (DynamicUser needs the group explicitly)
+  systemd.services.soju.serviceConfig.SupplementaryGroups = [ "acme" ];
+
+  # TLS cert for soju via Let's Encrypt (Cloudflare DNS-01 challenge)
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "webmaster@hogwarts.dev";
+    certs."irc.hogwarts.dev" = {
+      dnsProvider = "cloudflare";
+      reloadServices = [ "soju" ];
+    };
+  };
+  systemd.services."acme-irc.hogwarts.dev".serviceConfig.EnvironmentFile =
+    config.age.secrets.cloudflare-credentials.path;
+
   # ── Traefik ──────────────────────────────────────────────────────────────────
   # Runs as its own Docker Compose stack (modules/traefik) so it is fully
   # decoupled from the NixOS rebuild cycle. Dynamic config fragments in
@@ -919,6 +945,7 @@
     80
     443
     2222 # knot SSH
+    6697 # soju IRC (TLS)
   ];
   networking.firewall.allowedUDPPorts = [ 443 ]; # HTTP/3 (QUIC)
 
