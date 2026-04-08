@@ -685,10 +685,9 @@
     certs."irc.hogwarts.dev" = {
       dnsProvider = "cloudflare";
       reloadServices = [ "soju" ];
+      environmentFile = config.age.secrets.cloudflare-credentials.path;
     };
   };
-  systemd.services."acme-irc.hogwarts.dev".serviceConfig.EnvironmentFile =
-    config.age.secrets.cloudflare-credentials.path;
 
   # ── Traefik ──────────────────────────────────────────────────────────────────
   # Runs as its own Docker Compose stack (modules/traefik) so it is fully
