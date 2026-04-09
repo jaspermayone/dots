@@ -57,6 +57,7 @@ let
           - "/etc/traefik/conf.d:/etc/traefik/conf.d:ro"
           - "/etc/static/traefik:/etc/static/traefik:ro"
           - "/nix/store:/nix/store:ro"
+          - "/run/agenix:/run/agenix:ro"
           - "/var/lib/traefik:/var/lib/traefik"
         env_file:
           - "${cfg.cloudflareCredentialsFile}"

@@ -263,8 +263,17 @@ in
     # Desktop apps are inherited from shared config (espanso, raycast, bitwarden)
   ];
 
-  # Any dippet-specific system defaults
-  # system.defaults = { };
+  # Dippet is a headless server — never sleep, never standby, never auto-power-off.
+  # The shared darwin config sets `pmset -c sleep 0` and `standbydelay 86400`,
+  # but standby/autopoweroff can still kick in after the delay, killing Tailscale
+  # and making Ollama (and everything else) unreachable from alastor.
+  system.activationScripts.postActivation.text = lib.mkAfter ''
+    pmset -c standby 0
+    pmset -c autopoweroff 0
+    pmset -c disksleep 0
+    pmset -c displaysleep 0
+    pmset -c womp 1
+  '';
 
   # Set the hostname
   networking.hostName = "dippet";
