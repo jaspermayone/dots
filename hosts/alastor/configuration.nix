@@ -857,7 +857,7 @@
             rule = "Host(`fundingfindr.co`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" ];
+            middlewares = [ "hsts" "ff-retry" ];
             service = "funding-findr";
           };
           # Ollama embedding server on dippet (Mac mini) via Tailscale
@@ -885,6 +885,12 @@
           crane-strip-ext.stripPrefix.prefixes = [ "/ext" ];
           crane-strip-ubo.stripPrefix.prefixes = [ "/ubo" ];
           ollama-auth.basicAuth.usersFile = config.age.secrets.ollama-basicauth.path;
+          # Retry once on 502/503 during Puma phased restarts — absorbs
+          # the brief window while a worker is cycling.
+          ff-retry.retry = {
+            attempts = 2;
+            initialInterval = "100ms";
+          };
         };
         services = {
           knot.loadBalancer.servers = [ { url = "http://127.0.0.1:5555"; } ];
@@ -906,7 +912,14 @@
           crane-memory.loadBalancer.servers = [ { url = "http://127.0.0.1:9005"; } ];
           # Dummy backend for the redirect router (never actually contacted)
           crane-noop.loadBalancer.servers = [ { url = "http://127.0.0.1:1"; } ];
-          funding-findr.loadBalancer.servers = [ { url = "http://127.0.0.1:3300"; } ];
+          funding-findr.loadBalancer = {
+            servers = [ { url = "http://127.0.0.1:3300"; } ];
+            healthCheck = {
+              path = "/up";
+              interval = "5s";
+              timeout = "3s";
+            };
+          };
           ollama.loadBalancer.servers = [ { url = "http://dippet.wildebeest-stargazer.ts.net:11434"; } ];
         };
       };
