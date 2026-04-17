@@ -74,6 +74,7 @@ in
           "NODE_ENV=production"
           "HOST=127.0.0.1"
           "PORT=${toString cfg.port}"
+          "CLIENT_URL=https://fundingfindr.co"
         ];
         ExecStart = "${pkgs.nodejs}/bin/node node_modules/.bin/strapi start";
         Restart = "on-failure";
