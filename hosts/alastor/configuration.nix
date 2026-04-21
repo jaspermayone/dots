@@ -47,6 +47,20 @@ let
         ;;
     esac
   '';
+
+  # Scoped rails console wrapper for Maria — runs as fundingfindr, no other
+  # commands are permitted. Console1984 logs all activity inside the app.
+  ff-console = pkgs.writeShellScriptBin "ff-console" ''
+    set -a
+    [ -f /etc/funding_findr/env ] && . /etc/funding_findr/env
+    set +a
+    export RAILS_ENV=production
+    export BUNDLE_PATH=vendor/bundle
+    export BUNDLE_WITHOUT=development:test
+    export RUBY_YJIT_ENABLE=1
+    cd /home/fundingfindr/funding_findr
+    exec bundle exec rails console
+  '';
 in
 
 {
@@ -111,6 +125,7 @@ in
     bluesky-pds
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
     # FundingFindr deploy toolchain
+    ff-console
     pkgs.unstable.ruby_4_0
     pkgs.unstable.bundler
     nodejs_22
@@ -199,8 +214,17 @@ in
     shell = pkgs.bash;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILAuYbGwEnWMap90JJmUAlZv4lBme1av/rifDdRmcFku github-actions-fundingfindr"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIAYUD7hlKah/XLITcqAl9qW1Qi/pZRhU3H99SUMzMNt maria@marianewman.co"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
+    ];
+  };
+
+  # Maria Newman — rails console only (no deploy user access)
+  users.users.maria = {
+    isNormalUser = true;
+    group = "users";
+    shell = pkgs.bash;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIAYUD7hlKah/XLITcqAl9qW1Qi/pZRhU3H99SUMzMNt maria@marianewman.co"
     ];
   };
 
@@ -210,6 +234,18 @@ in
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
   security.sudo.extraRules = [
+    {
+      # Maria can only open a rails console as fundingfindr — nothing else.
+      # Console1984 logs all activity inside the app.
+      users = [ "maria" ];
+      runAs = "fundingfindr";
+      commands = [
+        {
+          command = "${ff-console}/bin/ff-console";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
     {
       users = [ "fundingfindr" ];
       commands = [
