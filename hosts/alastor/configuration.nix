@@ -8,6 +8,47 @@
   ...
 }:
 
+let
+  # Helper script for managing per-PR preview Traefik routing.
+  # Runs as root (via sudo) to write/delete dynamic config files in
+  # /etc/traefik/conf.d/. Traefik watches that directory and hot-reloads.
+  preview-traefik = pkgs.writeShellScriptBin "preview-traefik" ''
+    set -euo pipefail
+    ACTION="''${1:?Usage: preview-traefik (write <pr> <slug> <port> | delete <pr>)}"
+    PR="''${2:?Missing PR number}"
+
+    case "$ACTION" in
+      write)
+        SLUG="''${3:?Missing slug}"
+        PORT="''${4:?Missing port}"
+        cat > "/etc/traefik/conf.d/preview-pr-''${PR}.toml" <<TOML
+    [http.routers.preview-pr-''${PR}]
+      rule = "Host(\`''${SLUG}.preview.fundingfindr.co\`)"
+      entryPoints = ["websecure"]
+      service = "preview-pr-''${PR}"
+      [http.routers.preview-pr-''${PR}.tls]
+        certResolver = "cloudflare"
+        [[http.routers.preview-pr-''${PR}.tls.domains]]
+          main = "*.preview.fundingfindr.co"
+
+    [http.services.preview-pr-''${PR}.loadBalancer]
+      [[http.services.preview-pr-''${PR}.loadBalancer.servers]]
+        url = "http://127.0.0.1:''${PORT}"
+    TOML
+        echo "Wrote Traefik config for preview PR #''${PR} (''${SLUG} -> :''${PORT})"
+        ;;
+      delete)
+        rm -f "/etc/traefik/conf.d/preview-pr-''${PR}.toml"
+        echo "Removed Traefik config for preview PR #''${PR}"
+        ;;
+      *)
+        echo "Usage: preview-traefik (write <pr> <slug> <port> | delete <pr>)" >&2
+        exit 1
+        ;;
+    esac
+  '';
+in
+
 {
   imports = [
     ./hardware-configuration.nix
@@ -84,6 +125,8 @@
     openssl
     libxml2
     libxslt
+    # Preview deploy helper (writes Traefik dynamic config for per-PR previews)
+    preview-traefik
   ];
 
   # NH - NixOS helper
@@ -196,6 +239,11 @@
         }
         {
           command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_low";
+          options = [ "NOPASSWD" ];
+        }
+        # Preview deploy helper — writes/deletes Traefik dynamic config files
+        {
+          command = "${preview-traefik}/bin/preview-traefik *";
           options = [ "NOPASSWD" ];
         }
       ];
@@ -313,6 +361,7 @@
       "strings-witcc"
       "docuseal"
       "redis-docuseal"
+      "ollama"
       "docker"
     ];
     remoteHosts = [
@@ -607,6 +656,31 @@
     };
   };
 
+  # Ollama embedding server (nomic-embed-text for FundingFindr semantic search)
+  # Binds to 127.0.0.1:11434 — only accessible from this host
+  # Model data persisted at /var/lib/ollama
+  # After first deploy, pull the model: docker exec ollama ollama pull nomic-embed-text
+  systemd.services.ollama = {
+    description = "Ollama Embedding Server";
+    after = [ "docker.service" "network.target" ];
+    requires = [ "docker.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStartPre = [
+        "-${pkgs.docker}/bin/docker stop ollama"
+        "-${pkgs.docker}/bin/docker rm ollama"
+      ];
+      ExecStart = "${pkgs.docker}/bin/docker run --name ollama -p 127.0.0.1:11434:11434 -v /var/lib/ollama:/root/.ollama ollama/ollama";
+      ExecStop = "${pkgs.docker}/bin/docker stop ollama";
+      Restart = "on-failure";
+      RestartSec = "10s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "ollama";
+    };
+  };
+
   # l4 image CDN
   atelier.services.l4 = {
     enable = true;
@@ -860,8 +934,8 @@
             middlewares = [ "hsts" "ff-retry" ];
             service = "funding-findr";
           };
-          # Ollama embedding server on dippet (Mac mini) via Tailscale
-          # BasicAuth protects the endpoint; Rails reads credentials from credentials.yml
+          # Ollama embedding server (local Docker container on port 11434)
+          # BasicAuth protects the public endpoint; Rails reads credentials from credentials.yml
           ollama = {
             rule = "Host(`ollama.hogwarts.dev`)";
             entryPoints = [ "websecure" ];
@@ -920,7 +994,7 @@
               timeout = "3s";
             };
           };
-          ollama.loadBalancer.servers = [ { url = "http://dippet.wildebeest-stargazer.ts.net:11434"; } ];
+          ollama.loadBalancer.servers = [ { url = "http://127.0.0.1:11434"; } ];
         };
       };
     };
