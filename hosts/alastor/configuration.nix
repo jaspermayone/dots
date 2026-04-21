@@ -659,7 +659,6 @@ in
   # Ollama embedding server (nomic-embed-text for FundingFindr semantic search)
   # Binds to 127.0.0.1:11434 — only accessible from this host
   # Model data persisted at /var/lib/ollama
-  # After first deploy, pull the model: docker exec ollama ollama pull nomic-embed-text
   systemd.services.ollama = {
     description = "Ollama Embedding Server";
     after = [ "docker.service" "network.target" ];
@@ -670,6 +669,7 @@ in
       ExecStartPre = [
         "-${pkgs.docker}/bin/docker stop ollama"
         "-${pkgs.docker}/bin/docker rm ollama"
+        "${pkgs.docker}/bin/docker pull ollama/ollama"
       ];
       ExecStart = "${pkgs.docker}/bin/docker run --name ollama -p 127.0.0.1:11434:11434 -v /var/lib/ollama:/root/.ollama ollama/ollama";
       ExecStop = "${pkgs.docker}/bin/docker stop ollama";
@@ -678,6 +678,24 @@ in
       StandardOutput = "journal";
       StandardError = "journal";
       SyslogIdentifier = "ollama";
+    };
+  };
+
+  # Pull the nomic-embed-text model after Ollama starts (no-op if already present)
+  systemd.services.ollama-pull-model = {
+    description = "Pull Ollama nomic-embed-text model";
+    after = [ "ollama.service" ];
+    requires = [ "ollama.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      # Give Ollama a moment to be ready for API requests
+      ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
+      ExecStart = "${pkgs.docker}/bin/docker exec ollama ollama pull nomic-embed-text";
+      RemainAfterExit = true;
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "ollama-pull-model";
     };
   };
 
