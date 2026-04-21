@@ -200,19 +200,8 @@ When installing new tools or services globally:
 
 - Prefer adding them to the appropriate Nix module in `/Users/jsp/dev/dots` and rebuilding (for example with `darwin-rebuild switch --flake /Users/jsp/dev/dots#remus`) instead of ad‑hoc installs.
 
-### Git / commits guardrails
-
-Claude must never create or apply Git commits without my explicit sign‑off.
-
-- Do not run or suggest running commands that create commits automatically (for example `git commit`, `git commit -am`, `jj commit`, or tools that auto‑commit as part of their workflow) unless I have explicitly asked for a commit with a specific message.
-- When proposing changes, only:
-  - Show diffs / patches, or
-  - Suggest the commands I could run myself.
-
-I will always review changes before committing. Claude’s job is to propose edits (files, hunks, commands), not to decide when something is ready to be committed.
 
 ### Secrets / .env guardrails
-
 Claude must never read or inspect secrets (API keys, tokens, passwords, etc.) without explicit permission.
 
 Hard rules:

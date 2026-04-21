@@ -10,9 +10,11 @@
   "skipDangerousModePermissionPrompt": true,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1",
     "ENABLE_LSP_TOOL": "1",
     "CLAUDE_CODE_ENABLE_TELEMETRY": "0"
   },
+  "model": "opusplan",
   "worktree": {
     "symlinkDirectories": [
       "node_modules",
@@ -26,8 +28,12 @@
   },
   "includeCoAuthoredBy": false,
   "enabledPlugins": {
-    "ruby-lsp@claude-plugins-official": true
+    "ruby-lsp@claude-plugins-official": true,
+    "figma@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true
   },
+  "tui": "fullscreen",
   "mcpServers": {
     "qmd": {
       "command": "qmd",
@@ -94,5 +100,9 @@
       "Read(secrets.*)",
       "Read(*.age)"
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/jsp/.claude/statusline-command.sh"
   }
 }
