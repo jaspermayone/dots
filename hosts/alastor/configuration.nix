@@ -241,7 +241,7 @@ in
       runAs = "fundingfindr";
       commands = [
         {
-          command = "${ff-console}/bin/ff-console";
+          command = "/run/current-system/sw/bin/ff-console";
           options = [ "NOPASSWD" ];
         }
       ];

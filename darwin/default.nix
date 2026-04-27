@@ -109,7 +109,6 @@
       # Custom/personal
       "jaspermayone/tap/boxcar"
       "minio/stable/mc"
-      "ruby"
 
       # Build tools
       "ccache"
