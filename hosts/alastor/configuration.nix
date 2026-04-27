@@ -764,9 +764,17 @@ in
 
   # ── nginx ────────────────────────────────────────────────────────────────────
   # Port 8091: crane-services static files (bangs.json, filters/, robots.txt)
+  # Port 3398: FundingFindr static error pages (served independently of Puma)
   # Ports 8092, 8095 are handled by bluesky-pds and img modules respectively.
   services.nginx = {
     enable = true;
+    virtualHosts."ff-error-pages" = {
+      listen = [ { addr = "127.0.0.1"; port = 3398; } ];
+      root = "/home/fundingfindr/funding_findr/public";
+      locations."/" = {
+        tryFiles = "$uri =404";
+      };
+    };
     virtualHosts."crane-static" = {
       listen = [ { addr = "127.0.0.1"; port = 8091; } ];
       locations."/robots.txt" = {
@@ -985,7 +993,7 @@ in
             rule = "Host(`fundingfindr.co`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" "ff-retry" ];
+            middlewares = [ "hsts" "ff-retry" "ff-error-pages" ];
             service = "funding-findr";
           };
           # Ollama embedding server (local Docker container on port 11434)
@@ -1019,6 +1027,13 @@ in
             attempts = 2;
             initialInterval = "100ms";
           };
+          # Serve FF-branded error pages from the nginx static server (port 3398)
+          # when Puma is unreachable. Scoped to the FF router only.
+          ff-error-pages.errors = {
+            status = [ "500-504" ];
+            service = "ff-error-pages";
+            query = "/{status}.html";
+          };
         };
         services = {
           knot.loadBalancer.servers = [ { url = "http://127.0.0.1:5555"; } ];
@@ -1048,6 +1063,7 @@ in
               timeout = "3s";
             };
           };
+          ff-error-pages.loadBalancer.servers = [ { url = "http://127.0.0.1:3398"; } ];
           ollama.loadBalancer.servers = [ { url = "http://127.0.0.1:11434"; } ];
         };
       };
