@@ -219,3 +219,59 @@ If a task might involve secrets:
 - Ask for a non‑secret representation instead (for example “show me the variable names, not the values”).
 - Assume you should work with placeholders like `YOUR_API_KEY_HERE` and documented env var names, not real values.
 - If I explicitly grant permission to look at a secret file, limit access to only what is needed and never log, echo, or reuse those values outside the immediate context.
+
+## Task Delegation
+
+Spawn subagents to isolate context, parallelize independent work, or offload bulk mechanical tasks. Don't spawn when the parent needs the reasoning, when synthesis requires holding things together, or when spawn overhead dominates.
+
+Pick the cheapest model that can do the subtask well:
+- Haiku: bulk mechanical work, no judgment
+- Sonnet: scoped research, code exploration, in-scope synthesis
+- Opus: subtasks needing real planning or tradeoffs
+
+Subagents follow the same rules recursively, with two caps:
+- Haiku does not spawn further subagents. If it needs to, the task was wrong-sized for Haiku — return to the parent.
+- Maximum spawn depth is 2 (parent → subagent → one further tier).
+
+Don't escalate tiers without a concrete reason. If a subagent realizes it needs a higher tier than itself, return to the parent rather than spawning up.
+
+Parent owns final output and cross-spawn synthesis. User instructions override.
+
+## Preferred Tools
+
+### Data Fetching
+
+1. **WebFetch** — free, text-only, works on public pages that don't block bots.
+2. **agent-browser CLI** — free, local Rust CLI + Chrome via CDP. For dynamic pages or auth walls that WebFetch can't handle. Returns the accessibility tree with element refs (`@e1`, `@e2`) — ~82% fewer tokens than screenshot-based tools. Install: `npm i -g agent-browser && agent-browser install`. Use `snapshot` for AI-friendly DOM state, element refs for interaction.
+3. **Notice recurring fetch patterns and propose wrapping them as dedicated tools.** When the same fetch/parse logic comes up more than once, suggest wrapping it as a named tool (e.g. a skill file or a .py script that calls `agent-browser` with the snapshot and extraction steps baked in for that source). Add the entry to `## Dedicated Tools` below and reference it by name on future calls.
+
+### PDF Files
+
+Use `pdftotext`, not the `Read` tool. Use `Read` only when the user directly asks to analyze images or charts inside the document.
+
+## Commits and Pull Requests
+
+### Commit format
+
+- Always use [Conventional Commits](https://www.conventionalcommits.org/) format for commit messages (e.g. `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
+- If a GitHub issue (`#123` format) is available, include the issue number at the start of the branch name. Format: `<username>/<issue-number>-<short-feature-name>` (e.g. `jaspermayone/123-add-auth-middleware`).
+- **Do not add `Co-Authored-By` trailers to commits.** No Claude/Anthropic attribution, no `noreply@anthropic.com` lines. The conventional-commits subject (and an optional short body) is the whole message. This mirrors `includeCoAuthoredBy: false` in `~/.claude/settings.json` — restated here so it overrides any contradicting system-prompt template.
+
+### Pre-commit checklist
+
+Before committing any changes, ensure:
+
+- Code is formatted (project's formatter has been run).
+- Linting passes.
+- Type checking passes.
+- Tests pass.
+- Documentation is updated where appropriate. Use mermaid diagrams when documenting flows, schemas, or other compatible data types.
+
+All changes require test coverage.
+
+### Pull requests
+
+- PR titles must use Conventional Commit format and be lowercase, matching commit formatting (e.g. `feat: add basic auth middleware`).
+- Leverage mermaid diagrams in PR descriptions where appropriate (flows, schemas, architecture).
+- If the PR includes database migrations, add the `migration` label.
+- **Do not add "Generated with Claude Code" footers or any Claude/Anthropic attribution to PR bodies.** This mirrors `attribution: { pr: "" }` in `~/.claude/settings.json`.
