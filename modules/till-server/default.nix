@@ -77,6 +77,7 @@ in
         StateDirectoryMode = "0750";
         ExecStart = pkgs.writeShellScript "till-server-sync" ''
           set -euo pipefail
+          export PATH="${pkgs.git}/bin:${pkgs.nodejs_22}/bin:${pkgs.pnpm}/bin:${pkgs.bash}/bin:$PATH"
           REPO=/var/lib/till-server/repo
           GITHUB_TOKEN=$(cat ${cfg.repoTokenFile})
 
