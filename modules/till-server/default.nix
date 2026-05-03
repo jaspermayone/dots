@@ -92,7 +92,9 @@ in
           fi
 
           cd "$REPO"
-          ${pkgs.pnpm}/bin/pnpm install --frozen-lockfile --filter @till/server...
+          # --ignore-scripts skips better-sqlite3 (node-gyp) and esbuild native
+          # builds — both are CLI-only deps the server doesn't use.
+          ${pkgs.pnpm}/bin/pnpm install --frozen-lockfile --ignore-scripts
           ${pkgs.pnpm}/bin/pnpm --filter @till/shared build
           ${pkgs.pnpm}/bin/pnpm --filter @till/github build
           ${pkgs.pnpm}/bin/pnpm --filter @till/db build

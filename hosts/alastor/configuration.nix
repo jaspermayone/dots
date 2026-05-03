@@ -99,10 +99,16 @@ in
 
   # Nix settings
   nix = {
-    settings.experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      trusted-users = [
+        "root"
+        "jsp"
+      ];
+    };
     optimise.automatic = true;
   };
 
