@@ -79,6 +79,7 @@ in
     ../../modules/authentik
     ../../modules/img
     ../../modules/l4
+    ../../modules/till-server
     inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
     inputs.tangled.nixosModules.spindle
@@ -367,6 +368,16 @@ in
       file = ../../secrets/ollama-basicauth.age;
       mode = "400";
     };
+    till-github-token = {
+      file = ../../secrets/till-github-token.age;
+      mode = "400";
+      owner = "till";
+    };
+    till-server-env = {
+      file = ../../secrets/till-server-env.age;
+      mode = "400";
+      owner = "till";
+    };
   };
 
   # ── Services ────────────────────────────────────────────────────────────────
@@ -496,7 +507,7 @@ in
     environmentFile = config.age.secrets.authentik-env.path;
   };
 
-  # PostgreSQL for FundingFindr
+  # PostgreSQL for FundingFindr and till
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_16;
@@ -504,12 +515,17 @@ in
       {
         name = "fundingfindr";
       }
+      {
+        name = "till";
+        ensureDBOwnership = true;
+      }
     ];
     ensureDatabases = [
       "funding_findr_production"
       "funding_findr_queue_production"
       "funding_findr_cache_production"
       "funding_findr_cable_production"
+      "till"
     ];
     initialScript = pkgs.writeText "postgres-init.sql" ''
       GRANT ALL PRIVILEGES ON DATABASE funding_findr_production TO fundingfindr;
@@ -560,6 +576,7 @@ in
         "RUBY_YJIT_ENABLE=1"
         "BUNDLE_PATH=vendor/bundle"
         "BUNDLE_WITHOUT=development:test"
+        "GTM_CONTAINER_ID=GTM-5GGR5CCW"
       ];
       ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec puma -C config/puma.rb'";
       ExecReload = "/run/current-system/sw/bin/bash -lc 'bundle exec pumactl -S /home/fundingfindr/funding_findr/tmp/pids/puma.state phased-restart'";
@@ -740,6 +757,14 @@ in
     enable = true;
     hostname = "l4.jaspermayone.com";
     environmentFile = config.age.secrets.l4-env.path;
+  };
+
+  # till API server
+  atelier.services.till-server = {
+    enable = true;
+    hostname = "api.usetill.dev";
+    repoTokenFile = config.age.secrets.till-github-token.path;
+    environmentFile = config.age.secrets.till-server-env.path;
   };
 
   # img static site (Authentik-protected)

@@ -185,4 +185,20 @@ jsp
     alastor
   ];
 
+  # GitHub PAT (read-only) for cloning usetill/cleanroom on alastor.
+  # File contents: raw token only, e.g. github_pat_xxxxxxxxxxxxxxxxxxxx
+  "till-github-token.age".publicKeys = [
+    jsp
+    alastor
+  ];
+
+  # till server runtime env vars.
+  # Required: DATABASE_URL=postgresql://till@/till
+  # Optional: APP_URL, GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY,
+  #           GITHUB_WEBHOOK_SECRET, GITHUB_OAUTH_CLIENT_ID, GITHUB_OAUTH_CLIENT_SECRET
+  "till-server-env.age".publicKeys = [
+    jsp
+    alastor
+  ];
+
 }

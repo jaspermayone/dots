@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "mcp__plugin_github_github__get_file_contents"
-    ]
-  }
-}

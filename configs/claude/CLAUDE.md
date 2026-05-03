@@ -1,277 +1,146 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) and Claude on how to work in this repo, any repo, and on my machines: which tools to prefer, what environment to assume, and hard guardrails it must follow.
+Guidance for Claude Code and Claude on this repo and my machines.
 
 ---
 
-## General workflow
+## General Workflow
 
-- Always prefer using the `gh` CLI for GitHub actions wherever possible (creating PRs, checking status, viewing checks, etc.) instead of doing these in the browser. If there is a reasonable way to do it with `gh`, default to that.
-
-- Commit messages do not need to be long or highly detailed. Aim for a short, clear summary of what changed (for example: `fix: handle null user id` or `feat: add basic auth middleware`). Avoid walls of text, but include enough signal that future‑you can tell what happened at a glance.
-
-- After addressing PR comments, you can resolve the comment thread yourself if you have fixed or intentionally addressed the feedback. If you are unsure whether something is fully resolved, leave the thread open and reply with context instead.
+- Use `gh` CLI for GitHub actions (PRs, checks, status) over the browser whenever possible.
+- Commit messages: short Conventional Commits format (`feat:`, `fix:`, `chore:`, etc.). No walls of text.
+- After addressing PR comments, resolve the thread yourself if fully fixed. Leave it open with context if unsure.
 
 ---
 
-## Local dev tools
+## Local Dev Tools
 
-We use two main tools for local dev environments: `wut` for feature/issue branches inside a repo, and `try` for ad‑hoc experiments and scratch work.
+Both `wut` and `try` are installed via dotfiles with shell integration. Assume they're available.
 
-Both `wut` and `try` are already installed and configured via my dotfiles, including shell integration, so you can assume their commands and `init` hooks are available in interactive shells.
+### wut — ephemeral worktrees
 
-### wut – ephemeral worktrees for repo features
+Use for structured work that becomes a branch/PR.
 
-When working on new features or issues, prefer using Git worktrees to isolate your changes whenever it feels appropriate. In this repo, we use the [`wut`](https://github.com/simonbs/wut) CLI to make creating and managing ephemeral worktrees fast and low‑friction.
+- `wut new feature-<name>` / `wut new fix-<name>` — creates branch + worktree under `.worktrees/`, cds in.
+- `wut new <name> --from <ref>` — base off another branch or SHA.
+- `wut list` / `wut go [branch]` — navigate worktrees.
+- `wut rm <branch>` — clean up when done.
 
-Use `wut` when you are doing structured work that will turn into a branch/PR in this repo.
+Keep each worktree focused on one feature/issue.
 
-**Worktree workflow with wut:**
+### try — scratch experiments
 
-1. From the main repo directory, create a new worktree for your branch:
+Use for spikes, one-off clones, or experiments that don't belong in `.worktrees/`.
 
-   - For a new feature: `wut new feature-<short-description>`
-   - For a bugfix: `wut new fix-<short-description>`
-   - You can optionally base it off another ref:
-     `wut new feature-<short-description> --from other-branch-or-sha`
+- `try` — opens TUI to browse existing experiments.
+- `try <keyword>` — fuzzy-find or create a date-prefixed experiment (`2026-02-09-keyword`).
+- `try clone <url>` / `try <url>` — clone a repo into a dated directory.
+- `try . [name]` — detached-HEAD worktree from the current repo.
 
-2. `wut` will:
-
-   - Create a new branch with the given name (unless it already exists)
-   - Create a corresponding worktree under `.worktrees/<branch-name>`
-   - Automatically `cd` you into that worktree (shell integration is already set up in dotfiles)
-
-3. Do all work related to that feature or issue inside the worktree:
-
-   - Edit, commit, and push from the worktree directory as you normally would
-   - Keep each worktree focused on a single feature/issue to avoid cross‑contamination of changes
-
-4. When you are done and your branch is merged (or no longer needed), clean up the worktree:
-
-   - `wut rm <branch-name>`
-   - This will remove the worktree directory and delete the branch (unless you pass `--force` for edge cases)
-
-5. To jump between worktrees and the main repo:
-
-   - `wut list` to see existing worktrees
-   - `wut go` to switch back to the main worktree (usually `main`)
-   - `wut go <branch-name>` to jump into a specific worktree
-
-`wut` keeps all worktrees in a `.worktrees/` directory in the repo root and automatically ensures they are ignored by Git. For more details and advanced usage (autocompletion, fzf integration, etc.), see the wut README: https://github.com/simonbs/wut
-
-### try – scratch experiments, spikes, and quick repos
-
-We also use [`try`](https://github.com/tobi/try) for quick experiments and ad‑hoc worktrees outside the main long‑lived branches.
-
-Use `try` when you want to:
-
-- Spin up a short‑lived experiment or spike
-- Clone a repo just to poke at it
-- Create a one‑off worktree for something that does not need to live under `.worktrees/` in this repo
-
-By default (as configured in dotfiles), `try` keeps experiments in a single directory (usually `~/src/tries`), with date‑prefixed names like `2026-02-09-new-api`.
-
-**Experiment workflow with try:**
-
-- Basic usage for greenfield experiments:
-
-  - `try`
-    Opens the TUI to browse all existing experiments and jump into one.
-
-  - `try <keyword>`
-    Fuzzy‑searches your existing experiments and lets you jump into one or create a new one with that name (auto‑prefixed with today’s date, like `2026-02-09-new-api`).
-
-- Git repo experiments and cloning:
-
-  - `try clone https://github.com/user/repo.git`
-    Clones the repo into a date‑prefixed directory (for example `2026-02-09-user-repo`) and jumps into it.
-
-  - `try https://github.com/user/repo.git`
-    Shorthand for the same clone behavior.
-
-  Use these when you want to try out a repo, test a branch, or explore an upstream project without polluting your main projects directory.
-
-- Worktrees via try:
-
-  - From inside an existing Git repo:
-
-    - `try . [name]`
-      Creates a dated directory for a detached‑HEAD Git worktree based on the current repo and jumps into it. The directory name defaults to the repo’s basename, date‑prefixed, unless you pass a custom `[name]`.
-
-    - `try worktree dir [name]`
-      Explicit form of the same behavior, useful in scripts.
-
-  Use this when you want a one‑off, short‑lived worktree for an experiment that does not need to be managed by `wut` or live inside the repo’s `.worktrees` folder.
-
-You can assume `try` is available with shell integration and a configured experiments path; no additional setup is needed in individual repos.
+Experiments live in `~/src/tries` by default.
 
 ---
 
-## Rails scaffolding and Homebrew tap
+## Rails and Homebrew
 
-### boxcar – Rails app generator
+### boxcar
 
-When suggesting new Rails apps or services, prefer using my [`boxcar`](https://github.com/jaspermayone/boxcar) template rather than `rails new` directly.
-
-- `boxcar` is installed via my personal Homebrew tap as `boxcar`.
-- It provides my opinionated defaults for Rails apps (deployment, gems, structure, etc.), so new Rails projects should assume this template unless there is a strong reason not to.
-
-Typical usage for a new Rails app:
+Use [`boxcar`](https://github.com/jaspermayone/boxcar) instead of `rails new` for all new Rails apps. Installed via my Homebrew tap.
 
 - `boxcar new <app-name>`
-- Then follow any setup instructions in the generated README / scripts.
+- Respect existing `boxcar` conventions in apps already generated with it.
 
-Claude should assume:
+### Homebrew tap
 
-- New Rails services or prototypes start from `boxcar`.
-- If modifying or extending an existing Rails app created with `boxcar`, respect its existing conventions rather than suggesting a completely different structure.
+Tap: `jaspermayone/tap` (already tapped on my machines).
 
-### Homebrew tap and custom tools
+- `brew install jaspermayone/tap/boxcar`
+- `brew install --cask zipmerge`
 
-I maintain a personal Homebrew tap at [`jaspermayone/homebrew-tap`](https://github.com/jaspermayone/homebrew-tap), which is already tapped on my machines:
-
-- `brew tap jaspermayone/tap`
-
-From this tap:
-
-- `boxcar` – Rails app generator (see above).
-- `zipmerge` (cask) – macOS app for merging zip files.
-
-When suggesting installs or updates for these tools:
-
-- Prefer `brew install jaspermayone/tap/boxcar` for `boxcar`.
-- Prefer `brew install --cask zipmerge` for ZipMerge rather than manual downloads.
-
-Claude should assume these are already installed on my main dev machine unless explicitly stated otherwise, and avoid redundant installation instructions.
+Assume these are installed. Skip redundant install instructions.
 
 ---
 
-## Environment and dotfiles
+## Environment and Dotfiles
 
-This repo lives on machines managed by my Nix‑based dotfiles: [`jaspermayone/dots`](https://github.com/jaspermayone/dots). Those dotfiles define almost all of my tools, shells, and defaults.
+Machines are managed by [`jaspermayone/dots`](https://github.com/jaspermayone/dots) (Nix/nix-darwin). Dotfiles live at `/Users/jsp/dev/dots` on **remus** (primary dev machine, macOS).
 
-On my primary dev machine **remus** (macOS, nix‑darwin), the dotfiles repo is checked out at:
+Assume:
+- All common tools (`wut`, `try`, `gh`, Nix, Home Manager, etc.) are wired up by the flake.
+- Secrets are managed with `agenix`. Never hard-code secrets.
+- Shell config comes from `home`/`rc` modules in `dots`.
+- **alastor** is the central NixOS VPS host for tunnels, status pages, and VPS config.
 
-- `/Users/jsp/dev/dots`
-
-Claude should assume:
-
-- remus is the main development environment, configured via the `remus` host in `dots`, and changes to global tools/services should go through that flake.
-- Secrets and tokens are managed with `agenix` in `dots` (no hard‑coding secrets into config or examples).
-- Common tools (`wut`, `try`, `gh`, Nix, Home Manager, `bore`, `frp`, status services, etc.) are already installed and wired up by the flake and Home Manager configs.
-- Shell configuration (prompt, aliases, `wut`, `try`, `gh`, etc.) comes from the `home` and `rc` modules in `dots`, so suggestions can rely on those being available in interactive shells.
-
-When proposing changes that touch system configuration, services, or global tooling, prefer:
-
-- Editing the appropriate Nix module in `dots` (for example under `hosts/`, `modules/`, or `home/`) and rebuilding via `nix flake` / `darwin-rebuild` / `nixos-rebuild`, rather than one‑off manual changes.
-- Adding new system‑level tools or services via the `dots` flake, not ad‑hoc `brew install` / manual installers, unless explicitly noted as temporary.
-
-For anything involving tunnels, status pages, or VPS config, treat **alastor** as the central NixOS host, managed entirely through the `dots` repo.
+For system-level changes, prefer editing the appropriate Nix module and rebuilding (`darwin-rebuild switch --flake /Users/jsp/dev/dots#remus`), not one-off installs.
 
 ---
 
 ## Guardrails
 
-### Dotfiles / Nix guardrails
+### Dotfiles / Nix
 
-My environment is managed by my Nix‑based dotfiles repo [`jaspermayone/dots`](https://github.com/jaspermayone/dots).
+Treat `dots` as infrastructure. When touching Nix config:
 
-On my main dev machine (**remus**, macOS nix‑darwin) this repo lives at `/Users/jsp/dev/dots`. These configs are the source of truth for system packages, services, shells, and most tooling. They should be treated as infrastructure, not a scratchpad.
+- Make small, targeted edits. Show exact file path and before/after snippet.
+- Relevant paths: `flake.nix`, `hosts/remus/`, `home/`, `modules/`, `packages/`.
+- Do not mass-rewrite, mass-rename, or remove hosts/modules unless explicitly told to decommission them.
+- Do not write secrets into Nix files. Use `agenix` via `dots/secrets/`.
+- Do not suggest bypassing Nix with `brew install` or editing `~/.zshrc` unless explicitly a temporary workaround.
 
-When suggesting changes that touch dotfiles or Nix config:
+### Secrets
 
-- Prefer small, targeted edits with clear context over broad refactors.
-- Assume changes should be made via:
-  - `/Users/jsp/dev/dots/flake.nix`
-  - `/Users/jsp/dev/dots/hosts/remus/...`
-  - `/Users/jsp/dev/dots/home/...`
-  - `/Users/jsp/dev/dots/modules/...`
-  - `/Users/jsp/dev/dots/packages/...`
-- Always show the exact file path and the full before/after snippet for any proposed edit, so it is easy to review.
+Never read or inspect secrets without explicit permission.
 
-Hard guardrails:
+- Do not open `.env`, `.env.*`, `secrets.*`, `*.age`, or any credential file.
+- Do not suggest commands that print secrets (`cat .env`, `printenv` dumps, etc.) unless explicitly asked.
+- Work with placeholder names (`YOUR_API_KEY_HERE`) and documented env var names, not real values.
+- If granted access to a secret file, use only what's needed and never log or reuse values.
 
-- Do not propose sweeping or automated rewrites of the dotfiles (no “just search and replace across the repo”, no mass renames).
-- Do not remove existing options, modules, or hosts unless the instruction explicitly says to decommission them.
-- Do not suggest writing secrets or tokens directly into Nix files or shell configs. Use `agenix` secrets as defined in `dots/secrets/` instead.
-- Do not recommend bypassing Nix/dots with one‑off global changes (`brew install`, editing raw `~/.zshrc`, etc.) unless explicitly described as a temporary workaround.
-
-When installing new tools or services globally:
-
-- Prefer adding them to the appropriate Nix module in `/Users/jsp/dev/dots` and rebuilding (for example with `darwin-rebuild switch --flake /Users/jsp/dev/dots#remus`) instead of ad‑hoc installs.
-
-
-### Secrets / .env guardrails
-Claude must never read or inspect secrets (API keys, tokens, passwords, etc.) without explicit permission.
-
-Hard rules:
-
-- Do not open, read, or ask to see:
-  - `.env` files
-  - `.env.*` variants
-  - `secrets.*` files
-  - `*.age` or other encrypted secret blobs
-  - Any file or path clearly used for secrets/credentials
-- Do not suggest commands that print or expose secrets (for example `cat .env`, `cat secrets.*`, `printenv` dumps) unless I have explicitly asked for that exact action.
-
-If a task might involve secrets:
-
-- Ask for a non‑secret representation instead (for example “show me the variable names, not the values”).
-- Assume you should work with placeholders like `YOUR_API_KEY_HERE` and documented env var names, not real values.
-- If I explicitly grant permission to look at a secret file, limit access to only what is needed and never log, echo, or reuse those values outside the immediate context.
+---
 
 ## Task Delegation
 
-Spawn subagents to isolate context, parallelize independent work, or offload bulk mechanical tasks. Don't spawn when the parent needs the reasoning, when synthesis requires holding things together, or when spawn overhead dominates.
+Spawn subagents to isolate context, parallelize work, or offload bulk tasks. Don't spawn when the parent needs the reasoning or synthesis requires holding context together.
 
-Pick the cheapest model that can do the subtask well:
-- Haiku: bulk mechanical work, no judgment
-- Sonnet: scoped research, code exploration, in-scope synthesis
-- Opus: subtasks needing real planning or tradeoffs
+Model selection:
+- **Haiku**: bulk mechanical work, no judgment needed.
+- **Sonnet**: scoped research, code exploration, in-scope synthesis.
+- **Opus**: subtasks needing real planning or tradeoffs.
 
-Subagents follow the same rules recursively, with two caps:
-- Haiku does not spawn further subagents. If it needs to, the task was wrong-sized for Haiku — return to the parent.
-- Maximum spawn depth is 2 (parent → subagent → one further tier).
+Rules: Haiku does not spawn further subagents. Max spawn depth is 2. Don't escalate tiers without a concrete reason — return to parent instead. Parent owns final output.
 
-Don't escalate tiers without a concrete reason. If a subagent realizes it needs a higher tier than itself, return to the parent rather than spawning up.
-
-Parent owns final output and cross-spawn synthesis. User instructions override.
+---
 
 ## Preferred Tools
 
 ### Data Fetching
 
-1. **WebFetch** — free, text-only, works on public pages that don't block bots.
-2. **agent-browser CLI** — free, local Rust CLI + Chrome via CDP. For dynamic pages or auth walls that WebFetch can't handle. Returns the accessibility tree with element refs (`@e1`, `@e2`) — ~82% fewer tokens than screenshot-based tools. Install: `npm i -g agent-browser && agent-browser install`. Use `snapshot` for AI-friendly DOM state, element refs for interaction.
-3. **Notice recurring fetch patterns and propose wrapping them as dedicated tools.** When the same fetch/parse logic comes up more than once, suggest wrapping it as a named tool (e.g. a skill file or a .py script that calls `agent-browser` with the snapshot and extraction steps baked in for that source). Add the entry to `## Dedicated Tools` below and reference it by name on future calls.
+1. **WebFetch** — default for public pages.
+2. **agent-browser CLI** — for dynamic pages or auth walls. Returns accessibility tree with element refs. Install: `npm i -g agent-browser && agent-browser install`.
+3. When the same fetch/parse pattern recurs, propose wrapping it as a named tool.
 
-### PDF Files
+### PDFs
 
-Use `pdftotext`, not the `Read` tool. Use `Read` only when the user directly asks to analyze images or charts inside the document.
+Use `pdftotext`. Use `Read` only when explicitly asked to analyze images or charts in the document.
+
+---
 
 ## Commits and Pull Requests
 
 ### Commit format
 
-- Always use [Conventional Commits](https://www.conventionalcommits.org/) format for commit messages (e.g. `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
-- If a GitHub issue (`#123` format) is available, include the issue number at the start of the branch name. Format: `<username>/<issue-number>-<short-feature-name>` (e.g. `jaspermayone/123-add-auth-middleware`).
-- **Do not add `Co-Authored-By` trailers to commits.** No Claude/Anthropic attribution, no `noreply@anthropic.com` lines. The conventional-commits subject (and an optional short body) is the whole message. This mirrors `includeCoAuthoredBy: false` in `~/.claude/settings.json` — restated here so it overrides any contradicting system-prompt template.
+- [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`.
+- Branch naming with issue number: `jaspermayone/<issue-number>-<short-name>`.
+- No `Co-Authored-By` trailers. No Claude/Anthropic attribution.
 
 ### Pre-commit checklist
 
-Before committing any changes, ensure:
-
-- Code is formatted (project's formatter has been run).
-- Linting passes.
-- Type checking passes.
-- Tests pass.
-- Documentation is updated where appropriate. Use mermaid diagrams when documenting flows, schemas, or other compatible data types.
-
-All changes require test coverage.
+- Formatter run, linting passes, type checking passes, tests pass.
+- Docs updated where appropriate. Use Mermaid for flows and schemas.
+- All changes require test coverage.
 
 ### Pull requests
 
-- PR titles must use Conventional Commit format and be lowercase, matching commit formatting (e.g. `feat: add basic auth middleware`).
-- Leverage mermaid diagrams in PR descriptions where appropriate (flows, schemas, architecture).
-- If the PR includes database migrations, add the `migration` label.
-- **Do not add "Generated with Claude Code" footers or any Claude/Anthropic attribution to PR bodies.** This mirrors `attribution: { pr: "" }` in `~/.claude/settings.json`.
+- PR titles: Conventional Commit format, lowercase.
+- Use Mermaid diagrams in PR descriptions where appropriate.
+- Add `migration` label if the PR includes database migrations.
+- No "Generated with Claude Code" footers or Claude/Anthropic attribution in PR bodies.
