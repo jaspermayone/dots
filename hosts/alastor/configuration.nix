@@ -284,6 +284,10 @@ in
           command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_low";
           options = [ "NOPASSWD" ];
         }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_propublica";
+          options = [ "NOPASSWD" ];
+        }
         # Preview deploy helper — writes/deletes Traefik dynamic config files
         {
           command = "${preview-traefik}/bin/preview-traefik *";
@@ -686,6 +690,37 @@ in
       StandardOutput = "journal";
       StandardError = "journal";
       SyslogIdentifier = "funding_findr_worker_low";
+    };
+  };
+
+  # FundingFindr GoodJob worker — propublica queue (IRS 990 enrichment pipeline)
+  systemd.services.funding_findr_worker_propublica = {
+    description = "FundingFindr GoodJob Worker (propublica)";
+    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
+    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      User = "fundingfindr";
+      Group = "users";
+      WorkingDirectory = "/home/fundingfindr/funding_findr";
+      EnvironmentFile = "/etc/funding_findr/env";
+      Environment = [
+        "RAILS_ENV=production"
+        "APPSIGNAL_APP_ENV=production"
+        "RUBY_YJIT_ENABLE=1"
+        "BUNDLE_PATH=vendor/bundle"
+        "BUNDLE_WITHOUT=development:test"
+        "GOOD_JOB_QUEUES=propublica"
+        "GOOD_JOB_MAX_THREADS=10"
+      ];
+      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
+      KillMode = "process";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "funding_findr_worker_propublica";
     };
   };
 
