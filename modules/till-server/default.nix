@@ -35,6 +35,12 @@ in
       '';
     };
 
+    deployAuthorizedKeys = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "SSH public keys for the till-deploy CI user (GitHub Actions deploys).";
+    };
+
     environmentFile = lib.mkOption {
       type = lib.types.path;
       description = ''
@@ -60,6 +66,33 @@ in
       group = "till";
     };
     users.groups.till = { };
+
+    users.users.till-deploy = lib.mkIf (cfg.deployAuthorizedKeys != [ ]) {
+      isNormalUser = true;
+      group = "users";
+      shell = pkgs.bash;
+      openssh.authorizedKeys.keys = cfg.deployAuthorizedKeys;
+    };
+
+    security.sudo.extraRules = lib.mkIf (cfg.deployAuthorizedKeys != [ ]) [
+      {
+        users = [ "till-deploy" ];
+        commands = [
+          {
+            command = "/run/current-system/sw/bin/systemctl stop till-server-sync";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/systemctl start till-server-sync";
+            options = [ "NOPASSWD" ];
+          }
+          {
+            command = "/run/current-system/sw/bin/systemctl restart till-server";
+            options = [ "NOPASSWD" ];
+          }
+        ];
+      }
+    ];
 
     # Clone / update the repo and build on boot (or after a system activation).
     systemd.services.till-server-sync = {

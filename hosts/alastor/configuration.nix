@@ -771,6 +771,9 @@ in
     hostname = "api.usetill.dev";
     repoTokenFile = config.age.secrets.till-github-token.path;
     environmentFile = config.age.secrets.till-server-env.path;
+    deployAuthorizedKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBUyblP9vb4cO17t8rlWCTn7HkzrBKIy/ndd5yJloqll github-actions-till-deploy"
+    ];
   };
 
   # img static site (Authentik-protected)
