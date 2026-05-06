@@ -290,7 +290,7 @@ in
         }
         # Preview deploy helper — writes/deletes Traefik dynamic config files
         {
-          command = "${preview-traefik}/bin/preview-traefik *";
+          command = "${preview-traefik}/bin/preview-traefik";
           options = [ "NOPASSWD" ];
         }
       ];
