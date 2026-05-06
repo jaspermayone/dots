@@ -293,6 +293,10 @@ in
           command = "${preview-traefik}/bin/preview-traefik";
           options = [ "NOPASSWD" ];
         }
+        {
+          command = "/run/current-system/sw/bin/preview-traefik";
+          options = [ "NOPASSWD" ];
+        }
       ];
     }
   ];
