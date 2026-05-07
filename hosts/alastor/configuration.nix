@@ -288,6 +288,11 @@ in
           command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_propublica";
           options = [ "NOPASSWD" ];
         }
+        # Combined restart for all workers — deploy.sh restarts them in one call
+        {
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_critical funding_findr_worker_default funding_findr_worker_low funding_findr_worker_propublica";
+          options = [ "NOPASSWD" ];
+        }
         # Preview deploy helper — writes/deletes Traefik dynamic config files
         {
           command = "${preview-traefik}/bin/preview-traefik";
