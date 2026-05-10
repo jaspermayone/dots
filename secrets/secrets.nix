@@ -11,6 +11,8 @@ let
   alastor = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFwkC1CiWpLB10NNVaJwu4LSyiL0wM7ExI1VoKqIsgeG root@alastor-vnic";
   dippet = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOqi0ZRAHUqBL4zolSeVTgp1oZ6HKD+Hq5AktpLolely jsp@Dippet";
   horace = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILYGMXvsqRFPCtDLSq65TzJPYx+Nz675+RbTY4ox/9Gw root@nixos";
+  dobby = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGJMlbF4ikaxD2C3rqOE0D+FSjk3GDGfuHrryMgjy4Uz root@dobby";
+  kreacher = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO5JwchXDbL6Y+fgj1ZjVeuZuSK0EiA2KpZaaALU/oqb root@kreacher";
 
   # Groups for convenience
   allUsers = [ jsp ];
@@ -18,6 +20,8 @@ let
     alastor
     dippet
     horace
+    dobby
+    kreacher
   ];
   all = allUsers ++ allHosts;
 in
@@ -200,5 +204,8 @@ jsp
     jsp
     alastor
   ];
+
+  "dobby-posthog.age".publicKeys = [ jsp dobby ];
+  "kreacher-posthog.age".publicKeys = [ jsp kreacher ];
 
 }

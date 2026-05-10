@@ -1,0 +1,152 @@
+# modules/posthog/default.nix
+# PostHog analytics — hobby Docker Compose deployment
+#
+# Clones the PostHog repo on first start (for ClickHouse/compose configs),
+# writes a merged .env from the agenix secret + computed values, and runs
+# the full hobby stack via docker-compose.  Caddy (bundled) handles TLS via
+# Let's Encrypt HTTP-01 — no Traefik needed on dedicated PostHog hosts.
+#
+# Prerequisites:
+#   1. DNS A record for `hostname` pointing to this server.
+#   2. Agenix secret at `environmentFile` containing:
+#        POSTHOG_SECRET=<openssl rand -hex 28>
+#        ENCRYPTION_SALT_KEYS=<openssl rand -hex 16>
+{ config, lib, pkgs, ... }:
+
+let
+  cfg = config.atelier.services.posthog;
+
+  setupScript = pkgs.writeShellScript "posthog-setup" ''
+    set -euo pipefail
+
+    WORK_DIR="${cfg.dataDir}"
+    PH_REPO="$WORK_DIR/posthog"
+
+    # Clone the PostHog repo (config files only — app images are pulled separately)
+    if [ ! -d "$PH_REPO/.git" ]; then
+      ${pkgs.git}/bin/git clone --depth 1 \
+        https://github.com/PostHog/posthog.git \
+        "$PH_REPO"
+    fi
+
+    # Refresh compose files from the repo each startup so config stays in sync
+    cp -f "$PH_REPO/docker-compose.base.yml" "$WORK_DIR/"
+    cp -f "$PH_REPO/docker-compose.hobby.yml" "$WORK_DIR/docker-compose.yml"
+
+    # Compose startup scripts (mounted as a volume by web/temporal-django-worker)
+    rm -rf "$WORK_DIR/compose"
+    cp -r "$PH_REPO/compose" "$WORK_DIR/"
+
+    # Runtime directories expected by the stack
+    mkdir -p "$WORK_DIR/share"
+
+    # Write .env: merge the agenix secret (POSTHOG_SECRET, ENCRYPTION_SALT_KEYS)
+    # with computed values.  Mode 600 — this file contains secrets.
+    install -m 600 /dev/null "$WORK_DIR/.env"
+    cat "${cfg.environmentFile}" >> "$WORK_DIR/.env"
+    cat >> "$WORK_DIR/.env" <<EOF
+
+DOMAIN=${cfg.hostname}
+REGISTRY_URL=posthog/posthog
+POSTHOG_APP_TAG=${cfg.tag}
+
+# Caddy — disable HTTPS (TLS terminated by Caddy via Let's Encrypt HTTP-01)
+TLS_BLOCK=
+CADDY_TLS_BLOCK=
+EOF
+  '';
+in
+{
+  options.atelier.services.posthog = {
+    enable = lib.mkEnableOption "PostHog analytics (hobby Docker Compose deploy)";
+
+    hostname = lib.mkOption {
+      type = lib.types.str;
+      example = "ph.singlefeather.com";
+      description = ''
+        Public hostname for this PostHog instance.
+        Must have an A record pointing to this server before startup
+        so Caddy can obtain a Let's Encrypt certificate.
+      '';
+    };
+
+    dataDir = lib.mkOption {
+      type = lib.types.path;
+      default = "/var/lib/posthog";
+      description = "Working directory for the PostHog compose stack and persistent data.";
+    };
+
+    tag = lib.mkOption {
+      type = lib.types.str;
+      default = "latest-release";
+      description = "PostHog Docker image tag (POSTHOG_APP_TAG). Use a pinned release tag for stability.";
+    };
+
+    environmentFile = lib.mkOption {
+      type = lib.types.path;
+      description = ''
+        Path to an env file (agenix secret) containing:
+          POSTHOG_SECRET=<56-char secret — openssl rand -hex 28>
+          ENCRYPTION_SALT_KEYS=<32-char hex  — openssl rand -hex 16>
+      '';
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    virtualisation.docker = {
+      enable = true;
+      autoPrune = {
+        enable = true;
+        dates = "weekly";
+      };
+      daemon.settings = {
+        log-driver = "json-file";
+        log-opts = {
+          max-size = "50m";
+          max-file = "3";
+        };
+      };
+    };
+
+    environment.systemPackages = [
+      pkgs.docker-compose
+      pkgs.git
+    ];
+
+    systemd.tmpfiles.rules = [
+      "d ${cfg.dataDir} 0700 root root -"
+    ];
+
+    systemd.services.posthog = {
+      description = "PostHog analytics (Docker Compose hobby stack)";
+      after = [
+        "docker.service"
+        "network-online.target"
+      ];
+      wants = [ "network-online.target" ];
+      requires = [ "docker.service" ];
+      wantedBy = [ "multi-user.target" ];
+
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        WorkingDirectory = cfg.dataDir;
+        ExecStartPre = "${setupScript}";
+        ExecStart = "${pkgs.docker-compose}/bin/docker-compose up -d";
+        ExecStop = "${pkgs.docker-compose}/bin/docker-compose down";
+        # First start clones the repo and pulls many images — give it time.
+        TimeoutStartSec = "20min";
+        StandardOutput = "journal";
+        StandardError = "journal";
+        SyslogIdentifier = "posthog";
+      };
+    };
+
+    # PostHog's Caddy proxy handles 80/443 directly on dedicated hosts.
+    networking.firewall.allowedTCPPorts = [
+      80
+      443
+    ];
+    networking.firewall.allowedUDPPorts = [ 443 ];
+  };
+}

@@ -8,10 +8,10 @@ matches:
     replace: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
 
   # Social (public links)
-  - triggers: [ ";linkedin", ";li" ]
+  - triggers: [ ";linkedin", ";lin" ]
     replace: "https://www.linkedin.com/in/jaspermayone/"
 
-  - triggers: [ ";github", ";gh" ]
+  - triggers: [ ";github", ";gh", ";gi" ]
     replace: "https://github.com/jaspermayone"
 
   - triggers: [";website", ";site"]
@@ -39,9 +39,6 @@ matches:
   - triggers: [";mp"]
     replace: "MicroPico"
 
-  - triggers: [";cf"]
-    replace: "doug.ns.cloudflare.com\nsaanvi.ns.cloudflare.com"
-
   - triggers: [";cc"]
     replace: |
       /*
@@ -52,3 +49,186 @@ matches:
        *{{sp}}$|$
        *
        */{{newline}}
+
+  - triggers: [";wrap"]
+    label: "Session log markdown"
+    form: |
+      session_number:
+        type: text
+        label: "Session number"
+    replace: |
+      # Session Log – Session {{session_number}}
+
+      **Date:** {{current_year}}-{{current_month}}-{{current_day}}
+      **Approximate duration:** <!-- e.g., 1h 45m -->
+      **Project phase:** <!-- e.g., Discovery / Implementation / Refactor / Debugging / Polish -->
+      **One-sentence summary:** In this session, we <!-- concise summary of what was actually accomplished. -->.
+
+      ---
+
+      ## What we set out to do
+
+      Coming into this session, the goal was to <!-- primary goal, e.g., "debug the failing background job that processes user signups" -->.
+      We also intended to <!-- any secondary objectives, if any -->, assuming the primary objective went smoothly.
+      The expectation was that by the end of the session, we would have <!-- concrete desired outcome, e.g., "a passing test suite and a clear understanding of the root cause" -->.
+
+      ---
+
+      ## What we actually did
+
+      We began the session by confirming the current state of the project and restating the goal in concrete terms: <!-- restatement tailored to this session, e.g., "reproduce the bug in a local environment and capture enough logging to identify the cause." -->. To ground ourselves, we first looked at <!-- files, dashboards, docs, or tickets consulted at the very start, e.g., "the failing RSpec examples and recent deployment logs" --> to understand what was already known and what was still uncertain.
+
+      From there, we took the first concrete step: <!-- describe first step, e.g., "running the existing test suite to ensure we could reproduce the failures locally." -->. The key commands at this stage included:
+
+      - `<!-- command 1, e.g., bin/rspec spec/path/to/failing_spec.rb -->`
+      - `<!-- command 2, e.g., bin/rails server` or `bin/dev` or `docker compose up` -->`
+
+      These initial runs confirmed that <!-- describe result, e.g., "the failure was reproducible locally and matched the stack traces seen in production" -->. They also revealed that <!-- anything unexpected at this early stage -->.
+
+      Next, we explored our first hypothesis: <!-- hypothesis 1, e.g., "the bug was caused by a misconfigured environment variable in production." -->. To test this, we <!-- specific steps taken, e.g., "inspected the environment configuration, compared local `.env` or credentials to production, and added temporary logging around the suspected code paths." -->. We used tools such as <!-- tools/commands, e.g., "Rails console, custom logging, and `tail -f` on the log file" --> to observe the system’s behavior in more detail.
+
+      This approach did **not** fully solve the problem. We discovered that <!-- what we learned that invalidated or complicated the first hypothesis, e.g., "the environment variables were consistent between environments, so configuration drift was unlikely to be the root cause." -->. The failure persisted, which forced us to reconsider our initial theory.
+
+      Based on those findings, we pivoted to a second hypothesis: <!-- hypothesis 2, e.g., "the bug was caused by a race condition in how background jobs were queued and processed." -->. To explore this path, we adjusted our approach and:
+
+      1. Modified or inspected code in `<!-- filename(s), e.g., app/jobs/user_signup_job.rb -->` to add or refine logging, focusing on <!-- key variables or branches. -->.
+      2. Re-ran targeted commands such as:
+         - `<!-- command, e.g., bin/rails runner 'UserSignupJob.perform_now(test_user_id)' -->`
+         - `<!-- command, e.g., bin/rspec spec/jobs/user_signup_job_spec.rb -->`
+
+      This sequence of changes allowed us to observe that <!-- what this second line of investigation showed, e.g., "jobs were occasionally being enqueued twice, leading to duplicate side effects and validation failures." -->. At this point, we confirmed that the original assumption about <!-- original assumption, e.g., "configuration issues" --> was incomplete and that concurrent behavior was more central to the issue.
+
+      During this investigation, we tried an approach that ultimately **did not** pan out: <!-- describe unsuccessful approach, e.g., "attempting to fix the bug by adding a simple conditional guard in the job without understanding the underlying cause." -->. We implemented the change in `<!-- file -->`, using logic like:
+
+      - `<!-- code-ish description, e.g., "return if user.already_processed?" -->`
+
+      After running the updated code with:
+
+      - `<!-- command, e.g., bin/rspec spec/jobs/user_signup_job_spec.rb -->`
+
+      we saw that while the immediate failure disappeared in tests, it introduced new ambiguity and potential silent failures in edge cases. This convinced us that this “quick fix” approach was not robust enough for production and should not be the final solution.
+
+      Recognizing this, we pivoted again, this time focusing on <!-- new direction, e.g., "making the operation idempotent and clarifying invariants in the domain model" -->. We updated or sketched out changes to:
+
+      - `<!-- file 1, e.g., app/models/user.rb -->`
+      - `<!-- file 2, e.g., app/services/user_signup_service.rb -->`
+
+      and refined the logic so that <!-- describe improved behavior, e.g., "re-running the same job with the same inputs would safely no-op after the first successful execution" -->. We re-ran the tests and any relevant manual flows:
+
+      - `<!-- command, e.g., bin/rspec spec/services/user_signup_service_spec.rb -->`
+      - `<!-- command, e.g., bin/rails server` + manual testing steps in the browser -->`
+
+      These runs showed that the core scenario now behaved as expected, though we noted a few remaining uncertainties around <!-- anything still ambiguous, e.g., "less common edge cases or long-running background jobs." -->.
+
+      Throughout the session, we periodically stepped back to summarize what we had learned and adjust scope. At one point, we consciously decided **not** to tackle <!-- de-scoped item, e.g., "a broader refactor of the job processing pipeline" --> in this session, to avoid blowing up the timeline. Instead, we captured that as a future improvement.
+
+      By the end of the session, we had <!-- final status, e.g., "a working fix in place locally, improved logging, and clearer understanding of the root cause" -->, along with a concrete list of follow-ups.
+
+      ---
+
+      ## Key findings
+
+      - <!-- Key finding 1, e.g., "The original failure was not caused by configuration drift but by a concurrency issue in the background job pipeline, confirmed by local reproduction and targeted logging." -->
+      - <!-- Key finding 2, e.g., "A naive guard clause removed the immediate error but risked silently skipping necessary work, so we rejected that approach in favor of a more principled, idempotent design." -->
+      - <!-- Key finding 3, e.g., "Making the operation idempotent and clarifying domain invariants simplifies reasoning about the job’s behavior and provides safer guarantees in production." -->
+      - <!-- Key finding 4, e.g., "Improved logging around the critical paths will make future debugging sessions faster and less guessy." -->
+
+      ---
+
+      ## Decisions made
+
+      | Decision | Rationale | Could revisit if… |
+      | --- | --- | --- |
+      | <!-- e.g., "Implement an idempotent pattern for the signup job rather than a quick guard clause." --> | <!-- e.g., "The idempotent pattern addresses the root cause and avoids silent failures, even though it required more work." --> | <!-- e.g., "We see performance regressions or discover that the job is called in ways that make idempotency too expensive." --> |
+      | <!-- e.g., "Defer a larger refactor of the job pipeline to a future phase." --> | <!-- e.g., "Doing the full refactor now would have blown up the scope of this session and delayed the immediate fix." --> | <!-- e.g., "We keep encountering related issues or decide to re-architect the background processing system." --> |
+      | <!-- e.g., "Keep the new logging in place in production for at least one full release cycle." --> | <!-- e.g., "The logs provide valuable signal for monitoring and future debugging with minimal downside." --> | <!-- e.g., "Log volume becomes problematic or we move to a different observability tooling setup." --> |
+
+      ---
+
+      ## What changed
+
+      Over the course of the session, we created and/or modified the following:
+
+      - **Files:**
+        - `<!-- e.g., app/jobs/user_signup_job.rb (refined logic for idempotency and logging) -->`
+        - `<!-- e.g., app/services/user_signup_service.rb (clarified domain invariants and extracted logic) -->`
+        - `<!-- e.g., spec/jobs/user_signup_job_spec.rb (expanded test coverage for edge cases) -->`
+
+      - **Schemas / APIs / interfaces:**
+        In this session, we <!-- describe schema/API/interface changes, e.g., "added a new optional field to the User model to track first_processed_at, and updated the service interface to accept an explicit operation ID." -->. Any external callers need to be aware that <!-- describe how the interface contract changed, e.g., "the service now expects an idempotency key when invoked from external systems." -->.
+
+      - **Scope:**
+        We explicitly narrowed scope by choosing not to address <!-- out-of-scope items --> and instead focused on <!-- in-scope subset -->. This keeps the immediate work shippable while leaving room for a more ambitious follow-up refactor or feature set later.
+
+      ---
+
+      ## Open questions and next steps
+
+      There are still a few unresolved questions that surfaced during the session:
+
+      - <!-- Open question 1, e.g., "How does this new idempotent behavior interact with retry semantics in the background job framework under heavy load?" -->
+      - <!-- Open question 2, e.g., "Do we need additional metrics or alerts to catch similar issues proactively?" -->
+      - <!-- Open question 3, e.g., "Are there any downstream systems that depend on the previous non-idempotent behavior?" -->
+
+      For the next session, the concrete next steps, in priority order, are:
+
+      1. <!-- Next step 1, e.g., "Run the updated code in a staging environment with production-like load and verify behavior under retries and failures." -->
+      2. <!-- Next step 2, e.g., "Add or refine metrics and alerts related to this job’s execution and failure rates." -->
+      3. <!-- Next step 3, e.g., "Audit other jobs or services for similar non-idempotent patterns that might cause subtle production issues." -->
+      4. <!-- Next step 4, e.g., "Document the new invariants and operational expectations in the project’s README or internal runbook." -->
+
+      Before the next session starts, we should ensure that:
+
+      - <!-- Precondition 1, e.g., "The latest changes are deployed to the appropriate staging environment." -->
+      - <!-- Precondition 2, e.g., "Any necessary feature flags or configuration toggles are in place." -->
+      - <!-- Precondition 3, e.g., "Relevant logs and dashboards are set up and accessible." -->
+
+      ---
+
+      ## Anything to do immediately
+
+      There are a few time-sensitive or near-term follow-ups stemming from this session:
+
+      - <!-- Immediate action 1, e.g., "Push the current branch with the working fix and updated specs to the remote repository." -->
+      - <!-- Immediate action 2, e.g., "Open a pull request summarizing the changes, linking to this session log, and requesting review." -->
+      - <!-- Immediate action 3, e.g., "If any credentials, tokens, or sensitive configuration values were exposed during debugging, rotate them immediately." -->
+      - <!-- Immediate action 4, e.g., "Notify relevant teammates or stakeholders about the fix status and any temporary mitigations that are still in place." -->
+
+  - triggers: ["style"]
+    label: "Writing style instructions"
+    form: |
+      style_word:
+        type: text
+        label: "Style word (e.g. academic)"
+        default: "academic"
+    replace: |
+      # FOLLOW THIS WRITING STYLE:
+
+      • SHOULD use clear, simple language.
+      • SHOULD be spartan and informative.
+      • SHOULD use short, impactful sentences.
+      • SHOULD use active voice; avoid passive voice.
+      • SHOULD focus on practical, actionable insights.
+      • SHOULD use bullet point lists in social media posts.
+      • SHOULD use data and examples to support claims when possible.
+      • SHOULD use “you” and “your” to directly address the reader.
+      • AVOID using em dashes (—) anywhere in your response. Use only commas, periods, or other standard punctuation. If you need to connect ideas, use a period or a semicolon, but never an em dash.
+      • AVOID constructions like "...not just this, but also this".
+      • AVOID metaphors and clichés.
+      • AVOID generalizations.
+      • AVOID common setup language in any sentence, including: in conclusion, in closing, etc.
+      • AVOID output warnings or notes, just the output requested.
+      • AVOID unnecessary adjectives and adverbs.
+      • AVOID hashtags.
+      • AVOID semicolons.
+      • AVOID markdown.
+      • AVOID asterisks.
+      • AVOID these words:
+      “can, may, just, that, very, really, literally, actually, certainly, probably, basically, could, maybe, delve, embark, enlightening, esteemed, shed light, craft, crafting, imagine, realm, game-changer, unlock, discover, skyrocket, abyss, not alone, in a world where, revolutionize, disruptive, utilize, utilizing, dive deep, tapestry, illuminate, unveil, pivotal, intricate, elucidate, hence, furthermore, realm, however, harness, exciting, groundbreaking, cutting-edge, remarkable, it, remains to be seen, glimpse into, navigating, landscape, stark, testament, in summary, in conclusion, moreover, boost, skyrocketing, opened up, powerful, inquiries, ever-evolving"
+
+      Avoid AI buzzwords like 'dive into,' 'leverage,' 'unlock the potential,' 'in the ever-evolving landscape,' 'transformative,' 'comprehensive,' or 'testament'.
+      Write this in a conversational, casual tone as if you're chatting with a friend over coffee. Use contractions (don't, can't, isn't) and feel free to start sentences with 'And' or 'But'.
+      Vary sentence length significantly—mix short, punchy sentences (3-5 words) with longer, more complex ones (25+ words).
+      Make the text sound {{style_word}}, but human.
+
+      # IMPORTANT: Review your response and ensure no em dashes!

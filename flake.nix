@@ -67,6 +67,11 @@
       url = "github:nix-community/authentik-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -125,6 +130,7 @@
             ./hosts/${hostname}/configuration.nix
             agenix.nixosModules.default
             tgirlpkgs.nixosModules.default
+            inputs.disko.nixosModules.disko
             unstable-overlays
             nur.modules.nixos.default
             home-manager.nixosModules.home-manager
@@ -173,6 +179,8 @@
       nixosConfigurations = {
         alastor = mkNixos "alastor" "aarch64-linux";
         horace = mkNixos "horace" "x86_64-linux";
+        dobby = mkNixos "dobby" "x86_64-linux";
+        kreacher = mkNixos "kreacher" "x86_64-linux";
       };
 
       # Darwin configurations
@@ -203,6 +211,22 @@
             sshUser = "jsp";
             user = "root";
             path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.horace;
+          };
+        };
+        dobby = {
+          hostname = "dobby"; # update to IP/hostname once provisioned
+          profiles.system = {
+            sshUser = "jsp";
+            user = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.dobby;
+          };
+        };
+        kreacher = {
+          hostname = "kreacher"; # update to IP/hostname once provisioned
+          profiles.system = {
+            sshUser = "jsp";
+            user = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.kreacher;
           };
         };
       };
