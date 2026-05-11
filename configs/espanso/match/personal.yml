@@ -53,11 +53,7 @@ matches:
   - triggers: [";wrap"]
     label: "Session log markdown"
     form: |
-      session_number:
-        type: text
-        label: "Session number"
-    replace: |
-      # Session Log – Session {{session_number}}
+      # Session Log – Session [[session_number]]
 
       **Date:** {{current_year}}-{{current_month}}-{{current_day}}
       **Approximate duration:** <!-- e.g., 1h 45m -->
@@ -197,11 +193,6 @@ matches:
   - triggers: ["style"]
     label: "Writing style instructions"
     form: |
-      style_word:
-        type: text
-        label: "Style word (e.g. academic)"
-        default: "academic"
-    replace: |
       # FOLLOW THIS WRITING STYLE:
 
       • SHOULD use clear, simple language.
@@ -229,6 +220,9 @@ matches:
       Avoid AI buzzwords like 'dive into,' 'leverage,' 'unlock the potential,' 'in the ever-evolving landscape,' 'transformative,' 'comprehensive,' or 'testament'.
       Write this in a conversational, casual tone as if you're chatting with a friend over coffee. Use contractions (don't, can't, isn't) and feel free to start sentences with 'And' or 'But'.
       Vary sentence length significantly—mix short, punchy sentences (3-5 words) with longer, more complex ones (25+ words).
-      Make the text sound {{style_word}}, but human.
+      Make the text sound [[style_word]], but human.
 
       # IMPORTANT: Review your response and ensure no em dashes!
+    form_fields:
+      style_word:
+        default: "academic"
