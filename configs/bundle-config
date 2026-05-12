@@ -1,0 +1,3 @@
+---
+BUNDLE_BUILD__MYSQL2: "--with-opt-dir=/opt/homebrew/opt/openssl@3"
+BUNDLE_FROZEN: "1"
