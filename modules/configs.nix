@@ -33,10 +33,6 @@ in
       ".claude/CLAUDE.md".source = ../configs/claude/CLAUDE.md;
       ".claude/settings.json".source = ../configs/claude/settings.json;
     }
-    # Bun package manager configuration
-    {
-      ".bunfig.toml".source = ../configs/bunfig.toml;
-    }
     # macOS espanso paths
     (lib.mkIf isDarwin {
       "Library/Application Support/espanso/config/default.yml".source =
@@ -72,6 +68,7 @@ in
   # This runs on every home-manager activation
   home.activation.decryptUserSecrets = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         SECRETS_DIR="${dotsDir}/secrets"
+        CONFIGS_DIR="${dotsDir}/configs"
         AGE="${pkgs.age}/bin/age"
         SSH_KEY="$HOME/.ssh/id_ed25519"
         ${
@@ -84,6 +81,11 @@ in
               ESPANSO_DIR="$HOME/.config/espanso/match"
             ''
         }
+
+        # Write base configs (non-secret portions, always applied)
+        # Secrets are appended below inside the SSH key check
+        $DRY_RUN_CMD cp "$CONFIGS_DIR/npmrc" "$HOME/.npmrc"
+        $DRY_RUN_CMD cp "$CONFIGS_DIR/bunfig.toml" "$HOME/.bunfig.toml"
 
         # Only proceed if we have the SSH key for decryption
         if [ -f "$SSH_KEY" ]; then
@@ -110,13 +112,12 @@ in
             fi
           fi
 
-          # Decrypt npmrc (contains registry auth tokens)
+          # Append npmrc auth tokens (registry credentials)
           NPMRC_SECRET="$SECRETS_DIR/npmrc.age"
           if [ -f "$NPMRC_SECRET" ]; then
-            $DRY_RUN_CMD $AGE -d -i "$SSH_KEY" "$NPMRC_SECRET" > "$HOME/.npmrc" 2>/dev/null || echo "Warning: Failed to decrypt npmrc"
+            printf '\n' >> "$HOME/.npmrc"
+            $AGE -d -i "$SSH_KEY" "$NPMRC_SECRET" >> "$HOME/.npmrc" 2>/dev/null || echo "Warning: Failed to decrypt npmrc"
           fi
-          # Append supply-chain protection settings (non-secret, always applied)
-          printf '\nmin-release-age=7\nminimum-release-age=10080\nsave-exact=true\n' >> "$HOME/.npmrc"
 
           # Decrypt Claude GitHub token (for MCP server)
           CLAUDE_GITHUB_SECRET="$SECRETS_DIR/claude-github-token.age"
