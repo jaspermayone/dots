@@ -87,6 +87,12 @@ in
         $DRY_RUN_CMD cp "$CONFIGS_DIR/npmrc" "$HOME/.npmrc"
         $DRY_RUN_CMD cp "$CONFIGS_DIR/bunfig.toml" "$HOME/.bunfig.toml"
 
+        # Bundler: freeze lockfile to prevent implicit updates (supply-chain protection)
+        # Merges with existing ~/.bundle/config; does not overwrite auth tokens etc.
+        if command -v bundle &>/dev/null; then
+          bundle config set --global frozen true 2>/dev/null || true
+        fi
+
         # Only proceed if we have the SSH key for decryption
         if [ -f "$SSH_KEY" ]; then
           # Decrypt espanso secrets
