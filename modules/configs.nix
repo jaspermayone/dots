@@ -33,6 +33,10 @@ in
       ".claude/CLAUDE.md".source = ../configs/claude/CLAUDE.md;
       ".claude/settings.json".source = ../configs/claude/settings.json;
     }
+    # Bun package manager configuration
+    {
+      ".bunfig.toml".source = ../configs/bunfig.toml;
+    }
     # macOS espanso paths
     (lib.mkIf isDarwin {
       "Library/Application Support/espanso/config/default.yml".source =
@@ -111,6 +115,8 @@ in
           if [ -f "$NPMRC_SECRET" ]; then
             $DRY_RUN_CMD $AGE -d -i "$SSH_KEY" "$NPMRC_SECRET" > "$HOME/.npmrc" 2>/dev/null || echo "Warning: Failed to decrypt npmrc"
           fi
+          # Append supply-chain protection settings (non-secret, always applied)
+          printf '\nmin-release-age=7\nminimum-release-age=10080\nsave-exact=true\n' >> "$HOME/.npmrc"
 
           # Decrypt Claude GitHub token (for MCP server)
           CLAUDE_GITHUB_SECRET="$SECRETS_DIR/claude-github-token.age"
