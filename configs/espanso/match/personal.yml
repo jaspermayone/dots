@@ -190,7 +190,7 @@ matches:
       - <!-- Immediate action 3, e.g., "If any credentials, tokens, or sensitive configuration values were exposed during debugging, rotate them immediately." -->
       - <!-- Immediate action 4, e.g., "Notify relevant teammates or stakeholders about the fix status and any temporary mitigations that are still in place." -->
 
-  - triggers: ["style"]
+  - triggers: [";style"]
     label: "Writing style instructions"
     form: |
       # FOLLOW THIS WRITING STYLE:
