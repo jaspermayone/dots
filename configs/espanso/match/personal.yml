@@ -226,3 +226,9 @@ matches:
     form_fields:
       style_word:
         default: "academic"
+
+  - triggers: [;dots]
+    form : sudo nixos-rebuild switch --flake github:jaspermayone/dots#[[machine]]
+    form_fields:
+      machine:
+        default: "alastor"
