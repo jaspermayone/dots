@@ -214,7 +214,7 @@
           };
         };
         dobby = {
-          hostname = "dobby"; # update to IP/hostname once provisioned
+          hostname = "10.100.97.196";
           profiles.system = {
             sshUser = "jsp";
             user = "root";
@@ -222,7 +222,7 @@
           };
         };
         kreacher = {
-          hostname = "kreacher"; # update to IP/hostname once provisioned
+          hostname = "10.100.150.11";
           profiles.system = {
             sshUser = "jsp";
             user = "root";

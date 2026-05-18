@@ -33,11 +33,8 @@ let
     cp -f "$PH_REPO/docker-compose.base.yml" "$WORK_DIR/"
     cp -f "$PH_REPO/docker-compose.hobby.yml" "$WORK_DIR/docker-compose.yml"
 
-    # Compose startup scripts (mounted as a volume by web/temporal-django-worker)
-    rm -rf "$WORK_DIR/compose"
-    cp -r "$PH_REPO/compose" "$WORK_DIR/"
-
     # Runtime directories expected by the stack
+    mkdir -p "$WORK_DIR/compose"
     mkdir -p "$WORK_DIR/share"
 
     # Write .env: merge the agenix secret (POSTHOG_SECRET, ENCRYPTION_SALT_KEYS)
@@ -50,9 +47,7 @@ DOMAIN=${cfg.hostname}
 REGISTRY_URL=posthog/posthog
 POSTHOG_APP_TAG=${cfg.tag}
 
-# Caddy — disable HTTPS (TLS terminated by Caddy via Let's Encrypt HTTP-01)
-TLS_BLOCK=
-CADDY_TLS_BLOCK=
+CADDY_TLS_BLOCK=${if cfg.behindProxy then "tls off" else ""}
 EOF
   '';
 in
@@ -88,6 +83,15 @@ in
         Path to an env file (agenix secret) containing:
           POSTHOG_SECRET=<56-char secret — openssl rand -hex 28>
           ENCRYPTION_SALT_KEYS=<32-char hex  — openssl rand -hex 16>
+      '';
+    };
+
+    behindProxy = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Set to true when TLS is terminated upstream (e.g. Traefik).
+        Disables Caddy's own TLS so it serves plain HTTP on port 80.
       '';
     };
   };
@@ -142,11 +146,9 @@ in
       };
     };
 
-    # PostHog's Caddy proxy handles 80/443 directly on dedicated hosts.
-    networking.firewall.allowedTCPPorts = [
-      80
-      443
-    ];
-    networking.firewall.allowedUDPPorts = [ 443 ];
+    networking.firewall.allowedTCPPorts = if cfg.behindProxy
+      then [ 80 ]
+      else [ 80 443 ];
+    networking.firewall.allowedUDPPorts = lib.mkIf (!cfg.behindProxy) [ 443 ];
   };
 }

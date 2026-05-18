@@ -45,7 +45,11 @@
   system.stateVersion = "25.11";
 
   boot.tmp.cleanOnBoot = true;
-  boot.loader.grub.configurationLimit = 5;
+  boot.loader.grub = {
+    enable = true;
+    efiSupport = false;
+    configurationLimit = 5;
+  };
 
   networking.hostName = hostname;
 
@@ -127,6 +131,7 @@
     enable = true;
     hostname = "ph.singlefeather.com";
     environmentFile = config.age.secrets.dobby-posthog.path;
+    behindProxy = true;
   };
 
   system.autoUpgrade = {

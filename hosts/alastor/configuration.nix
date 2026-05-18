@@ -1176,6 +1176,38 @@ in
     };
   };
 
+  # PostHog analytics — proxied to homelab VMs via Tailscale MagicDNS
+  environment.etc."traefik/conf.d/posthog.toml" = {
+    source = (pkgs.formats.toml { }).generate "posthog.toml" {
+      http = {
+        routers = {
+          posthog-singlefeather = {
+            rule = "Host(`ph.singlefeather.com`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "posthog-singlefeather";
+          };
+          posthog-fundingfindr = {
+            rule = "Host(`ph.fundingfindr.co`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "posthog-fundingfindr";
+          };
+        };
+        services = {
+          posthog-singlefeather.loadBalancer.servers = [
+            { url = "http://dobby.wildebeest-stargazer.ts.net:80"; }
+          ];
+          posthog-fundingfindr.loadBalancer.servers = [
+            { url = "http://kreacher.wildebeest-stargazer.ts.net:80"; }
+          ];
+        };
+      };
+    };
+  };
+
   # ── Logging → AppSignal ─────────────────────────────────────────────────────
   # Forward systemd journal entries to rsyslog, then ship FundingFindr logs to
   # AppSignal over TLS. Only the four funding_findr syslog identifiers are

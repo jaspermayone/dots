@@ -13,12 +13,6 @@
     (modulesPath + "/profiles/qemu-guest.nix")
   ];
 
-  boot.loader.grub = {
-    enable = true;
-    device = "/dev/sda";
-    efiSupport = false;
-  };
-
   boot.initrd.availableKernelModules = [
     "ata_piix"
     "uhci_hcd"

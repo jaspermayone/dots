@@ -126,6 +126,7 @@
       # Default settings for all hosts
       "*" = {
         addKeysToAgent = "yes";
+        extraOptions.SetEnv = "TERM=xterm-256color";
       };
 
       # Alastor (tunnel server, named after Mad-Eye Moody)
