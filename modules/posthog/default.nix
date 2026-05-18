@@ -33,9 +33,10 @@ let
     cp -f "$PH_REPO/docker-compose.base.yml" "$WORK_DIR/"
     cp -f "$PH_REPO/docker-compose.hobby.yml" "$WORK_DIR/docker-compose.yml"
 
-    # Runtime directories expected by the stack
+    # Runtime directories and files expected by the stack
     mkdir -p "$WORK_DIR/compose"
     mkdir -p "$WORK_DIR/share"
+    touch "$WORK_DIR/dev-services.env"
 
     # Write .env: merge the agenix secret (POSTHOG_SECRET, ENCRYPTION_SALT_KEYS)
     # with computed values.  Mode 600 — this file contains secrets.
