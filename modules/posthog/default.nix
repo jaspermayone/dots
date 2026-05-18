@@ -215,5 +215,7 @@ in
       then [ 80 ]
       else [ 80 443 ];
     networking.firewall.allowedUDPPorts = lib.mkIf (!cfg.behindProxy) [ 443 ];
+    # Allow Tailscale peers (e.g. alastor) to reach this host unrestricted.
+    networking.firewall.trustedInterfaces = [ "tailscale0" ];
   };
 }
