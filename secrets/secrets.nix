@@ -208,4 +208,12 @@ jsp
   "dobby-posthog.age".publicKeys = [ jsp dobby ];
   "kreacher-posthog.age".publicKeys = [ jsp kreacher ];
 
+  # FundingFindr monitoring stack env vars (Telegraf + InfluxDB + Grafana)
+  # Format: INFLUXDB_TOKEN=...\nINFLUXDB_PASSWORD=...\nGRAFANA_ADMIN_PASSWORD=...
+  # Deployed to /home/fundingfindr/funding_findr/infra/monitoring/.env by agenix
+  "monitoring-env.age".publicKeys = [
+    jsp
+    alastor
+  ];
+
 }

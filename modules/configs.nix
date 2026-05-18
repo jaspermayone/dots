@@ -84,8 +84,8 @@ in
 
         # Write base configs (non-secret portions, always applied)
         # Secrets are appended below inside the SSH key check
-        $DRY_RUN_CMD cp "$CONFIGS_DIR/npmrc" "$HOME/.npmrc"
-        $DRY_RUN_CMD cp "$CONFIGS_DIR/bunfig.toml" "$HOME/.bunfig.toml"
+        [ -f "$CONFIGS_DIR/npmrc" ]      && $DRY_RUN_CMD cp "$CONFIGS_DIR/npmrc"      "$HOME/.npmrc"      || echo "configs: skipping npmrc (not in local clone)"
+        [ -f "$CONFIGS_DIR/bunfig.toml" ] && $DRY_RUN_CMD cp "$CONFIGS_DIR/bunfig.toml" "$HOME/.bunfig.toml" || echo "configs: skipping bunfig.toml (not in local clone)"
 
         # Bundler: freeze lockfile to prevent implicit updates (supply-chain protection)
         # Merges with existing ~/.bundle/config; does not overwrite auth tokens etc.

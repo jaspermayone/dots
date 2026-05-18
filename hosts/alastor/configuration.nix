@@ -36,10 +36,22 @@ let
         url = "http://127.0.0.1:''${PORT}"
     TOML
         echo "Wrote Traefik config for preview PR #''${PR} (''${SLUG} -> :''${PORT})"
+        _ctr=$(docker ps --format '{{.Names}}' | grep -i traefik | head -1 || true)
+        if [ -n "$_ctr" ]; then
+          docker restart "$_ctr" > /dev/null 2>&1 \
+            && echo "  -> Reloaded Traefik ($_ctr)" \
+            || echo "  -> Warning: Traefik restart failed" >&2
+        fi
         ;;
       delete)
         rm -f "/etc/traefik/conf.d/preview-pr-''${PR}.toml"
         echo "Removed Traefik config for preview PR #''${PR}"
+        _ctr=$(docker ps --format '{{.Names}}' | grep -i traefik | head -1 || true)
+        if [ -n "$_ctr" ]; then
+          docker restart "$_ctr" > /dev/null 2>&1 \
+            && echo "  -> Reloaded Traefik ($_ctr)" \
+            || echo "  -> Warning: Traefik restart failed" >&2
+        fi
         ;;
       *)
         echo "Usage: preview-traefik (write <pr> <slug> <port> | delete <pr>)" >&2
@@ -392,6 +404,12 @@ in
       mode = "400";
       owner = "till";
     };
+    monitoring-env = {
+      file = ../../secrets/monitoring-env.age;
+      mode = "600";
+      owner = "fundingfindr";
+      path = "/home/fundingfindr/funding_findr/infra/monitoring/.env";
+    };
     till-server-env = {
       file = ../../secrets/till-server-env.age;
       mode = "400";
@@ -596,6 +614,8 @@ in
         "BUNDLE_PATH=vendor/bundle"
         "BUNDLE_WITHOUT=development:test"
         "GTM_CONTAINER_ID=GTM-5GGR5CCW"
+        "STATSD_HOST=127.0.0.1"
+        "STATSD_PORT=8125"
       ];
       ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec puma -C config/puma.rb'";
       ExecReload = "/run/current-system/sw/bin/bash -lc 'bundle exec pumactl -S /home/fundingfindr/funding_findr/tmp/pids/puma.state phased-restart'";
@@ -629,6 +649,8 @@ in
         "BUNDLE_WITHOUT=development:test"
         "GOOD_JOB_QUEUES=critical"
         "GOOD_JOB_MAX_THREADS=5"
+        "STATSD_HOST=127.0.0.1"
+        "STATSD_PORT=8125"
       ];
       ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
       KillMode = "process";
@@ -660,6 +682,8 @@ in
         "BUNDLE_WITHOUT=development:test"
         "GOOD_JOB_QUEUES=default"
         "GOOD_JOB_MAX_THREADS=10"
+        "STATSD_HOST=127.0.0.1"
+        "STATSD_PORT=8125"
       ];
       ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
       KillMode = "process";
@@ -691,6 +715,8 @@ in
         "BUNDLE_WITHOUT=development:test"
         "GOOD_JOB_QUEUES=low"
         "GOOD_JOB_MAX_THREADS=5"
+        "STATSD_HOST=127.0.0.1"
+        "STATSD_PORT=8125"
       ];
       ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
       KillMode = "process";
@@ -722,6 +748,8 @@ in
         "BUNDLE_WITHOUT=development:test"
         "GOOD_JOB_QUEUES=propublica"
         "GOOD_JOB_MAX_THREADS=10"
+        "STATSD_HOST=127.0.0.1"
+        "STATSD_PORT=8125"
       ];
       ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
       KillMode = "process";
