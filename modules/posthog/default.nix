@@ -61,11 +61,14 @@ SCRIPT
     cat "${cfg.environmentFile}" >> "$WORK_DIR/.env"
     cat >> "$WORK_DIR/.env" <<EOF
 
-DOMAIN=${cfg.hostname}
+DOMAIN=${if cfg.behindProxy then "http://${cfg.hostname}" else cfg.hostname}
 REGISTRY_URL=posthog/posthog
 POSTHOG_APP_TAG=${cfg.tag}
 
-CADDY_TLS_BLOCK=${if cfg.behindProxy then "tls off" else ""}
+DATABASE_URL=postgres://posthog:posthog@db:5432/posthog
+REDIS_URL=redis://redis:6379/
+
+CADDY_TLS_BLOCK=
 EOF
   '';
 in
