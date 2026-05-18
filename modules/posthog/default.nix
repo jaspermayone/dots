@@ -77,11 +77,17 @@ services:
       DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
       REDIS_URL: "redis://redis7:6379/"
       SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
+      CLICKHOUSE_HOST: "clickhouse"
+      CLICKHOUSE_SECURE: "false"
+      CLICKHOUSE_VERIFY: "false"
   worker:
     environment:
       DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
       REDIS_URL: "redis://redis7:6379/"
       SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
+      CLICKHOUSE_HOST: "clickhouse"
+      CLICKHOUSE_SECURE: "false"
+      CLICKHOUSE_VERIFY: "false"
   temporal-django-worker:
     restart: "no"
     entrypoint: ["/bin/sh", "-c", "echo 'temporal-django-worker not present in this image version, skipping'; exit 0"]
@@ -91,7 +97,11 @@ services:
       SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
   feature-flags:
     environment:
-      SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
+      WRITE_DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
+      READ_DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
+      PERSONS_WRITE_DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
+      PERSONS_READ_DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
+      MAXMIND_DB_PATH: ""
 OVERRIDE
   '';
 in
