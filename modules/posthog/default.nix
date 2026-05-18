@@ -45,7 +45,7 @@ let
       MMDB_YEAR=$(date +%Y)
       MMDB_MONTH=$(date +%m)
       ${pkgs.curl}/bin/curl -sSfL \
-        "https://download.db-ip.com/free/dbip-city-lite-${MMDB_YEAR}-${MMDB_MONTH}.mmdb.gz" \
+        "https://download.db-ip.com/free/dbip-city-lite-''${MMDB_YEAR}-''${MMDB_MONTH}.mmdb.gz" \
         | ${pkgs.gzip}/bin/gunzip > "$GEOIP_DB" \
         || echo "Warning: GeoIP database download failed; feature-flags geolocation will be unavailable"
     fi
