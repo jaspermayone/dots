@@ -38,6 +38,18 @@ let
     mkdir -p "$WORK_DIR/share"
     touch "$WORK_DIR/dev-services.env"
 
+    # Download GeoIP database for feature-flags (DB-IP city lite, MMDB format, free/no account needed).
+    # Only download if the file doesn't already exist so rebuilds don't re-fetch.
+    GEOIP_DB="$WORK_DIR/share/GeoLite2-City.mmdb"
+    if [ ! -f "$GEOIP_DB" ]; then
+      MMDB_YEAR=$(date +%Y)
+      MMDB_MONTH=$(date +%m)
+      ${pkgs.curl}/bin/curl -sSfL \
+        "https://download.db-ip.com/free/dbip-city-lite-${MMDB_YEAR}-${MMDB_MONTH}.mmdb.gz" \
+        | ${pkgs.gzip}/bin/gunzip > "$GEOIP_DB" \
+        || echo "Warning: GeoIP database download failed; feature-flags geolocation will be unavailable"
+    fi
+
     # Startup scripts mounted into containers at /compose/.
     # These were removed from the PostHog repo but the hobby compose still references them.
     cat > "$WORK_DIR/compose/start" <<'SCRIPT'
@@ -101,7 +113,6 @@ services:
       READ_DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
       PERSONS_WRITE_DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
       PERSONS_READ_DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
-      MAXMIND_DB_PATH: ""
 OVERRIDE
   '';
 in
