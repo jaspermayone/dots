@@ -38,6 +38,23 @@ let
     mkdir -p "$WORK_DIR/share"
     touch "$WORK_DIR/dev-services.env"
 
+    # Startup scripts mounted into containers at /compose/.
+    # These were removed from the PostHog repo but the hobby compose still references them.
+    cat > "$WORK_DIR/compose/start" <<'SCRIPT'
+#!/bin/bash
+set -e
+./bin/docker-migrate
+exec ./bin/docker-server
+SCRIPT
+    chmod +x "$WORK_DIR/compose/start"
+
+    cat > "$WORK_DIR/compose/temporal-django-worker" <<'SCRIPT'
+#!/bin/bash
+set -e
+exec ./bin/temporal-django-worker
+SCRIPT
+    chmod +x "$WORK_DIR/compose/temporal-django-worker"
+
     # Write .env: merge the agenix secret (POSTHOG_SECRET, ENCRYPTION_SALT_KEYS)
     # with computed values.  Mode 600 — this file contains secrets.
     install -m 600 /dev/null "$WORK_DIR/.env"
