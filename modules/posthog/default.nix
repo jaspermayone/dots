@@ -92,6 +92,7 @@ services:
       CLICKHOUSE_HOST: "clickhouse"
       CLICKHOUSE_SECURE: "false"
       CLICKHOUSE_VERIFY: "false"
+      CLICKHOUSE_REPLICATION: "false"
   worker:
     environment:
       DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
@@ -100,6 +101,7 @@ services:
       CLICKHOUSE_HOST: "clickhouse"
       CLICKHOUSE_SECURE: "false"
       CLICKHOUSE_VERIFY: "false"
+      CLICKHOUSE_REPLICATION: "false"
   temporal-django-worker:
     restart: "no"
     entrypoint: ["/bin/sh", "-c", "echo 'temporal-django-worker not present in this image version, skipping'; exit 0"]
