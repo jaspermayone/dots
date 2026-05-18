@@ -61,15 +61,30 @@ SCRIPT
     cat "${cfg.environmentFile}" >> "$WORK_DIR/.env"
     cat >> "$WORK_DIR/.env" <<EOF
 
-DOMAIN=${if cfg.behindProxy then "http://${cfg.hostname}" else cfg.hostname}
+DOMAIN=${cfg.hostname}
 REGISTRY_URL=posthog/posthog
 POSTHOG_APP_TAG=${cfg.tag}
 
-DATABASE_URL=postgres://posthog:posthog@db:5432/posthog
-REDIS_URL=redis://redis:6379/
-
-CADDY_TLS_BLOCK=
+CADDY_TLS_BLOCK=${if cfg.behindProxy then "auto_https off" else ""}
 EOF
+
+    # docker-compose.base.yml uses <<: *worker YAML anchors which docker-compose
+    # extends: does not propagate. Inject the missing vars via an override file.
+    cat > "$WORK_DIR/docker-compose.override.yml" <<'OVERRIDE'
+services:
+  web:
+    environment:
+      DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
+      REDIS_URL: "redis://redis7:6379/"
+  worker:
+    environment:
+      DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
+      REDIS_URL: "redis://redis7:6379/"
+  temporal-django-worker:
+    environment:
+      DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
+      REDIS_URL: "redis://redis7:6379/"
+OVERRIDE
   '';
 in
 {
