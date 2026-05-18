@@ -76,14 +76,22 @@ services:
     environment:
       DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
       REDIS_URL: "redis://redis7:6379/"
+      SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
   worker:
     environment:
       DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
       REDIS_URL: "redis://redis7:6379/"
+      SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
   temporal-django-worker:
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c", "echo 'temporal-django-worker not present in this image version, skipping'; exit 0"]
     environment:
       DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
       REDIS_URL: "redis://redis7:6379/"
+      SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
+  feature-flags:
+    environment:
+      SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
 OVERRIDE
   '';
 in
