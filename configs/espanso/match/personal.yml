@@ -7,6 +7,9 @@ matches:
   - trigger: ";ssh"
     replace: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
 
+  - trigger: ";alastor"
+    replace: "129.213.163.213"
+
   # Social (public links)
   - triggers: [ ";linkedin", ";lin" ]
     replace: "https://www.linkedin.com/in/jaspermayone/"
@@ -227,7 +230,7 @@ matches:
       style_word:
         default: "academic"
 
-  - triggers: [;dots]
+  - triggers: [";nrb", ";rebuild"]
     form : sudo nixos-rebuild switch --flake github:jaspermayone/dots#[[machine]]
     form_fields:
       machine:

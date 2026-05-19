@@ -237,6 +237,16 @@ in
     ];
   };
 
+  users.users.cattn = {
+    isNormalUser = true;
+    group = "users";
+    shell = pkgs.bash;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF5ZOyixDleoPZrLIjriKoOT+4ragghCpiIplClCCV87 Logan@cattn.dev"
+    ];
+  };
+
   # Maria Newman — rails console only (no deploy user access)
   users.users.maria = {
     isNormalUser = true;
