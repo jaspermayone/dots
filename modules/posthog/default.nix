@@ -40,15 +40,13 @@ let
     touch "$WORK_DIR/dev-services.env"
 
     # ClickHouse 26.3+ defaults deduplicate_merge_projection_mode=throw, which
-    # breaks PostHog's ReplacingMergeTree+projection migrations.  Set it to drop
-    # for all users so migrations apply cleanly on single-node hobby installs.
+    # breaks PostHog's ReplacingMergeTree+projection migrations.  Set it via
+    # the MergeTree server config so all DDL sees drop semantics.
     cat > "$WORK_DIR/clickhouse-config/posthog-overrides.xml" <<'XML'
 <clickhouse>
-  <profiles>
-    <default>
-      <deduplicate_merge_projection_mode>drop</deduplicate_merge_projection_mode>
-    </default>
-  </profiles>
+  <merge_tree>
+    <deduplicate_merge_projection_mode>drop</deduplicate_merge_projection_mode>
+  </merge_tree>
 </clickhouse>
 XML
 
@@ -125,7 +123,7 @@ services:
       SKIP_SERVICE_VERSION_REQUIREMENTS: "1"
   clickhouse:
     volumes:
-      - ./clickhouse-config/posthog-overrides.xml:/etc/clickhouse-server/users.d/posthog-overrides.xml:ro
+      - ./clickhouse-config/posthog-overrides.xml:/etc/clickhouse-server/config.d/posthog-overrides.xml:ro
   feature-flags:
     environment:
       WRITE_DATABASE_URL: "postgres://posthog:posthog@db:5432/posthog"
