@@ -574,12 +574,14 @@ in
       export PATH="/opt/homebrew/opt/mysql@8.0/bin:$PATH"
       export PATH="/Users/jsp/.antigravity/antigravity/bin:$PATH"
       export PATH="$HOME/go/bin:$PATH"
+      export PATH="$HOME/.dotnet/tools:$PATH"
       export PATH="$HOME/toolchains/gcc-arm-none-eabi-10.3-2021.10/bin:$PATH"
 
       # ============================================================================
       # ENVIRONMENT VARIABLES
       # ============================================================================
       export PICO_SDK_PATH="$HOME/dev/pico-sdk"
+      export DOTNET_ROOT="/opt/homebrew/opt/dotnet/libexec"
       export COMPOSE_BAKE=true
       export VISUAL="code --wait"
       export EDITOR="code --wait"
