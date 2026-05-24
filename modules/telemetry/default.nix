@@ -73,8 +73,8 @@ in
           name = "Authentik";
           allow_sign_up = true;
           scopes = "openid email profile";
-          auth_url = "https://${cfg.authentikHostname}/application/o/grafana/authorize/";
-          token_url = "https://${cfg.authentikHostname}/application/o/grafana/token/";
+          auth_url = "https://${cfg.authentikHostname}/application/o/authorize/";
+          token_url = "https://${cfg.authentikHostname}/application/o/token/";
           api_url = "https://${cfg.authentikHostname}/application/o/userinfo/";
           use_pkce = true;
           # Map Authentik group membership to Grafana roles
