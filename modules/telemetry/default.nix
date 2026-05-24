@@ -134,6 +134,10 @@ in
           job_name = "node";
           static_configs = [ { targets = [ "localhost:9100" ]; } ];
         }
+        {
+          job_name = "unpoller";
+          static_configs = [ { targets = [ "localhost:9130" ]; } ];
+        }
       ];
     };
 
