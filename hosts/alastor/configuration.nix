@@ -1186,6 +1186,24 @@ in
     };
   };
 
+  # Nymphadora telemetry (Grafana) — proxied via Tailscale MagicDNS
+  environment.etc."traefik/conf.d/nymphadora.toml" = {
+    source = (pkgs.formats.toml { }).generate "nymphadora.toml" {
+      http = {
+        routers.grafana-telemetry = {
+          rule = "Host(`telemetry.hogwarts.dev`)";
+          entryPoints = [ "websecure" ];
+          tls.certResolver = "cloudflare";
+          middlewares = [ "hsts" ];
+          service = "grafana-telemetry";
+        };
+        services.grafana-telemetry.loadBalancer.servers = [
+          { url = "http://nymphadora.wildebeest-stargazer.ts.net:3000"; }
+        ];
+      };
+    };
+  };
+
   # PostHog analytics — proxied to homelab VMs via Tailscale MagicDNS
   environment.etc."traefik/conf.d/posthog.toml" = {
     source = (pkgs.formats.toml { }).generate "posthog.toml" {

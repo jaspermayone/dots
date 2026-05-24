@@ -11,6 +11,7 @@ let
   alastor = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFwkC1CiWpLB10NNVaJwu4LSyiL0wM7ExI1VoKqIsgeG root@alastor-vnic";
   dippet = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOqi0ZRAHUqBL4zolSeVTgp1oZ6HKD+Hq5AktpLolely jsp@Dippet";
   horace = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILYGMXvsqRFPCtDLSq65TzJPYx+Nz675+RbTY4ox/9Gw root@nixos";
+  nymphadora = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKsKNW8psG4OWte25O9AyW8vEWWHjQUCT5UX4zANpNzs root@nymphadora";
 
   # Groups for convenience
   allUsers = [ jsp ];
@@ -18,6 +19,7 @@ let
     alastor
     dippet
     horace
+    nymphadora
   ];
   all = allUsers ++ allHosts;
 in
@@ -31,6 +33,7 @@ in
   "cloudflare-credentials.age".publicKeys = [
     jsp
     alastor
+    nymphadora
   ];
 
   # Bore client token (same as frps-token, but separate file for clarity)
@@ -200,5 +203,10 @@ jsp
     jsp
     alastor
   ];
+
+  "grafana-admin-password.age".publicKeys = [ jsp nymphadora ];
+  "grafana-oauth-env.age".publicKeys       = [ jsp nymphadora ];
+  "influxdb-admin-password.age".publicKeys = [ jsp nymphadora ];
+  "influxdb-token.age".publicKeys          = [ jsp nymphadora ];
 
 }

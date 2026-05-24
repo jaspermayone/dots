@@ -603,20 +603,22 @@ in
       # Note: zoxide, fzf, atuin are initialized by home-manager programs.*
 
       # Atuin hex (pty proxy for overlay rendering) - inlined to pass --disable-up-arrow
-      if [[ "$-" == *i* ]] && [[ -t 0 ]] && [[ -t 1 ]]; then
-        _atuin_hex_tmux_current="''${TMUX:-}"
-        _atuin_hex_tmux_previous="''${ATUIN_HEX_TMUX:-}"
+      if command -v atuin &>/dev/null; then
+        if [[ "$-" == *i* ]] && [[ -t 0 ]] && [[ -t 1 ]]; then
+          _atuin_hex_tmux_current="''${TMUX:-}"
+          _atuin_hex_tmux_previous="''${ATUIN_HEX_TMUX:-}"
 
-        if [[ -z "''${ATUIN_HEX_ACTIVE:-}" ]] || [[ "$_atuin_hex_tmux_current" != "$_atuin_hex_tmux_previous" ]]; then
-          export ATUIN_HEX_ACTIVE=1
-          export ATUIN_HEX_TMUX="$_atuin_hex_tmux_current"
-          exec atuin hex
+          if [[ -z "''${ATUIN_HEX_ACTIVE:-}" ]] || [[ "$_atuin_hex_tmux_current" != "$_atuin_hex_tmux_previous" ]]; then
+            export ATUIN_HEX_ACTIVE=1
+            export ATUIN_HEX_TMUX="$_atuin_hex_tmux_current"
+            exec atuin hex
+          fi
+
+          unset _atuin_hex_tmux_current _atuin_hex_tmux_previous
         fi
 
-        unset _atuin_hex_tmux_current _atuin_hex_tmux_previous
+        eval "$(atuin init zsh --disable-up-arrow)"
       fi
-
-      eval "$(atuin init zsh --disable-up-arrow)"
 
       # Note: mise activation handled by programs.mise below
 
@@ -704,7 +706,7 @@ in
 
   # Atuin (shell history) with self-hosted sync server
   programs.atuin = {
-    enable = true;
+    enable = hostname != "nymphadora";
     enableZshIntegration = true;
     flags = [
       "--disable-up-arrow"

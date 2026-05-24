@@ -181,6 +181,7 @@
         horace = mkNixos "horace" "x86_64-linux";
         dobby = mkNixos "dobby" "x86_64-linux";
         kreacher = mkNixos "kreacher" "x86_64-linux";
+        nymphadora = mkNixos "nymphadora" "x86_64-linux";
       };
 
       # Darwin configurations
@@ -227,6 +228,14 @@
             sshUser = "jsp";
             user = "root";
             path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.kreacher;
+          };
+        };
+        nymphadora = {
+          hostname = "nymphadora"; # update to IP if DNS not yet set
+          profiles.system = {
+            sshUser = "jsp";
+            user = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.nymphadora;
           };
         };
       };
