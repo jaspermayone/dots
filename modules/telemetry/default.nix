@@ -68,10 +68,13 @@ in
           admin_password = "$__file{${cfg.grafanaAdminPasswordFile}}";
           disable_initial_admin_creation = false;
         };
+        auth.disable_login_form = true;
+
         "auth.generic_oauth" = {
           enabled = true;
           name = "Authentik";
           allow_sign_up = true;
+          auto_login = true;
           scopes = "openid email profile";
           auth_url = "https://${cfg.authentikHostname}/application/o/authorize/";
           token_url = "https://${cfg.authentikHostname}/application/o/token/";
