@@ -75,7 +75,7 @@ in
           name = "Authentik";
           allow_sign_up = true;
           auto_login = true;
-          scopes = "openid email profile";
+          scopes = "openid email profile groups";
           auth_url = "https://${cfg.authentikHostname}/application/o/authorize/";
           token_url = "https://${cfg.authentikHostname}/application/o/token/";
           api_url = "https://${cfg.authentikHostname}/application/o/userinfo/";
