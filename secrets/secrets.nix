@@ -209,4 +209,9 @@ jsp
   "influxdb-admin-password.age".publicKeys = [ jsp nymphadora ];
   "influxdb-token.age".publicKeys          = [ jsp nymphadora ];
 
+  "unpoller-env.age".publicKeys = [
+    jsp
+    nymphadora
+  ];
+
 }

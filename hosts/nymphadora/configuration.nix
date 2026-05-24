@@ -61,6 +61,9 @@
       file = ../../secrets/grafana-oauth-env.age;
       owner = "grafana";
     };
+    unpoller-env = {
+      file = ../../secrets/unpoller-env.age;
+    };
   };
 
   # ── Traefik ───────────────────────────────────────────────────────────────────
@@ -80,6 +83,32 @@
   };
 
   services.tailscale.enable = true;
+
+  # ── UniFi Poller ──────────────────────────────────────────────────────────────
+  # Runs in Docker with host networking so it can reach InfluxDB on localhost:8086.
+  # UniFi credentials come from the agenix env file; InfluxDB settings are static.
+  systemd.services.unpoller = {
+    description = "UniFi Poller";
+    after = [ "docker.service" "influxdb.service" "network-online.target" ];
+    requires = [ "docker.service" "influxdb.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      EnvironmentFile = config.age.secrets.unpoller-env.path;
+      ExecStartPre = [
+        "-${pkgs.docker}/bin/docker stop unpoller"
+        "-${pkgs.docker}/bin/docker rm unpoller"
+        "${pkgs.docker}/bin/docker pull ghcr.io/unpoller/unpoller:latest"
+      ];
+      ExecStart = "${pkgs.docker}/bin/docker run --name unpoller --network=host --env-file ${config.age.secrets.unpoller-env.path} -e UP_INFLUXDB_URL=http://localhost:8086 -e UP_INFLUXDB_DB=unifi -e UP_POLLER_DEBUG=false ghcr.io/unpoller/unpoller:latest";
+      ExecStop = "${pkgs.docker}/bin/docker stop unpoller";
+      Restart = "on-failure";
+      RestartSec = "10s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "unpoller";
+    };
+  };
 
   virtualisation.docker.enable = true;
 
