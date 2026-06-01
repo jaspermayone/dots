@@ -630,50 +630,54 @@ in
   };
 
   # Common CLI tools
-  home.packages = with pkgs; [
-    # Custom scripts
-    tangled-setup
-    strings-cli
+  home.packages =
+    with pkgs;
+    [
+      # Custom scripts
+      tangled-setup
+      strings-cli
 
-    # File management
-    tree
-    fd
-    ripgrep
-    bat
-    eza
-    unzip
+      # File management
+      tree
+      fd
+      ripgrep
+      bat
+      eza
+      unzip
 
-    # System monitoring
-    htop
-    btop
+      # System monitoring
+      htop
+      btop
 
-    # Networking
-    curl
-    wget
-    httpie
+      # Networking
+      curl
+      wget
+      httpie
 
-    # JSON/YAML
-    jq
-    yq
+      # JSON/YAML
+      jq
+      yq
 
-    # Misc
-    fzf
-    tmux
-    watch
-    gum # Required for tangled-setup script
+      # Misc
+      fzf
+      tmux
+      watch
+      gum # Required for tangled-setup script
 
-    # Encryption
-    age # Modern encryption tool
+      # Encryption
+      age # Modern encryption tool
 
-    # Dev tools
-    flyctl # Fly.io CLI
-    unstable.bun # JavaScript runtime
-    nodePackages.pnpm # Package manager
-    zmx-binary # Session persistence for terminal processes
+      # Dev tools
+      flyctl # Fly.io CLI
+      unstable.bun # JavaScript runtime
+      nodePackages.pnpm # Package manager
+      zmx-binary # Session persistence for terminal processes
 
-    # Deployment
-    inputs.deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default
-  ];
+      # Deployment (local deploy tool; only needed on the dev machine)
+    ]
+    ++ lib.optionals pkgs.stdenv.isDarwin [
+      inputs.deploy-rs.packages.${pkgs.stdenv.hostPlatform.system}.default
+    ];
 
   # Fuzzy finder integration
   programs.fzf = {
