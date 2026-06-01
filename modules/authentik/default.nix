@@ -51,6 +51,15 @@ in
           http = "127.0.0.1:${toString cfg.port}";
           https = "127.0.0.1:${toString (cfg.port + 443)}";
           metrics = "127.0.0.1:9300";
+          # Trust Traefik (loopback) so authentik reads X-Forwarded-For
+          # and sees the real client IP rather than 127.0.0.1.
+          trusted_proxy_cidrs = [
+            "127.0.0.0/8"
+            "10.0.0.0/8"
+            "172.16.0.0/12"
+            "192.168.0.0/16"
+            "::1/128"
+          ];
         };
       };
     };

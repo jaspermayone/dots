@@ -12,7 +12,12 @@
 #
 # ACME state (/var/lib/traefik/acme.json) is persisted on the host so
 # certificates survive container restarts and image upgrades.
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.services.traefik-compose;
@@ -26,15 +31,70 @@ let
           scheme = "https";
           permanent = true;
         };
+        forwardedHeaders.trustedIPs = [
+          "173.245.48.0/20"
+          "103.21.244.0/22"
+          "103.22.200.0/22"
+          "103.31.4.0/22"
+          "141.101.64.0/18"
+          "108.162.192.0/18"
+          "190.93.240.0/20"
+          "188.114.96.0/20"
+          "197.234.240.0/22"
+          "198.41.128.0/17"
+          "162.158.0.0/15"
+          "104.16.0.0/13"
+          "104.24.0.0/14"
+          "172.64.0.0/13"
+          "131.0.72.0/22"
+          "2400:cb00::/32"
+          "2606:4700::/32"
+          "2803:f800::/32"
+          "2405:b500::/32"
+          "2405:8100::/32"
+          "2a06:98c0::/29"
+          "2c0f:f248::/32"
+        ];
       };
-      websecure.address = ":443";
+      websecure = {
+        address = ":443";
+        # Trust Cloudflare egress IPs so Traefik passes through CF-Connecting-IP
+        # / X-Forwarded-For rather than overwriting with the Cloudflare proxy IP.
+        forwardedHeaders.trustedIPs = [
+          "173.245.48.0/20"
+          "103.21.244.0/22"
+          "103.22.200.0/22"
+          "103.31.4.0/22"
+          "141.101.64.0/18"
+          "108.162.192.0/18"
+          "190.93.240.0/20"
+          "188.114.96.0/20"
+          "197.234.240.0/22"
+          "198.41.128.0/17"
+          "162.158.0.0/15"
+          "104.16.0.0/13"
+          "104.24.0.0/14"
+          "172.64.0.0/13"
+          "131.0.72.0/22"
+          "2400:cb00::/32"
+          "2606:4700::/32"
+          "2803:f800::/32"
+          "2405:b500::/32"
+          "2405:8100::/32"
+          "2a06:98c0::/29"
+          "2c0f:f248::/32"
+        ];
+      };
     };
     certificatesResolvers.cloudflare.acme = {
       email = cfg.acmeEmail;
       storage = "/var/lib/traefik/acme.json";
       dnsChallenge = {
         provider = "cloudflare";
-        resolvers = [ "1.1.1.1:53" "1.0.0.1:53" ];
+        resolvers = [
+          "1.1.1.1:53"
+          "1.0.0.1:53"
+        ];
       };
     };
     providers.file = {
@@ -63,7 +123,8 @@ let
           - "${cfg.cloudflareCredentialsFile}"
   '';
 
-in {
+in
+{
   options.services.traefik-compose = {
     enable = lib.mkEnableOption "Traefik reverse proxy (Docker Compose stack)";
 
@@ -113,8 +174,11 @@ in {
 
     systemd.services.traefik-compose = {
       description = "Traefik reverse proxy (Docker Compose)";
-      after    = [ "docker.service" "network-online.target" ];
-      wants    = [ "network-online.target" ];
+      after = [
+        "docker.service"
+        "network-online.target"
+      ];
+      wants = [ "network-online.target" ];
       requires = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
 
@@ -123,16 +187,19 @@ in {
       restartTriggers = [ composeFile ];
 
       serviceConfig = {
-        Type            = "oneshot";
+        Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart       = "${pkgs.docker-compose}/bin/docker-compose -f ${composeFile} up -d";
-        ExecStop        = "${pkgs.docker-compose}/bin/docker-compose -f ${composeFile} down";
+        ExecStart = "${pkgs.docker-compose}/bin/docker-compose -f ${composeFile} up -d";
+        ExecStop = "${pkgs.docker-compose}/bin/docker-compose -f ${composeFile} down";
         TimeoutStartSec = "5min";
       };
     };
 
     networking.firewall = lib.mkIf cfg.openFirewall {
-      allowedTCPPorts = [ 80 443 ];
+      allowedTCPPorts = [
+        80
+        443
+      ];
       allowedUDPPorts = [ 443 ];
     };
   };
