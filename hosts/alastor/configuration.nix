@@ -92,6 +92,7 @@ in
     ../../modules/img
     ../../modules/l4
     ../../modules/till-server
+    ../../modules/basecamp-apps
     inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
     inputs.tangled.nixosModules.spindle
@@ -100,8 +101,11 @@ in
   # System version
   system.stateVersion = "24.05";
 
-  # Prevent /boot partition from filling up
-  boot.loader.grub.configurationLimit = 10;
+  # Prevent /boot partition from filling up. /boot is only 98M and one
+  # aarch64 kernel Image (~60M) + initrd (~11M) is ~71M, so it realistically
+  # holds 2 same-kernel generations. A kernel-version bump needs a manual
+  # /boot free + direct switch-to-configuration (both kernels can't coexist).
+  boot.loader.grub.configurationLimit = 2;
 
   # Clean /tmp on boot
   boot.tmp.cleanOnBoot = true;
@@ -163,6 +167,41 @@ in
     preview-traefik
   ];
 
+  # Basecamp ONCE-style apps, run directly as Docker services behind Traefik
+  # (see modules/basecamp-apps). Bound to loopback; Traefik terminates TLS via
+  # the cloudflare resolver. DNS: point each hostname at alastor.
+  services.basecampApps.apps = {
+    writebook = {
+      image = "ghcr.io/basecamp/writebook";
+      hostname = "writebook.hogwarts.dev";
+      port = 8081;
+    };
+    campfire = {
+      image = "ghcr.io/basecamp/once-campfire";
+      hostname = "campfire.hogwarts.dev";
+      port = 8082;
+    };
+    fizzy = {
+      image = "ghcr.io/basecamp/fizzy";
+      hostname = "fizzy.hogwarts.dev";
+      port = 8083;
+    };
+  };
+
+  # SMTP for the basecamp apps (email-based sign-in links won't deliver without
+  # it). Reuses the DocuSeal Google Workspace app password (docuseal-smtp.age,
+  # which holds just SMTP_PASSWORD=...); auth is the singlefeather.com account.
+  # Sends as the fizzy@hogwarts.dev "send mail as" alias — deliverable under
+  # hogwarts.dev's strict DMARC (p=reject) only once Google DKIM is enabled for
+  # hogwarts.dev (Admin → Authenticate email → hogwarts.dev).
+  services.basecampApps.smtpEnvironmentFile = config.age.secrets.docuseal-smtp.path;
+  services.basecampApps.smtpSettings = {
+    SMTP_ADDRESS = "smtp.gmail.com";
+    SMTP_PORT = "587";
+    SMTP_USERNAME = "jasper.mayone@singlefeather.com";
+    MAILER_FROM_ADDRESS = "fizzy@hogwarts.dev";
+  };
+
   # NH - NixOS helper
   programs.nh = {
     enable = true;
@@ -219,7 +258,10 @@ in
   # User account
   users.users.jsp = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "docker" ];
+    extraGroups = [
+      "wheel"
+      "docker"
+    ];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe jsp@remus"
@@ -605,8 +647,15 @@ in
   # FundingFindr Rails app (Puma on port 3300)
   systemd.services.funding_findr = {
     description = "FundingFindr Puma HTTP Server";
-    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
-    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    after = [
+      "network.target"
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
+    requires = [
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
@@ -642,8 +691,15 @@ in
   # FundingFindr GoodJob worker — critical queue (user-triggered, transactional)
   systemd.services.funding_findr_worker_critical = {
     description = "FundingFindr GoodJob Worker (critical)";
-    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
-    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    after = [
+      "network.target"
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
+    requires = [
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
@@ -675,8 +731,15 @@ in
   # FundingFindr GoodJob worker — default queue (scheduled jobs, bulk email)
   systemd.services.funding_findr_worker_default = {
     description = "FundingFindr GoodJob Worker (default)";
-    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
-    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    after = [
+      "network.target"
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
+    requires = [
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
@@ -708,8 +771,15 @@ in
   # FundingFindr GoodJob worker — low queue (batch imports, sweeps)
   systemd.services.funding_findr_worker_low = {
     description = "FundingFindr GoodJob Worker (low)";
-    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
-    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    after = [
+      "network.target"
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
+    requires = [
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
@@ -741,8 +811,15 @@ in
   # FundingFindr GoodJob worker — propublica queue (IRS 990 enrichment pipeline)
   systemd.services.funding_findr_worker_propublica = {
     description = "FundingFindr GoodJob Worker (propublica)";
-    after = [ "network.target" "postgresql.service" "redis-fundingfindr.service" ];
-    requires = [ "postgresql.service" "redis-fundingfindr.service" ];
+    after = [
+      "network.target"
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
+    requires = [
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
@@ -776,7 +853,10 @@ in
   # Data persisted at /var/lib/qdrant
   systemd.services.qdrant = {
     description = "Qdrant Vector Database";
-    after = [ "docker.service" "network.target" ];
+    after = [
+      "docker.service"
+      "network.target"
+    ];
     requires = [ "docker.service" ];
     wantedBy = [ "multi-user.target" ];
     preStart = "mkdir -p /var/lib/qdrant";
@@ -802,7 +882,10 @@ in
   # Model data persisted at /var/lib/ollama
   systemd.services.ollama = {
     description = "Ollama Embedding Server";
-    after = [ "docker.service" "network.target" ];
+    after = [
+      "docker.service"
+      "network.target"
+    ];
     requires = [ "docker.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
@@ -885,14 +968,24 @@ in
   services.nginx = {
     enable = true;
     virtualHosts."ff-error-pages" = {
-      listen = [ { addr = "127.0.0.1"; port = 3398; } ];
+      listen = [
+        {
+          addr = "127.0.0.1";
+          port = 3398;
+        }
+      ];
       root = "/home/fundingfindr/funding_findr/public";
       locations."/" = {
         tryFiles = "$uri =404";
       };
     };
     virtualHosts."crane-static" = {
-      listen = [ { addr = "127.0.0.1"; port = 8091; } ];
+      listen = [
+        {
+          addr = "127.0.0.1";
+          port = 8091;
+        }
+      ];
       locations."/robots.txt" = {
         extraConfig = ''
           add_header Content-Type text/plain;
@@ -1019,7 +1112,10 @@ in
             rule = "Host(`services.cranebrowser.com`) && Path(`/`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" "crane-root-redirect" ];
+            middlewares = [
+              "hsts"
+              "crane-root-redirect"
+            ];
             service = "crane-noop";
             priority = 30;
           };
@@ -1064,7 +1160,10 @@ in
             rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/ext/`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" "crane-strip-ext" ];
+            middlewares = [
+              "hsts"
+              "crane-strip-ext"
+            ];
             service = "crane-ext";
             priority = 20;
           };
@@ -1082,7 +1181,10 @@ in
             rule = "Host(`services.cranebrowser.com`) && PathPrefix(`/ubo/`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" "crane-strip-ubo" ];
+            middlewares = [
+              "hsts"
+              "crane-strip-ubo"
+            ];
             service = "crane-ubo";
             priority = 20;
           };
@@ -1109,7 +1211,11 @@ in
             rule = "Host(`fundingfindr.co`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" "ff-retry" "ff-error-pages" ];
+            middlewares = [
+              "hsts"
+              "ff-retry"
+              "ff-error-pages"
+            ];
             service = "funding-findr";
           };
           # Ollama embedding server (local Docker container on port 11434)
@@ -1118,7 +1224,10 @@ in
             rule = "Host(`ollama.hogwarts.dev`)";
             entryPoints = [ "websecure" ];
             tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" "ollama-auth" ];
+            middlewares = [
+              "hsts"
+              "ollama-auth"
+            ];
             service = "ollama";
           };
         };
