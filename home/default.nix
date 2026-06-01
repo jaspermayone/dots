@@ -103,6 +103,7 @@
 
   home.packages = with pkgs; [
     eza
+    fizzy-cli
   ] ++ lib.optionals stdenv.isDarwin [ pkgs.qmd ];
 
   # Git configuration
