@@ -454,7 +454,8 @@ in
     till-github-token = {
       file = ../../secrets/till-github-token.age;
       mode = "400";
-      owner = "till";
+      # owner "till" is gone while till-server is disabled; default to root so
+      # agenix can chown. Restore `owner = "till";` when re-enabling till-server.
     };
     monitoring-env = {
       file = ../../secrets/monitoring-env.age;
@@ -465,7 +466,8 @@ in
     till-server-env = {
       file = ../../secrets/till-server-env.age;
       mode = "400";
-      owner = "till";
+      # owner "till" is gone while till-server is disabled; default to root.
+      # Restore `owner = "till";` when re-enabling till-server.
     };
   };
 
@@ -932,7 +934,9 @@ in
 
   # till API server
   atelier.services.till-server = {
-    enable = true;
+    # Temporarily disabled: till-server-sync fails on an expired/revoked GitHub
+    # token (403 on git pull). Re-enable once the token is refreshed.
+    enable = false;
     hostname = "api.usetill.dev";
     repoTokenFile = config.age.secrets.till-github-token.path;
     environmentFile = config.age.secrets.till-server-env.path;
@@ -950,7 +954,10 @@ in
 
   # Crane browser services
   crane.services = {
-    enable = true;
+    # Temporarily disabled: crane-services-sync fails on an expired/invalid
+    # GitHub token (password auth no longer supported). Re-enable once the
+    # token is refreshed.
+    enable = false;
     hostname = "services.cranebrowser.com";
     proxyBaseUrl = "https://services.cranebrowser.com/ext";
     uboProxyBaseUrl = "https://services.cranebrowser.com/ubo/";
