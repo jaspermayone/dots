@@ -64,7 +64,10 @@
     };
 
     authentik-nix = {
-      url = "github:nix-community/authentik-nix";
+      # Pinned to 2026.2.1. Later revs (2026.2.3/.4) have a go-modules
+      # vendorHash that does not match on aarch64-linux (alastor), breaking
+      # the build. This is the version currently running on alastor.
+      url = "github:nix-community/authentik-nix/7e4730351fb6df479c46a1bf7e23d46a0b0c5d46";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -109,6 +112,7 @@
             wut = final.unstable.callPackage ./packages/wut.nix { };
             qmd = prev.callPackage ./packages/qmd.nix { };
             projn = prev.callPackage ./packages/projn.nix { };
+            fizzy-cli = prev.callPackage ./packages/fizzy-cli.nix { };
             atuin = prev.callPackage ./packages/atuin.nix { rustPlatform = final.unstable.rustPlatform; };
 
             # Caddy with Cloudflare DNS plugin for ACME DNS challenges
@@ -200,6 +204,13 @@
       deploy.nodes = {
         alastor = {
           hostname = "alastor";
+          # RemoteCommand=none + -T override the zmx auto-attach in ~/.ssh/config,
+          # which would otherwise break deploy-rs and nix remote-build SSH connections.
+          sshOpts = [
+            "-T"
+            "-o"
+            "RemoteCommand=none"
+          ];
           profiles.system = {
             sshUser = "jsp";
             user = "root";
