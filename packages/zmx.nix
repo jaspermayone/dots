@@ -8,7 +8,7 @@
 
 stdenv.mkDerivation rec {
   pname = "zmx";
-  version = "0.1.0";
+  version = "0.3.0";
 
   src = fetchurl {
     url =
@@ -31,13 +31,13 @@ stdenv.mkDerivation rec {
 
     hash =
       if stdenv.isLinux && stdenv.isAarch64 then
-        "sha256-cMGo+Af0VRY3c2EoNzVZFU53Kz5wKL8zsSSXIOtZVU8="
+        "sha256-OTMWzGzOjPZGdr4hj3TTNqbG2OcRc0Ifd0QLaAoRlLQ="
       else if stdenv.isLinux then
-        "sha256-Zmqs/Y3be2z9KMuSwyTLZWKbIInzHgoC9Bm0S2jv3XI="
+        "sha256-/K/xWB61pqPll4Gq13qMoGm0Q1vC/sQT3TI7RaTf3zI="
       else if stdenv.isDarwin && stdenv.isAarch64 then
-        "sha256-34k5Q1cIr3+foubtMJVoHVHZtCLoSjwJK00e1p0JdLg="
+        "sha256-yjgZvb47NA/XG+u7UFpSk9gjzOIqmYa0qIChLRX9m/k="
       else
-        "sha256-0epjoQhUSBYlE0L7Ubwn/sJF61+4BbxeaRx6EY/SklE=";
+        "sha256-ypYnuv4cN4bT10NqtYtWx2lU8+Ggw8pRa1r63Q5lmDY=";
   };
 
   nativeBuildInputs = lib.optionals stdenv.isLinux [ autoPatchelfHook ];
