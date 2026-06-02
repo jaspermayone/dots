@@ -104,6 +104,7 @@
   home.packages = with pkgs; [
     eza
     fizzy-cli
+    _1password-cli
   ] ++ lib.optionals stdenv.isDarwin [ pkgs.qmd ];
 
   # Git configuration
@@ -128,13 +129,13 @@
       "*" = {
         addKeysToAgent = "yes";
         extraOptions.SetEnv = "TERM=xterm-256color";
+        identityAgent = "\"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
       };
 
       # Alastor (tunnel server, named after Mad-Eye Moody)
       alastor = {
         hostname = "tun.hogwarts.channel";
         user = "jsp";
-        identityFile = "~/.ssh/id_ed25519";
         zmx = true; # auto-attach zmx session
         extraOptions.SetEnv = "TERM=xterm-256color";
       };
@@ -143,7 +144,6 @@
       dippet = {
         hostname = "10.11.0.36";
         user = "jsp";
-        identityFile = "~/.ssh/id_ed25519";
         extraOptions.SetEnv = "TERM=xterm-256color";
       };
 
@@ -151,7 +151,6 @@
       horace = {
         hostname = "horace";
         user = "jsp";
-        identityFile = "~/.ssh/id_ed25519";
         zmx = true;
       };
 
@@ -172,8 +171,7 @@
       "github.com" = {
         hostname = "github.com";
         user = "git";
-        identityFile = "~/.ssh/id_ed25519";
-        identitiesOnly = true;
+        identityAgent = "\"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"";
         extraOptions = {
           PubkeyAcceptedAlgorithms = "+ssh-ed25519";
           HostkeyAlgorithms = "+ssh-ed25519";

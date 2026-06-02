@@ -55,6 +55,12 @@ in
               description = "Path to SSH identity file";
             };
 
+            identityAgent = mkOption {
+              type = types.nullOr types.str;
+              default = null;
+              description = "Path to SSH agent socket";
+            };
+
             identitiesOnly = mkOption {
               type = types.nullOr types.bool;
               default = null;
@@ -116,6 +122,7 @@ in
             addKeysToAgent = mkIf (hostCfg.addKeysToAgent != null) hostCfg.addKeysToAgent;
             extraOptions =
               hostCfg.extraOptions
+              // (optionalAttrs (hostCfg.identityAgent != null) { IdentityAgent = hostCfg.identityAgent; })
               // (
                 if hostCfg.zmx then
                   {
