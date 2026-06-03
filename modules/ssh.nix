@@ -124,7 +124,10 @@ in
               hostCfg.extraOptions
               // (optionalAttrs (hostCfg.identityAgent != null) { IdentityAgent = hostCfg.identityAgent; })
               // (
-                if hostCfg.zmx then
+                # Only put zmx options in Host block when no user is specified (fallback).
+                # When user is set, a scoped Match block is generated in zmxMatchBlocks instead,
+                # so zmx doesn't fire for other users (e.g. fundingfindr@alastor).
+                if hostCfg.zmx && hostCfg.user == null then
                   {
                     RemoteCommand = "export PATH=$HOME/.nix-profile/bin:$PATH; zmx attach %n";
                     RequestTTY = "yes";
@@ -136,6 +139,29 @@ in
                   { }
               );
           }) cfg.hosts;
+
+          # For zmx hosts that have a user set, emit a Match block scoped to that user
+          # so zmx options don't apply when connecting as a different user.
+          zmxMatchBlocks = listToAttrs (
+            concatMap (name:
+              let hostCfg = cfg.hosts.${name};
+              in if hostCfg.zmx && hostCfg.user != null then [
+                {
+                  name = "${name}-zmx";
+                  value = {
+                    match = "Host ${name} User ${hostCfg.user}";
+                    extraOptions = {
+                      RemoteCommand = "export PATH=$HOME/.nix-profile/bin:$PATH; zmx attach %n";
+                      RequestTTY = "yes";
+                      ControlPath = "~/.ssh/cm-%r@%h:%p";
+                      ControlMaster = "auto";
+                      ControlPersist = "10m";
+                    };
+                  };
+                }
+              ] else []
+            ) (attrNames cfg.hosts)
+          );
 
           # Create zmx pattern hosts if enabled
           zmxPatternHosts =
@@ -175,7 +201,7 @@ in
             else
               { };
         in
-        defaultBlock // hostConfigs // zmxPatternHosts;
+        defaultBlock // hostConfigs // zmxMatchBlocks // zmxPatternHosts;
 
       extraConfig = cfg.extraConfig;
     };

@@ -73,10 +73,35 @@
   };
 
   # Try - ephemeral workspace manager (local dev machines only)
-  programs.try = {
-    enable = lib.elem hostname [ "remus" "dippet" "horace" ];
-    path = "~/dev/tries";
-  };
+  # Package is patched to bake in the nix ruby path so `try init`'s generated
+  # shell function doesn't pick up mise's ruby via /usr/bin/env.
+  # Remove once https://github.com/tobi/try/pull/116 is merged and flake updated.
+  programs.try =
+    let
+      ruby = pkgs.ruby_3_3;
+      system = pkgs.stdenv.hostPlatform.system;
+      patchedTry = (inputs.try.packages.${system}.default).overrideAttrs (_: {
+        installPhase = ''
+          mkdir -p $out/bin
+          cp try.rb $out/bin/try
+          cp -r lib $out/bin/
+          chmod +x $out/bin/try
+
+          substituteInPlace $out/bin/try \
+            --replace "/usr/bin/env ruby '" "${ruby}/bin/ruby '"
+
+          wrapProgram $out/bin/try \
+            --prefix PATH : ${ruby}/bin \
+            --set GEM_HOME "${ruby}/lib/ruby/gems/3.3.0" \
+            --set GEM_PATH "${ruby}/lib/ruby/gems/3.3.0"
+        '';
+      });
+    in
+    {
+      enable = lib.elem hostname [ "remus" "dippet" "horace" ];
+      path = "~/dev/tries";
+      package = patchedTry;
+    };
 
   # Ghostty terminal (installed as app bundle on macOS, skip nixpkgs package)
   programs.ghostty = {
