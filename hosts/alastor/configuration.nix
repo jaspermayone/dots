@@ -352,9 +352,13 @@ in
           command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_propublica";
           options = [ "NOPASSWD" ];
         }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_llm";
+          options = [ "NOPASSWD" ];
+        }
         # Combined restart for all workers — deploy.sh restarts them in one call
         {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_critical funding_findr_worker_default funding_findr_worker_low funding_findr_worker_propublica";
+          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_critical funding_findr_worker_default funding_findr_worker_llm funding_findr_worker_low funding_findr_worker_propublica";
           options = [ "NOPASSWD" ];
         }
         # Preview deploy helper — writes/deletes Traefik dynamic config files
@@ -847,6 +851,46 @@ in
       StandardOutput = "journal";
       StandardError = "journal";
       SyslogIdentifier = "funding_findr_worker_propublica";
+    };
+  };
+
+  # FundingFindr GoodJob worker — llm queue (Claude API calls, narrative/insight generation)
+  systemd.services.funding_findr_worker_llm = {
+    description = "FundingFindr GoodJob Worker (llm)";
+    after = [
+      "network.target"
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
+    requires = [
+      "postgresql.service"
+      "redis-fundingfindr.service"
+    ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      User = "fundingfindr";
+      Group = "users";
+      WorkingDirectory = "/home/fundingfindr/funding_findr";
+      EnvironmentFile = "/etc/funding_findr/env";
+      Environment = [
+        "RAILS_ENV=production"
+        "APPSIGNAL_APP_ENV=production"
+        "RUBY_YJIT_ENABLE=1"
+        "BUNDLE_PATH=vendor/bundle"
+        "BUNDLE_WITHOUT=development:test"
+        "GOOD_JOB_QUEUES=llm"
+        "GOOD_JOB_MAX_THREADS=5"
+        "STATSD_HOST=127.0.0.1"
+        "STATSD_PORT=8125"
+      ];
+      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
+      KillMode = "process";
+      Restart = "on-failure";
+      RestartSec = "5s";
+      StandardOutput = "journal";
+      StandardError = "journal";
+      SyslogIdentifier = "funding_findr_worker_llm";
     };
   };
 
@@ -1374,6 +1418,7 @@ in
       if $programname == 'funding_findr' \
       or $programname == 'funding_findr_worker_critical' \
       or $programname == 'funding_findr_worker_default' \
+      or $programname == 'funding_findr_worker_llm' \
       or $programname == 'funding_findr_worker_low' \
       then @@appsignal-endpoint.net:6514;AppsignalFormat
     '';
