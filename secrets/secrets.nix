@@ -208,6 +208,7 @@ jsp
   "grafana-oauth-env.age".publicKeys       = [ jsp nymphadora ];
   "influxdb-admin-password.age".publicKeys = [ jsp nymphadora ];
   "influxdb-token.age".publicKeys          = [ jsp nymphadora ];
+  "otel-bearer-token.age".publicKeys       = [ jsp nymphadora ];
 
   "unpoller-env.age".publicKeys = [
     jsp

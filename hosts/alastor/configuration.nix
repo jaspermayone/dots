@@ -8,73 +8,6 @@
   ...
 }:
 
-let
-  # Helper script for managing per-PR preview Traefik routing.
-  # Runs as root (via sudo) to write/delete dynamic config files in
-  # /etc/traefik/conf.d/. Traefik watches that directory and hot-reloads.
-  preview-traefik = pkgs.writeShellScriptBin "preview-traefik" ''
-    set -euo pipefail
-    ACTION="''${1:?Usage: preview-traefik (write <pr> <slug> <port> | delete <pr>)}"
-    PR="''${2:?Missing PR number}"
-
-    case "$ACTION" in
-      write)
-        SLUG="''${3:?Missing slug}"
-        PORT="''${4:?Missing port}"
-        cat > "/etc/traefik/conf.d/preview-pr-''${PR}.toml" <<TOML
-    [http.routers.preview-pr-''${PR}]
-      rule = "Host(\`''${SLUG}.preview.fundingfindr.co\`)"
-      entryPoints = ["websecure"]
-      service = "preview-pr-''${PR}"
-      [http.routers.preview-pr-''${PR}.tls]
-        certResolver = "cloudflare"
-        [[http.routers.preview-pr-''${PR}.tls.domains]]
-          main = "*.preview.fundingfindr.co"
-
-    [http.services.preview-pr-''${PR}.loadBalancer]
-      [[http.services.preview-pr-''${PR}.loadBalancer.servers]]
-        url = "http://127.0.0.1:''${PORT}"
-    TOML
-        echo "Wrote Traefik config for preview PR #''${PR} (''${SLUG} -> :''${PORT})"
-        _ctr=$(docker ps --format '{{.Names}}' | grep -i traefik | head -1 || true)
-        if [ -n "$_ctr" ]; then
-          docker restart "$_ctr" > /dev/null 2>&1 \
-            && echo "  -> Reloaded Traefik ($_ctr)" \
-            || echo "  -> Warning: Traefik restart failed" >&2
-        fi
-        ;;
-      delete)
-        rm -f "/etc/traefik/conf.d/preview-pr-''${PR}.toml"
-        echo "Removed Traefik config for preview PR #''${PR}"
-        _ctr=$(docker ps --format '{{.Names}}' | grep -i traefik | head -1 || true)
-        if [ -n "$_ctr" ]; then
-          docker restart "$_ctr" > /dev/null 2>&1 \
-            && echo "  -> Reloaded Traefik ($_ctr)" \
-            || echo "  -> Warning: Traefik restart failed" >&2
-        fi
-        ;;
-      *)
-        echo "Usage: preview-traefik (write <pr> <slug> <port> | delete <pr>)" >&2
-        exit 1
-        ;;
-    esac
-  '';
-
-  # Scoped rails console wrapper for Maria — runs as fundingfindr, no other
-  # commands are permitted. Console1984 logs all activity inside the app.
-  ff-console = pkgs.writeShellScriptBin "ff-console" ''
-    set -a
-    [ -f /etc/funding_findr/env ] && . /etc/funding_findr/env
-    set +a
-    export RAILS_ENV=production
-    export BUNDLE_PATH=vendor/bundle
-    export BUNDLE_WITHOUT=development:test
-    export RUBY_YJIT_ENABLE=1
-    cd /home/fundingfindr/funding_findr
-    exec bundle exec rails console
-  '';
-in
-
 {
   imports = [
     ./hardware-configuration.nix
@@ -147,24 +80,6 @@ in
     tmux
     bluesky-pds
     inputs.agenix.packages.${pkgs.stdenv.hostPlatform.system}.default
-    # FundingFindr deploy toolchain
-    ff-console
-    pkgs.unstable.ruby_4_0
-    pkgs.unstable.bundler
-    nodejs_22
-    bun
-    gnumake
-    gcc
-    pkg-config
-    libyaml
-    libffi
-    libpq
-    zlib
-    openssl
-    libxml2
-    libxslt
-    # Preview deploy helper (writes Traefik dynamic config for per-PR previews)
-    preview-traefik
   ];
 
   # Basecamp ONCE-style apps, run directly as Docker services behind Traefik
@@ -268,7 +183,6 @@ in
     ];
   };
 
-  # FundingFindr deploy user
   users.users.fundingfindr = {
     isNormalUser = true;
     group = "users";
@@ -279,100 +193,9 @@ in
     ];
   };
 
-  users.users.cattn = {
-    isNormalUser = true;
-    group = "users";
-    shell = pkgs.bash;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHm7lo7umraewipgQu1Pifmoo/V8jYGDHjBTmt+7SOCe me@jaspermayone.com"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF5ZOyixDleoPZrLIjriKoOT+4ragghCpiIplClCCV87 Logan@cattn.dev"
-    ];
-  };
-
-  # Maria Newman — rails console only (no deploy user access)
-  users.users.maria = {
-    isNormalUser = true;
-    group = "users";
-    shell = pkgs.bash;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIAYUD7hlKah/XLITcqAl9qW1Qi/pZRhU3H99SUMzMNt maria@marianewman.co"
-    ];
-  };
-
-  home-manager.users.fundingfindr = import ./home-fundingfindr.nix;
-
   programs.nix-ld.enable = true;
   programs.zsh.enable = true;
   security.sudo.wheelNeedsPassword = false;
-  security.sudo.extraRules = [
-    {
-      # Maria can only open a rails console as fundingfindr — nothing else.
-      # Console1984 logs all activity inside the app.
-      users = [ "maria" ];
-      runAs = "fundingfindr";
-      commands = [
-        {
-          command = "/run/current-system/sw/bin/ff-console";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-    {
-      users = [ "fundingfindr" ];
-      commands = [
-        {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl start funding_findr";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl stop funding_findr";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl restart strapi";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_critical";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_default";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_low";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_propublica";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_llm";
-          options = [ "NOPASSWD" ];
-        }
-        # Combined restart for all workers — deploy.sh restarts them in one call
-        {
-          command = "/run/current-system/sw/bin/systemctl restart funding_findr_worker_critical funding_findr_worker_default funding_findr_worker_llm funding_findr_worker_low funding_findr_worker_propublica";
-          options = [ "NOPASSWD" ];
-        }
-        # Preview deploy helper — writes/deletes Traefik dynamic config files
-        {
-          command = "${preview-traefik}/bin/preview-traefik";
-          options = [ "NOPASSWD" ];
-        }
-        {
-          command = "/run/current-system/sw/bin/preview-traefik";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
 
   # Agenix secrets
   age.identityPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
@@ -451,21 +274,11 @@ in
       file = ../../secrets/l4-env.age;
       mode = "400";
     };
-    ollama-basicauth = {
-      file = ../../secrets/ollama-basicauth.age;
-      mode = "400";
-    };
     till-github-token = {
       file = ../../secrets/till-github-token.age;
       mode = "400";
       # owner "till" is gone while till-server is disabled; default to root so
       # agenix can chown. Restore `owner = "till";` when re-enabling till-server.
-    };
-    monitoring-env = {
-      file = ../../secrets/monitoring-env.age;
-      mode = "600";
-      owner = "fundingfindr";
-      path = "/home/fundingfindr/funding_findr/infra/monitoring/.env";
     };
     till-server-env = {
       file = ../../secrets/till-server-env.age;
@@ -503,7 +316,6 @@ in
       "strings-witcc"
       "docuseal"
       "redis-docuseal"
-      "ollama"
       "docker"
     ];
     remoteHosts = [
@@ -589,11 +401,6 @@ in
   };
 
   services.redis.servers.docuseal.port = lib.mkForce 6380;
-  services.redis.servers.fundingfindr = {
-    enable = true;
-    port = 6382;
-    bind = "127.0.0.1";
-  };
 
   # Authentik identity provider
   atelier.services.authentik = {
@@ -602,36 +409,17 @@ in
     environmentFile = config.age.secrets.authentik-env.path;
   };
 
-  # PostgreSQL for FundingFindr and till
+  # PostgreSQL for till
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_16;
     ensureUsers = [
       {
-        name = "fundingfindr";
-      }
-      {
         name = "till";
         ensureDBOwnership = true;
       }
     ];
-    ensureDatabases = [
-      "funding_findr_production"
-      "funding_findr_queue_production"
-      "funding_findr_cache_production"
-      "funding_findr_cable_production"
-      "till"
-    ];
-    initialScript = pkgs.writeText "postgres-init.sql" ''
-      GRANT ALL PRIVILEGES ON DATABASE funding_findr_production TO fundingfindr;
-      GRANT ALL PRIVILEGES ON DATABASE funding_findr_queue_production TO fundingfindr;
-      GRANT ALL PRIVILEGES ON DATABASE funding_findr_cache_production TO fundingfindr;
-      GRANT ALL PRIVILEGES ON DATABASE funding_findr_cable_production TO fundingfindr;
-      ALTER DATABASE funding_findr_production OWNER TO fundingfindr;
-      ALTER DATABASE funding_findr_queue_production OWNER TO fundingfindr;
-      ALTER DATABASE funding_findr_cache_production OWNER TO fundingfindr;
-      ALTER DATABASE funding_findr_cable_production OWNER TO fundingfindr;
-    '';
+    ensureDatabases = [ "till" ];
     authentication = pkgs.lib.mkOverride 10 ''
       local all all trust
       host all all 127.0.0.1/32 scram-sha-256
@@ -639,7 +427,7 @@ in
     '';
   };
 
-  # FundingFindr CMS (Strapi on port 1337)
+  # FundingFindr CMS (Strapi on port 1337) — staying here until Railway migration
   atelier.services.strapi = {
     enable = true;
     hostname = "cms.fundingfindr.co";
@@ -648,325 +436,6 @@ in
     user = "fundingfindr";
     group = "users";
     environmentFile = config.age.secrets.strapi-env.path;
-  };
-
-  # FundingFindr Rails app (Puma on port 3300)
-  systemd.services.funding_findr = {
-    description = "FundingFindr Puma HTTP Server";
-    after = [
-      "network.target"
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    requires = [
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      User = "fundingfindr";
-      Group = "users";
-      WorkingDirectory = "/home/fundingfindr/funding_findr";
-      EnvironmentFile = "/etc/funding_findr/env";
-      Environment = [
-        "RAILS_ENV=production"
-        "APPSIGNAL_APP_ENV=production"
-        "PORT=3300"
-        "PUMA_PID=/home/fundingfindr/funding_findr/tmp/pids/puma.pid"
-        "PUMA_STATE=/home/fundingfindr/funding_findr/tmp/pids/puma.state"
-        "RUBY_YJIT_ENABLE=1"
-        "BUNDLE_PATH=vendor/bundle"
-        "BUNDLE_WITHOUT=development:test"
-        "GTM_CONTAINER_ID=GTM-5GGR5CCW"
-        "STATSD_HOST=127.0.0.1"
-        "STATSD_PORT=8125"
-      ];
-      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec puma -C config/puma.rb'";
-      ExecReload = "/run/current-system/sw/bin/bash -lc 'bundle exec pumactl -S /home/fundingfindr/funding_findr/tmp/pids/puma.state phased-restart'";
-      ExecStop = "/run/current-system/sw/bin/bash -lc 'bundle exec pumactl -S /home/fundingfindr/funding_findr/tmp/pids/puma.state stop'";
-      KillMode = "process";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "funding_findr";
-    };
-  };
-
-  # FundingFindr GoodJob worker — critical queue (user-triggered, transactional)
-  systemd.services.funding_findr_worker_critical = {
-    description = "FundingFindr GoodJob Worker (critical)";
-    after = [
-      "network.target"
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    requires = [
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      User = "fundingfindr";
-      Group = "users";
-      WorkingDirectory = "/home/fundingfindr/funding_findr";
-      EnvironmentFile = "/etc/funding_findr/env";
-      Environment = [
-        "RAILS_ENV=production"
-        "APPSIGNAL_APP_ENV=production"
-        "RUBY_YJIT_ENABLE=1"
-        "BUNDLE_PATH=vendor/bundle"
-        "BUNDLE_WITHOUT=development:test"
-        "GOOD_JOB_QUEUES=critical"
-        "GOOD_JOB_MAX_THREADS=5"
-        "STATSD_HOST=127.0.0.1"
-        "STATSD_PORT=8125"
-      ];
-      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
-      KillMode = "process";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "funding_findr_worker_critical";
-    };
-  };
-
-  # FundingFindr GoodJob worker — default queue (scheduled jobs, bulk email)
-  systemd.services.funding_findr_worker_default = {
-    description = "FundingFindr GoodJob Worker (default)";
-    after = [
-      "network.target"
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    requires = [
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      User = "fundingfindr";
-      Group = "users";
-      WorkingDirectory = "/home/fundingfindr/funding_findr";
-      EnvironmentFile = "/etc/funding_findr/env";
-      Environment = [
-        "RAILS_ENV=production"
-        "APPSIGNAL_APP_ENV=production"
-        "RUBY_YJIT_ENABLE=1"
-        "BUNDLE_PATH=vendor/bundle"
-        "BUNDLE_WITHOUT=development:test"
-        "GOOD_JOB_QUEUES=default"
-        "GOOD_JOB_MAX_THREADS=10"
-        "STATSD_HOST=127.0.0.1"
-        "STATSD_PORT=8125"
-      ];
-      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
-      KillMode = "process";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "funding_findr_worker_default";
-    };
-  };
-
-  # FundingFindr GoodJob worker — low queue (batch imports, sweeps)
-  systemd.services.funding_findr_worker_low = {
-    description = "FundingFindr GoodJob Worker (low)";
-    after = [
-      "network.target"
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    requires = [
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      User = "fundingfindr";
-      Group = "users";
-      WorkingDirectory = "/home/fundingfindr/funding_findr";
-      EnvironmentFile = "/etc/funding_findr/env";
-      Environment = [
-        "RAILS_ENV=production"
-        "APPSIGNAL_APP_ENV=production"
-        "RUBY_YJIT_ENABLE=1"
-        "BUNDLE_PATH=vendor/bundle"
-        "BUNDLE_WITHOUT=development:test"
-        "GOOD_JOB_QUEUES=low"
-        "GOOD_JOB_MAX_THREADS=5"
-        "STATSD_HOST=127.0.0.1"
-        "STATSD_PORT=8125"
-      ];
-      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
-      KillMode = "process";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "funding_findr_worker_low";
-    };
-  };
-
-  # FundingFindr GoodJob worker — propublica queue (IRS 990 enrichment pipeline)
-  systemd.services.funding_findr_worker_propublica = {
-    description = "FundingFindr GoodJob Worker (propublica)";
-    after = [
-      "network.target"
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    requires = [
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      User = "fundingfindr";
-      Group = "users";
-      WorkingDirectory = "/home/fundingfindr/funding_findr";
-      EnvironmentFile = "/etc/funding_findr/env";
-      Environment = [
-        "RAILS_ENV=production"
-        "APPSIGNAL_APP_ENV=production"
-        "RUBY_YJIT_ENABLE=1"
-        "BUNDLE_PATH=vendor/bundle"
-        "BUNDLE_WITHOUT=development:test"
-        "GOOD_JOB_QUEUES=propublica"
-        "GOOD_JOB_MAX_THREADS=10"
-        "STATSD_HOST=127.0.0.1"
-        "STATSD_PORT=8125"
-      ];
-      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
-      KillMode = "process";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "funding_findr_worker_propublica";
-    };
-  };
-
-  # FundingFindr GoodJob worker — llm queue (Claude API calls, narrative/insight generation)
-  systemd.services.funding_findr_worker_llm = {
-    description = "FundingFindr GoodJob Worker (llm)";
-    after = [
-      "network.target"
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    requires = [
-      "postgresql.service"
-      "redis-fundingfindr.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      User = "fundingfindr";
-      Group = "users";
-      WorkingDirectory = "/home/fundingfindr/funding_findr";
-      EnvironmentFile = "/etc/funding_findr/env";
-      Environment = [
-        "RAILS_ENV=production"
-        "APPSIGNAL_APP_ENV=production"
-        "RUBY_YJIT_ENABLE=1"
-        "BUNDLE_PATH=vendor/bundle"
-        "BUNDLE_WITHOUT=development:test"
-        "GOOD_JOB_QUEUES=llm"
-        "GOOD_JOB_MAX_THREADS=5"
-        "STATSD_HOST=127.0.0.1"
-        "STATSD_PORT=8125"
-      ];
-      ExecStart = "/run/current-system/sw/bin/bash -lc 'bundle exec good_job start'";
-      KillMode = "process";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "funding_findr_worker_llm";
-    };
-  };
-
-  # Qdrant vector database (used by FundingFindr for semantic search)
-  # Binds to 127.0.0.1:6333 — only accessible from this host
-  # Data persisted at /var/lib/qdrant
-  systemd.services.qdrant = {
-    description = "Qdrant Vector Database";
-    after = [
-      "docker.service"
-      "network.target"
-    ];
-    requires = [ "docker.service" ];
-    wantedBy = [ "multi-user.target" ];
-    preStart = "mkdir -p /var/lib/qdrant";
-    serviceConfig = {
-      Type = "simple";
-      ExecStartPre = [
-        "-${pkgs.docker}/bin/docker stop qdrant"
-        "-${pkgs.docker}/bin/docker rm qdrant"
-        "${pkgs.docker}/bin/docker pull qdrant/qdrant:latest"
-      ];
-      ExecStart = "${pkgs.docker}/bin/docker run --name qdrant -p 127.0.0.1:6333:6333 -v /var/lib/qdrant:/qdrant/storage qdrant/qdrant:latest";
-      ExecStop = "${pkgs.docker}/bin/docker stop qdrant";
-      Restart = "on-failure";
-      RestartSec = "10s";
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "qdrant";
-    };
-  };
-
-  # Ollama embedding server (nomic-embed-text for FundingFindr semantic search)
-  # Binds to 127.0.0.1:11434 — only accessible from this host
-  # Model data persisted at /var/lib/ollama
-  systemd.services.ollama = {
-    description = "Ollama Embedding Server";
-    after = [
-      "docker.service"
-      "network.target"
-    ];
-    requires = [ "docker.service" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "simple";
-      ExecStartPre = [
-        "-${pkgs.docker}/bin/docker stop ollama"
-        "-${pkgs.docker}/bin/docker rm ollama"
-        "${pkgs.docker}/bin/docker pull ollama/ollama"
-      ];
-      ExecStart = "${pkgs.docker}/bin/docker run --name ollama -p 127.0.0.1:11434:11434 -v /var/lib/ollama:/root/.ollama ollama/ollama";
-      ExecStop = "${pkgs.docker}/bin/docker stop ollama";
-      Restart = "on-failure";
-      RestartSec = "10s";
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "ollama";
-    };
-  };
-
-  # Pull the nomic-embed-text model after Ollama starts (no-op if already present)
-  systemd.services.ollama-pull-model = {
-    description = "Pull Ollama nomic-embed-text model";
-    after = [ "ollama.service" ];
-    requires = [ "ollama.service" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      # Give Ollama a moment to be ready for API requests
-      ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
-      ExecStart = "${pkgs.docker}/bin/docker exec ollama ollama pull nomic-embed-text";
-      RemainAfterExit = true;
-      StandardOutput = "journal";
-      StandardError = "journal";
-      SyslogIdentifier = "ollama-pull-model";
-    };
   };
 
   # l4 image CDN
@@ -1014,22 +483,9 @@ in
 
   # ── nginx ────────────────────────────────────────────────────────────────────
   # Port 8091: crane-services static files (bangs.json, filters/, robots.txt)
-  # Port 3398: FundingFindr static error pages (served independently of Puma)
   # Ports 8092, 8095 are handled by bluesky-pds and img modules respectively.
   services.nginx = {
     enable = true;
-    virtualHosts."ff-error-pages" = {
-      listen = [
-        {
-          addr = "127.0.0.1";
-          port = 3398;
-        }
-      ];
-      root = "/home/fundingfindr/funding_findr/public";
-      locations."/" = {
-        tryFiles = "$uri =404";
-      };
-    };
     virtualHosts."crane-static" = {
       listen = [
         {
@@ -1257,30 +713,6 @@ in
             service = "crane-memory";
             priority = 20;
           };
-          # FundingFindr Rails app (Puma on port 3300)
-          funding-findr = {
-            rule = "Host(`fundingfindr.co`)";
-            entryPoints = [ "websecure" ];
-            tls.certResolver = "cloudflare";
-            middlewares = [
-              "hsts"
-              "ff-retry"
-              "ff-error-pages"
-            ];
-            service = "funding-findr";
-          };
-          # Ollama embedding server (local Docker container on port 11434)
-          # BasicAuth protects the public endpoint; Rails reads credentials from credentials.yml
-          ollama = {
-            rule = "Host(`ollama.hogwarts.dev`)";
-            entryPoints = [ "websecure" ];
-            tls.certResolver = "cloudflare";
-            middlewares = [
-              "hsts"
-              "ollama-auth"
-            ];
-            service = "ollama";
-          };
         };
         middlewares = {
           # Global HSTS middleware — referenced as "hsts" by all file-provider routers
@@ -1296,20 +728,6 @@ in
           };
           crane-strip-ext.stripPrefix.prefixes = [ "/ext" ];
           crane-strip-ubo.stripPrefix.prefixes = [ "/ubo" ];
-          ollama-auth.basicAuth.usersFile = config.age.secrets.ollama-basicauth.path;
-          # Retry once on 502/503 during Puma phased restarts — absorbs
-          # the brief window while a worker is cycling.
-          ff-retry.retry = {
-            attempts = 2;
-            initialInterval = "100ms";
-          };
-          # Serve FF-branded error pages from the nginx static server (port 3398)
-          # when Puma is unreachable. Scoped to the FF router only.
-          ff-error-pages.errors = {
-            status = [ "500-504" ];
-            service = "ff-error-pages";
-            query = "/{status}.html";
-          };
         };
         services = {
           knot.loadBalancer.servers = [ { url = "http://127.0.0.1:5555"; } ];
@@ -1331,16 +749,6 @@ in
           crane-memory.loadBalancer.servers = [ { url = "http://127.0.0.1:9005"; } ];
           # Dummy backend for the redirect router (never actually contacted)
           crane-noop.loadBalancer.servers = [ { url = "http://127.0.0.1:1"; } ];
-          funding-findr.loadBalancer = {
-            servers = [ { url = "http://127.0.0.1:3300"; } ];
-            healthCheck = {
-              path = "/up";
-              interval = "5s";
-              timeout = "3s";
-            };
-          };
-          ff-error-pages.loadBalancer.servers = [ { url = "http://127.0.0.1:3398"; } ];
-          ollama.loadBalancer.servers = [ { url = "http://127.0.0.1:11434"; } ];
         };
       };
     };
@@ -1368,60 +776,18 @@ in
   environment.etc."traefik/conf.d/posthog.toml" = {
     source = (pkgs.formats.toml { }).generate "posthog.toml" {
       http = {
-        routers = {
-          posthog-singlefeather = {
-            rule = "Host(`ph.singlefeather.com`)";
-            entryPoints = [ "websecure" ];
-            tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" ];
-            service = "posthog-singlefeather";
-          };
-          posthog-fundingfindr = {
-            rule = "Host(`ph.fundingfindr.co`)";
-            entryPoints = [ "websecure" ];
-            tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" ];
-            service = "posthog-fundingfindr";
-          };
+        routers.posthog-singlefeather = {
+          rule = "Host(`ph.singlefeather.com`)";
+          entryPoints = [ "websecure" ];
+          tls.certResolver = "cloudflare";
+          middlewares = [ "hsts" ];
+          service = "posthog-singlefeather";
         };
-        services = {
-          posthog-singlefeather.loadBalancer.servers = [
-            { url = "http://dobby.wildebeest-stargazer.ts.net:80"; }
-          ];
-          posthog-fundingfindr.loadBalancer.servers = [
-            { url = "http://kreacher.wildebeest-stargazer.ts.net:80"; }
-          ];
-        };
+        services.posthog-singlefeather.loadBalancer.servers = [
+          { url = "http://dobby.wildebeest-stargazer.ts.net:80"; }
+        ];
       };
     };
-  };
-
-  # ── Logging → AppSignal ─────────────────────────────────────────────────────
-  # Forward systemd journal entries to rsyslog, then ship FundingFindr logs to
-  # AppSignal over TLS. Only the four funding_findr syslog identifiers are
-  # forwarded — other services on this host are unaffected.
-  services.journald.extraConfig = ''
-    ForwardToSyslog=yes
-  '';
-
-  services.rsyslogd = {
-    enable = true;
-    extraConfig = ''
-      # TLS stream driver for AppSignal
-      $ActionSendStreamDriver gtls
-      $ActionSendStreamDriverMode 1
-      $ActionSendStreamDriverAuthMode anon
-      $DefaultNetstreamDriverCAFile /etc/ssl/certs/ca-bundle.crt
-
-      $template AppsignalFormat,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% %msgid% [ls-18f58f60-a8bb-4270-9a62-d1f8b50d6310@59115] %msg%\n"
-
-      if $programname == 'funding_findr' \
-      or $programname == 'funding_findr_worker_critical' \
-      or $programname == 'funding_findr_worker_default' \
-      or $programname == 'funding_findr_worker_llm' \
-      or $programname == 'funding_findr_worker_low' \
-      then @@appsignal-endpoint.net:6514;AppsignalFormat
-    '';
   };
 
   networking.firewall.allowedTCPPorts = [

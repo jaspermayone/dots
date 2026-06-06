@@ -42,6 +42,8 @@
     ];
   };
 
+  nixpkgs.config.allowUnfree = true;
+
   programs.zsh.enable = true;
 
   security.sudo.wheelNeedsPassword = false;
@@ -98,7 +100,7 @@
       ExecStartPre = [
         "-${pkgs.docker}/bin/docker stop unpoller"
         "-${pkgs.docker}/bin/docker rm unpoller"
-        "${pkgs.docker}/bin/docker pull ghcr.io/unpoller/unpoller:latest"
+        "-${pkgs.docker}/bin/docker pull ghcr.io/unpoller/unpoller:latest"
       ];
       ExecStart = "${pkgs.docker}/bin/docker run --name unpoller --network=host --env-file ${config.age.secrets.unpoller-env.path} -e UP_INFLUXDB_URL=http://localhost:8086 -e UP_INFLUXDB_DB=unifi -e UP_POLLER_DEBUG=false ghcr.io/unpoller/unpoller:latest";
       ExecStop = "${pkgs.docker}/bin/docker stop unpoller";

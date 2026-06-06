@@ -182,6 +182,7 @@
       # Available through 'nixos-rebuild --flake .#hostname'
       nixosConfigurations = {
         alastor = mkNixos "alastor" "aarch64-linux";
+        griffin = mkNixos "griffin" "x86_64-linux";
         horace = mkNixos "horace" "x86_64-linux";
         dobby = mkNixos "dobby" "x86_64-linux";
         kreacher = mkNixos "kreacher" "x86_64-linux";
@@ -239,6 +240,14 @@
             sshUser = "jsp";
             user = "root";
             path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.kreacher;
+          };
+        };
+        griffin = {
+          hostname = "136.112.168.43";
+          profiles.system = {
+            sshUser = "jsp";
+            user = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.griffin;
           };
         };
         nymphadora = {
