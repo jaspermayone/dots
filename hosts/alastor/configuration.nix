@@ -435,6 +435,7 @@
   # WIT Coding Club calendar backend
   atelier.services.wit-calendar = {
     enable = true;
+    hostname = "calendar.witcc.dev";
     image = "ghcr.io/witcodingclub/calendar-backend:main";
     environmentFile = config.age.secrets.wit-calendar-env.path;
     deployAuthorizedKeys = [
