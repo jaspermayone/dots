@@ -111,6 +111,8 @@ in
     # image-ref is written by the CI deploy user, so it must be owned by them.
     systemd.tmpfiles.rules = lib.mkIf (cfg.deployAuthorizedKeys != [ ]) [
       "f /var/lib/wit-calendar/image-ref 0644 wit-calendar-deploy users -"
+      # z adjusts ownership even if the file already existed (f only creates)
+      "z /var/lib/wit-calendar/image-ref 0644 wit-calendar-deploy users -"
     ];
 
     # ── Docker network ────────────────────────────────────────────────────────
