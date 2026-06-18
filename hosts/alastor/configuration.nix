@@ -790,6 +790,38 @@
     };
   };
 
+  # Mad River Mentoring — proxied to dedicated Proxmox VMs via Tailscale MagicDNS
+  environment.etc."traefik/conf.d/madrivermentoring.toml" = {
+    source = (pkgs.formats.toml { }).generate "madrivermentoring.toml" {
+      http = {
+        routers = {
+          mrm-staging = {
+            rule = "Host(`staging.madrivermentoring.com`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "mrm-staging";
+          };
+          mrm-prod = {
+            rule = "Host(`p.madrivermentoring.com`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "mrm-prod";
+          };
+        };
+        services = {
+          mrm-staging.loadBalancer.servers = [
+            { url = "http://mrm-staging.wildebeest-stargazer.ts.net:3000"; }
+          ];
+          mrm-prod.loadBalancer.servers = [
+            { url = "http://mrm-prod.wildebeest-stargazer.ts.net:3000"; }
+          ];
+        };
+      };
+    };
+  };
+
   networking.firewall.allowedTCPPorts = [
     80
     443

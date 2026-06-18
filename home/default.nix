@@ -121,6 +121,23 @@
         };
       }) (builtins.attrNames (builtins.readDir ../rc))
     )
+    // {
+      # Ghostty config (keybindings, settings)
+      # Hyper key = caps lock = ctrl+alt+super+shift
+      ".config/ghostty/config".text = ''
+        # Split panes (hyper+wasd)
+        keybind = ctrl+alt+super+shift+w=new_split:up
+        keybind = ctrl+alt+super+shift+s=new_split:down
+        keybind = ctrl+alt+super+shift+a=new_split:left
+        keybind = ctrl+alt+super+shift+d=new_split:right
+
+        # Navigate splits (hyper+arrow)
+        keybind = ctrl+alt+super+shift+up=goto_split:top
+        keybind = ctrl+alt+super+shift+down=goto_split:bottom
+        keybind = ctrl+alt+super+shift+left=goto_split:left
+        keybind = ctrl+alt+super+shift+right=goto_split:right
+      '';
+    }
     // lib.optionalAttrs (!isDarwin) {
       # Discord settings (skip update nag on NixOS)
       ".config/discord/settings.json".text = builtins.toJSON { SKIP_HOST_UPDATE = true; };

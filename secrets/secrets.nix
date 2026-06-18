@@ -12,6 +12,8 @@ let
   dippet = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOqi0ZRAHUqBL4zolSeVTgp1oZ6HKD+Hq5AktpLolely jsp@Dippet";
   horace = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILYGMXvsqRFPCtDLSq65TzJPYx+Nz675+RbTY4ox/9Gw root@nixos";
   nymphadora = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKsKNW8psG4OWte25O9AyW8vEWWHjQUCT5UX4zANpNzs root@nymphadora";
+  mrm-staging = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOAiaH7+DLZHI6KcQ0G2vhgZ+VDP+AZ+02bLXkaLZ0ZH root@mrm-staging";
+  mrm-prod    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFRsUBfAa0maAGFm0LBWOYAhGB0QRL9eNBjpGYVhgWcA root@mrm-prod";
 
   # Groups for convenience
   allUsers = [ jsp ];
@@ -20,6 +22,8 @@ let
     dippet
     horace
     nymphadora
+    mrm-staging
+    mrm-prod
   ];
   all = allUsers ++ allHosts;
 in
@@ -214,5 +218,8 @@ jsp
     jsp
     nymphadora
   ];
+
+  "mentordb-staging-env.age".publicKeys = [ jsp mrm-staging ];
+  "mentordb-prod-env.age".publicKeys    = [ jsp mrm-prod ];
 
 }

@@ -124,7 +124,7 @@
         ];
       };
 
-      # Helper function to create NixOS configurations
+      # Helper function to create NixOS configurations (workstations/full hosts)
       mkNixos =
         hostname: system:
         nixpkgs.lib.nixosSystem {
@@ -148,6 +148,22 @@
               };
               home-manager.users.jsp = import ./home;
             }
+          ];
+        };
+
+      # Lightweight variant for headless servers — skips home-manager so dev
+      # tooling (atuin, shell plugins, etc.) is not compiled on machines that
+      # will never run an interactive user session.
+      mkNixosServer =
+        hostname: system:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs outputs hostname; };
+          modules = [
+            { nixpkgs.hostPlatform = system; }
+            ./hosts/${hostname}/configuration.nix
+            agenix.nixosModules.default
+            inputs.disko.nixosModules.disko
+            unstable-overlays
           ];
         };
 
@@ -187,6 +203,8 @@
         dobby = mkNixos "dobby" "x86_64-linux";
         kreacher = mkNixos "kreacher" "x86_64-linux";
         nymphadora = mkNixos "nymphadora" "x86_64-linux";
+        mrm-staging = mkNixosServer "mrm-staging" "x86_64-linux";
+        mrm-prod = mkNixosServer "mrm-prod" "x86_64-linux";
       };
 
       # Darwin configurations
@@ -256,6 +274,22 @@
             sshUser = "jsp";
             user = "root";
             path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.nymphadora;
+          };
+        };
+        mrm-staging = {
+          hostname = "mrm-staging.wildebeest-stargazer.ts.net";
+          profiles.system = {
+            sshUser = "jsp";
+            user = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.mrm-staging;
+          };
+        };
+        mrm-prod = {
+          hostname = "mrm-prod.wildebeest-stargazer.ts.net";
+          profiles.system = {
+            sshUser = "jsp";
+            user = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.mrm-prod;
           };
         };
       };
