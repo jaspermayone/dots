@@ -184,6 +184,17 @@ alastor
 jsp
  ];
 
+  # WIT Calendar backend runtime secrets.
+  # Format:
+  #   RAILS_MASTER_KEY=...
+  #   CALENDAR_DATABASE_PASSWORD=...   (Rails DB password)
+  #   POSTGRES_PASSWORD=...            (same value — postgres container init)
+  "wit-calendar-env.age".publicKeys = [
+    jsp
+    alastor
+  ];
+
+
   # Ollama BasicAuth credentials for Traefik (htpasswd format)
   # Generate with: htpasswd -nB ollama | tr -d '\n'
   # agenix -e ollama-basicauth.age

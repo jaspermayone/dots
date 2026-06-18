@@ -26,6 +26,7 @@
     ../../modules/l4
     ../../modules/till-server
     ../../modules/basecamp-apps
+    ../../modules/wit-calendar
     inputs.strings.nixosModules.default
     inputs.tangled.nixosModules.knot
     inputs.tangled.nixosModules.spindle
@@ -249,6 +250,10 @@
       mode = "400";
       owner = "nobody";
     };
+    wit-calendar-env = {
+      file = ../../secrets/wit-calendar-env.age;
+      mode = "400";
+    };
     crane-services-token = {
       file = ../../secrets/crane-services-token.age;
       mode = "400";
@@ -427,6 +432,16 @@
     '';
   };
 
+  # WIT Coding Club calendar backend
+  atelier.services.wit-calendar = {
+    enable = true;
+    image = "ghcr.io/witcodingclub/calendar-backend:main";
+    environmentFile = config.age.secrets.wit-calendar-env.path;
+    deployAuthorizedKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFPR0KgNpNxd34CwP1X9B4tKoQdAwa42WvJZdP1p2RTl github-actions-wit-calendar-deploy"
+    ];
+  };
+
   # FundingFindr CMS (Strapi on port 1337) — staying here until Railway migration
   atelier.services.strapi = {
     enable = true;
@@ -580,13 +595,7 @@
             middlewares = [ "hsts" ];
             service = "str-witcc";
           };
-          server-calendar = {
-            rule = "Host(`server-calendar.witcc.dev`)";
-            entryPoints = [ "websecure" ];
-            tls.certResolver = "cloudflare";
-            middlewares = [ "hsts" ];
-            service = "server-calendar";
-          };
+          # server-calendar routing moved to modules/wit-calendar (wit-calendar.toml)
           spindle = {
             rule = "Host(`1.alastor.spindle.hogwarts.dev`)";
             entryPoints = [ "websecure" ];
@@ -733,7 +742,6 @@
           knot.loadBalancer.servers = [ { url = "http://127.0.0.1:5555"; } ];
           str-hogwarts.loadBalancer.servers = [ { url = "http://127.0.0.1:3100"; } ];
           str-witcc.loadBalancer.servers = [ { url = "http://127.0.0.1:3101"; } ];
-          server-calendar.loadBalancer.servers = [ { url = "http://127.0.0.1:3002"; } ];
           spindle.loadBalancer.servers = [ { url = "http://127.0.0.1:6555"; } ];
           docuseal.loadBalancer.servers = [ { url = "http://127.0.0.1:3200"; } ];
           idp.loadBalancer.servers = [ { url = "http://127.0.0.1:3003"; } ];
