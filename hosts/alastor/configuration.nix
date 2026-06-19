@@ -800,11 +800,15 @@
           rule = "Host(`linkace.hogwarts.dev`)";
           entryPoints = [ "websecure" ];
           tls.certResolver = "cloudflare";
-          middlewares = [ "hsts" ];
+          middlewares = [ "hsts" "linkace-https" ];
           service = "linkace";
         };
+        middlewares.linkace-https.headers.customRequestHeaders = {
+          "X-Forwarded-Proto" = "https";
+          "X-Forwarded-Port" = "";
+        };
         services.linkace.loadBalancer.servers = [
-          { url = "http://pince.wildebeest-stargazer.ts.net:80"; }
+          { url = "http://flourish.wildebeest-stargazer.ts.net:80"; }
         ];
       };
     };
