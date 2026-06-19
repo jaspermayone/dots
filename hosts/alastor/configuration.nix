@@ -763,6 +763,53 @@
     };
   };
 
+  # Gringotts password manager (Vaultwarden) — proxied via Tailscale MagicDNS
+  environment.etc."traefik/conf.d/pass.toml" = {
+    source = (pkgs.formats.toml { }).generate "pass.toml" {
+      http = {
+        routers.pass = {
+          rule = "Host(`pass.hogwarts.dev`)";
+          entryPoints = [ "websecure" ];
+          tls.certResolver = "cloudflare";
+          middlewares = [
+            "hsts"
+            "pass-no-cache"
+            "pass-compress"
+          ];
+          service = "pass";
+        };
+        middlewares = {
+          pass-no-cache.headers.customResponseHeaders = {
+            Cache-Control = "no-store";
+            Pragma = "no-cache";
+          };
+          pass-compress.compress = { };
+        };
+        services.pass.loadBalancer.servers = [
+          { url = "http://gringotts.wildebeest-stargazer.ts.net:80"; }
+        ];
+      };
+    };
+  };
+
+  # Pince (LinkAce bookmarks) — proxied via Tailscale MagicDNS
+  environment.etc."traefik/conf.d/linkace.toml" = {
+    source = (pkgs.formats.toml { }).generate "linkace.toml" {
+      http = {
+        routers.linkace = {
+          rule = "Host(`linkace.hogwarts.dev`)";
+          entryPoints = [ "websecure" ];
+          tls.certResolver = "cloudflare";
+          middlewares = [ "hsts" ];
+          service = "linkace";
+        };
+        services.linkace.loadBalancer.servers = [
+          { url = "http://pince.wildebeest-stargazer.ts.net:80"; }
+        ];
+      };
+    };
+  };
+
   # Nymphadora telemetry (Grafana) — proxied via Tailscale MagicDNS
   environment.etc."traefik/conf.d/nymphadora.toml" = {
     source = (pkgs.formats.toml { }).generate "nymphadora.toml" {

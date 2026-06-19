@@ -17,6 +17,12 @@
     useDHCP = false;
     interfaces.ens18.useDHCP = true;
     dhcpcd.wait = "background";
+    dhcpcd.extraConfig = ''
+      nooption domain_name_servers, domain_search
+      clientid
+    '';
+    nameservers = [ "10.100.20.10" ];
+    search = [ "hogwarts.internal" ];
   };
 
   time.timeZone = "America/New_York";

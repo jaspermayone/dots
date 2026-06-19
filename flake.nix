@@ -269,7 +269,7 @@
           };
         };
         nymphadora = {
-          hostname = "nymphadora"; # update to IP if DNS not yet set
+          hostname = "nymphadora.hogwarts.internal";
           profiles.system = {
             sshUser = "jsp";
             user = "root";
