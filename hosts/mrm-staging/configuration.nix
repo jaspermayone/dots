@@ -65,6 +65,9 @@
   };
   nix.optimise.automatic = true;
 
+  # ── QEMU guest agent ─────────────────────────────────────────────────────────
+  services.qemuGuest.enable = true;
+
   # ── Tailscale ────────────────────────────────────────────────────────────────
   services.tailscale.enable = true;
 

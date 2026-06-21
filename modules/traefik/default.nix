@@ -58,6 +58,11 @@ let
       };
       websecure = {
         address = ":443";
+        # Increased for large Immich photo/video uploads (default 60s causes 499s)
+        transport.respondingTimeouts = {
+          readTimeout = "600s";
+          idleTimeout = "600s";
+        };
         # Trust Cloudflare egress IPs so Traefik passes through CF-Connecting-IP
         # / X-Forwarded-For rather than overwriting with the Cloudflare proxy IP.
         forwardedHeaders.trustedIPs = [

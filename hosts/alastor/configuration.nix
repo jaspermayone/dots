@@ -832,6 +832,199 @@
     };
   };
 
+  # Proxmox VE — proxied via Tailscale MagicDNS, protected by Authentik
+  # Backend is HTTPS with a self-signed cert; insecureSkipVerify bypasses that.
+  environment.etc."traefik/conf.d/pve.toml" = {
+    source = (pkgs.formats.toml { }).generate "pve.toml" {
+      http = {
+        middlewares.pve-auth.forwardAuth = {
+          address = "http://127.0.0.1:9000/outpost.goauthentik.io/auth/traefik";
+          authResponseHeaders = [
+            "X-authentik-username"
+            "X-authentik-groups"
+            "X-authentik-email"
+            "X-authentik-name"
+            "X-authentik-uid"
+            "X-authentik-jwt"
+            "X-authentik-meta-jwks"
+            "X-authentik-meta-outpost"
+            "X-authentik-meta-provider"
+            "X-authentik-meta-app"
+            "X-authentik-meta-version"
+          ];
+          trustForwardHeader = true;
+        };
+        routers = {
+          pve-outpost = {
+            rule = "Host(`pve.hogwarts.dev`) && PathPrefix(`/outpost.goauthentik.io`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "pve-authentik-outpost";
+            priority = 30;
+          };
+          pve-ws = {
+            rule = "Host(`pve.hogwarts.dev`) && PathRegexp(`/api2/json/nodes/.+/(vncwebsocket|termproxy|spiceproxy)`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "pve";
+            priority = 20;
+          };
+          pve = {
+            rule = "Host(`pve.hogwarts.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" "pve-auth" ];
+            service = "pve";
+            priority = 10;
+          };
+        };
+        services = {
+          pve = {
+            loadBalancer = {
+              serversTransport = "pve-transport";
+              servers = [ { url = "https://pve.wildebeest-stargazer.ts.net:8006"; } ];
+            };
+          };
+          pve-authentik-outpost.loadBalancer.servers = [
+            { url = "http://127.0.0.1:9000"; }
+          ];
+        };
+        serversTransports.pve-transport.insecureSkipVerify = true;
+      };
+    };
+  };
+
+  # Skeeter Umami (analytics) — proxied via Tailscale MagicDNS, dashboard behind Authentik
+  # /api/send is excluded so tracking scripts can POST without auth.
+  environment.etc."traefik/conf.d/umami.toml" = {
+    source = (pkgs.formats.toml { }).generate "umami.toml" {
+      http = {
+        middlewares.umami-auth.forwardAuth = {
+          address = "http://127.0.0.1:9000/outpost.goauthentik.io/auth/traefik";
+          authResponseHeaders = [
+            "X-authentik-username"
+            "X-authentik-groups"
+            "X-authentik-email"
+            "X-authentik-name"
+            "X-authentik-uid"
+            "X-authentik-jwt"
+            "X-authentik-meta-jwks"
+            "X-authentik-meta-outpost"
+            "X-authentik-meta-provider"
+            "X-authentik-meta-app"
+            "X-authentik-meta-version"
+          ];
+          trustForwardHeader = true;
+        };
+        routers = {
+          umami-outpost = {
+            rule = "Host(`umami.hogwarts.dev`) && PathPrefix(`/outpost.goauthentik.io`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "umami-authentik-outpost";
+            priority = 30;
+          };
+          umami-tracking = {
+            rule = "Host(`umami.hogwarts.dev`) && PathPrefix(`/api/send`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "umami";
+            priority = 20;
+          };
+          umami = {
+            rule = "Host(`umami.hogwarts.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" "umami-auth" ];
+            service = "umami";
+            priority = 10;
+          };
+        };
+        services = {
+          umami.loadBalancer.servers = [
+            { url = "http://skeeter.wildebeest-stargazer.ts.net:3000"; }
+          ];
+          umami-authentik-outpost.loadBalancer.servers = [
+            { url = "http://127.0.0.1:9000"; }
+          ];
+        };
+      };
+    };
+  };
+
+  # Floo n8n (workflow automation) — proxied via Tailscale MagicDNS, protected by Authentik
+  environment.etc."traefik/conf.d/n8n.toml" = {
+    source = (pkgs.formats.toml { }).generate "n8n.toml" {
+      http = {
+        middlewares.n8n-auth.forwardAuth = {
+          address = "http://127.0.0.1:9000/outpost.goauthentik.io/auth/traefik";
+          authResponseHeaders = [
+            "X-authentik-username"
+            "X-authentik-groups"
+            "X-authentik-email"
+            "X-authentik-name"
+            "X-authentik-uid"
+            "X-authentik-jwt"
+            "X-authentik-meta-jwks"
+            "X-authentik-meta-outpost"
+            "X-authentik-meta-provider"
+            "X-authentik-meta-app"
+            "X-authentik-meta-version"
+          ];
+          trustForwardHeader = true;
+        };
+        routers = {
+          n8n-outpost = {
+            rule = "Host(`n8n.hogwarts.dev`) && PathPrefix(`/outpost.goauthentik.io`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "n8n-authentik-outpost";
+            priority = 20;
+          };
+          n8n = {
+            rule = "Host(`n8n.hogwarts.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" "n8n-auth" ];
+            service = "n8n";
+            priority = 10;
+          };
+        };
+        services = {
+          n8n.loadBalancer.servers = [
+            { url = "http://floo.wildebeest-stargazer.ts.net:5678"; }
+          ];
+          n8n-authentik-outpost.loadBalancer.servers = [
+            { url = "http://127.0.0.1:9000"; }
+          ];
+        };
+      };
+    };
+  };
+
+  # Honeydukes Mealie (meal planner) — proxied via Tailscale MagicDNS
+  environment.etc."traefik/conf.d/mealie.toml" = {
+    source = (pkgs.formats.toml { }).generate "mealie.toml" {
+      http = {
+        routers.mealie = {
+          rule = "Host(`mealie.hogwarts.dev`)";
+          entryPoints = [ "websecure" ];
+          tls.certResolver = "cloudflare";
+          middlewares = [ "hsts" ];
+          service = "mealie";
+        };
+        services.mealie.loadBalancer.servers = [
+          { url = "http://honeydukes.wildebeest-stargazer.ts.net:9925"; }
+        ];
+      };
+    };
+  };
+
   # PostHog analytics — proxied to homelab VMs via Tailscale MagicDNS
   environment.etc."traefik/conf.d/posthog.toml" = {
     source = (pkgs.formats.toml { }).generate "posthog.toml" {

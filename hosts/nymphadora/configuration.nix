@@ -31,12 +31,14 @@
   boot.loader.grub.enable = true;
 
   services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = false;
-      PermitRootLogin = "no";
-    };
+  enable = true;
+  settings = {
+    PasswordAuthentication = false;
+    PermitRootLogin = "no";
+    AuthorizedKeysCommand = "/run/current-system/sw/bin/sss_ssh_authorizedkeys %u | sed 's/^SSHKey://'";
+    AuthorizedKeysCommandUser = "root";
   };
+};
 
   users.users.jsp = {
     isNormalUser = true;
@@ -95,46 +97,52 @@
   # After deploying, SSH in and run once:
   #   sudo realm join -U Administrator hogwarts.internal
   security.krb5 = {
-    enable = true;
-    settings = {
-      libdefaults = {
-        default_realm = "HOGWARTS.INTERNAL";
-        dns_lookup_realm = false;
-        dns_lookup_kdc = true;
-      };
-      realms."HOGWARTS.INTERNAL" = {
-        admin_server = "hogwarts.internal";
-        kdc = "10.100.20.10";
-      };
-      domain_realm = {
-        ".hogwarts.internal" = "HOGWARTS.INTERNAL";
-        "hogwarts.internal" = "HOGWARTS.INTERNAL";
-      };
+  enable = true;
+  settings = {
+    libdefaults = {
+      default_realm = "HOGWARTS.INTERNAL";
+      dns_lookup_realm = false;
+      dns_lookup_kdc = true;
+      default_tgs_enctypes = "aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96";
+      default_tkt_enctypes = "aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96";
+      permitted_enctypes = "aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96";
+    };
+    realms."HOGWARTS.INTERNAL" = {
+      admin_server = "prongs.hogwarts.internal";
+      kdc = "10.100.20.10";
+    };
+    domain_realm = {
+      ".hogwarts.internal" = "HOGWARTS.INTERNAL";
+      "hogwarts.internal" = "HOGWARTS.INTERNAL";
     };
   };
+};
+
 
   services.sssd = {
-    enable = true;
-    config = ''
-      [sssd]
-      domains = hogwarts.internal
-      config_file_version = 2
-      services = nss, pam
+  enable = true;
+  config = ''
+    [sssd]
+    domains = hogwarts.internal
+    config_file_version = 2
+    services = nss, pam, ssh
 
-      [domain/hogwarts.internal]
-      ad_domain = hogwarts.internal
-      krb5_realm = HOGWARTS.INTERNAL
-      realmd_tags = manages-system joined-with-adcli
-      cache_credentials = True
-      id_provider = ad
-      krb5_store_password_if_offline = True
-      default_shell = /bin/bash
-      ldap_id_mapping = True
-      use_fully_qualified_names = True
-      fallback_homedir = /home/%u@%d
-      access_provider = ad
-    '';
-  };
+    [domain/hogwarts.internal]
+    ad_domain = hogwarts.internal
+    ad_server = 10.100.20.10
+    krb5_realm = HOGWARTS.INTERNAL
+    cache_credentials = True
+    id_provider = ad
+    access_provider = simple
+    simple_allow_groups = Nymphadora Logon
+    krb5_store_password_if_offline = True
+    default_shell = /bin/bash
+    ldap_id_mapping = True
+    use_fully_qualified_names = False
+    fallback_homedir = /home/%u
+    ldap_user_ssh_public_key = altSecurityIdentities
+  '';
+};
 
   # Don't fail on first boot before realm join — keytab won't exist yet
   systemd.services.sssd.unitConfig.ConditionPathExists = "/etc/krb5.keytab";
