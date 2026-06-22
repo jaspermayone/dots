@@ -1075,6 +1075,69 @@
     };
   };
 
+  # Obscurus Excalidraw — proxied via Tailscale MagicDNS, protected by Authentik
+  # Main app (port 3000) and excalidraw-room collaboration server (port 3002, /socket.io path)
+  environment.etc."traefik/conf.d/obscurus.toml" = {
+    source = (pkgs.formats.toml { }).generate "obscurus.toml" {
+      http = {
+        middlewares.obscurus-auth.forwardAuth = {
+          address = "http://127.0.0.1:9000/outpost.goauthentik.io/auth/traefik";
+          authResponseHeaders = [
+            "X-authentik-username"
+            "X-authentik-groups"
+            "X-authentik-email"
+            "X-authentik-name"
+            "X-authentik-uid"
+            "X-authentik-jwt"
+            "X-authentik-meta-jwks"
+            "X-authentik-meta-outpost"
+            "X-authentik-meta-provider"
+            "X-authentik-meta-app"
+            "X-authentik-meta-version"
+          ];
+          trustForwardHeader = true;
+        };
+        routers = {
+          obscurus-outpost = {
+            rule = "Host(`obscurus.hogwarts.dev`) && PathPrefix(`/outpost.goauthentik.io`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" ];
+            service = "obscurus-authentik-outpost";
+            priority = 30;
+          };
+          obscurus-room = {
+            rule = "Host(`obscurus.hogwarts.dev`) && PathPrefix(`/socket.io`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" "obscurus-auth" ];
+            service = "obscurus-room";
+            priority = 20;
+          };
+          obscurus = {
+            rule = "Host(`obscurus.hogwarts.dev`)";
+            entryPoints = [ "websecure" ];
+            tls.certResolver = "cloudflare";
+            middlewares = [ "hsts" "obscurus-auth" ];
+            service = "obscurus";
+            priority = 10;
+          };
+        };
+        services = {
+          obscurus.loadBalancer.servers = [
+            { url = "http://obscurus.wildebeest-stargazer.ts.net:3000"; }
+          ];
+          obscurus-room.loadBalancer.servers = [
+            { url = "http://obscurus.wildebeest-stargazer.ts.net:3002"; }
+          ];
+          obscurus-authentik-outpost.loadBalancer.servers = [
+            { url = "http://127.0.0.1:9000"; }
+          ];
+        };
+      };
+    };
+  };
+
   networking.firewall.allowedTCPPorts = [
     80
     443
