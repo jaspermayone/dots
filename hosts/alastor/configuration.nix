@@ -1138,24 +1138,6 @@
     };
   };
 
-  # ExcaliDash — Excalidraw dashboard with persistence, proxied via Tailscale, OIDC handled by app
-  environment.etc."traefik/conf.d/excalidash.toml" = {
-    source = (pkgs.formats.toml { }).generate "excalidash.toml" {
-      http = {
-        routers.excalidash = {
-          rule = "Host(`excalidash.hogwarts.dev`)";
-          entryPoints = [ "websecure" ];
-          tls.certResolver = "cloudflare";
-          middlewares = [ "hsts" ];
-          service = "excalidash";
-        };
-        services.excalidash.loadBalancer.servers = [
-          { url = "http://obscurus.wildebeest-stargazer.ts.net:6767"; }
-        ];
-      };
-    };
-  };
-
   networking.firewall.allowedTCPPorts = [
     80
     443
